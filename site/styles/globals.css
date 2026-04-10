@@ -1,0 +1,264 @@
+/* ─────────────────────────────────────────────
+   TIENDA OSVALDO — Estilos globales
+   Sistema de diseño: Syne + Plus Jakarta Sans
+   Paleta: naranja #E8622A, crema #FBF6EE, marrón #3D1F0D
+───────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* ── VARIABLES ─────────────────────────────── */
+
+:root {
+  /* Colores principales */
+  --cream:       #FBF6EE;
+  --white:       #FFFFFF;
+  --orange:      #E8622A;
+  --orange-soft: #FFF0E8;
+  --orange-mid:  #F4895F;
+  --brown:       #3D1F0D;
+  --brown-mid:   #7A4528;
+  --sand:        #F0DEC8;
+  --sand-dark:   #DEC4A4;
+  --green:       #4A8C5C;
+  --green-soft:  #EDF5EF;
+  --muted:       #9C7B68;
+  --red:         #E24B4A;
+  --red-soft:    #FCEBEB;
+
+  /* Radios */
+  --r:   16px;
+  --rl:  24px;
+  --rxl: 32px;
+
+  /* Tipografía */
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'Plus Jakarta Sans', sans-serif;
+
+  /* Sombras */
+  --shadow-sm:  0 2px 8px rgba(61,31,13,.06);
+  --shadow-md:  0 4px 20px rgba(61,31,13,.08);
+  --shadow-lg:  0 8px 48px rgba(61,31,13,.10);
+
+  /* Transiciones */
+  --transition: .15s ease;
+
+  /* Layout */
+  --max-width: 1200px;
+  --padding-x: 48px;
+}
+
+/* ── RESET ─────────────────────────────────── */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--brown);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+/* ── TIPOGRAFÍA ────────────────────────────── */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  color: var(--brown);
+}
+
+/* ── LAYOUT ────────────────────────────────── */
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--padding-x);
+}
+
+.section {
+  padding: 64px var(--padding-x);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* ── BOTONES ───────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 50px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 28px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-fill {
+  background: var(--orange);
+  color: white;
+}
+.btn-fill:hover {
+  background: var(--brown-mid);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--brown);
+  border: 1.5px solid var(--sand-dark);
+}
+.btn-ghost:hover {
+  border-color: var(--brown);
+  background: var(--white);
+}
+
+.btn-sm {
+  padding: 9px 18px;
+  font-size: 13px;
+}
+
+/* ── CARDS DE PRODUCTO ─────────────────────── */
+
+.product-card {
+  background: var(--white);
+  border: 1.5px solid var(--sand);
+  border-radius: var(--rl);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.product-card:hover {
+  border-color: var(--orange);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── BADGES ────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-orange {
+  background: var(--orange);
+  color: white;
+}
+
+.badge-green {
+  background: var(--green);
+  color: white;
+}
+
+.badge-brown {
+  background: var(--brown);
+  color: white;
+}
+
+/* ── INPUTS ────────────────────────────────── */
+
+.input {
+  width: 100%;
+  border: 1.5px solid var(--sand);
+  border-radius: var(--r);
+  padding: 13px 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--brown);
+  background: var(--white);
+  outline: none;
+  transition: var(--transition);
+}
+
+.input:focus {
+  border-color: var(--orange);
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+/* ── SKELETON LOADING ──────────────────────── */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--sand) 25%,
+    var(--sand-dark) 50%,
+    var(--sand) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--r);
+}
+
+/* ── RESPONSIVE ────────────────────────────── */
+
+@media (max-width: 1024px) {
+  :root {
+    --padding-x: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --padding-x: 20px;
+  }
+
+  .section {
+    padding: 48px var(--padding-x);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --padding-x: 16px;
+  }
+
+  .section {
+    padding: 32px var(--padding-x);
+  }
+}

@@ -1,0 +1,16 @@
+2026-04-07T18:44:04.451974 Project directory: /docker/tiendaosvaldo
+2026-04-07T18:44:04.452273 Pulling project images
+2026-04-07T18:44:04.452894 ------------------------------
+2026-04-07T18:44:04.600048  Image node:20-alpine Pulling 
+2026-04-07T18:44:06.222966  Image node:20-alpine Pulled 
+2026-04-07T18:44:06.254729 ------------------------------
+2026-04-07T18:44:06.254862 Deploying project
+2026-04-07T18:44:06.255335 ------------------------------
+2026-04-07T18:44:06.364364  Volume tiendaosvaldo_tiendaosvaldo_node_modules Creating 
+2026-04-07T18:44:06.374620  Volume tiendaosvaldo_tiendaosvaldo_node_modules Created 
+2026-04-07T18:44:06.387713  Container tiendaosvaldo-tiendaosvaldo-1 Recreate 
+2026-04-07T18:44:06.713134  Container tiendaosvaldo-tiendaosvaldo-1 Recreated 
+2026-04-07T18:44:06.723291  Container tiendaosvaldo-tiendaosvaldo-1 Starting 
+2026-04-07T18:44:06.927114  Container tiendaosvaldo-tiendaosvaldo-1 Started 
+2026-04-07T18:44:06.932845 ------------------------------
+2026-04-07T18:44:06.932917 Project deployed successfully
