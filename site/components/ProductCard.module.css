@@ -17,9 +17,18 @@
 /* Imagen */
 .imgWrap {
   position: relative;
+  /* [UX-FIX] Fallback para Safari < 15 que no soporta aspect-ratio */
+  padding-top: 100%;
   aspect-ratio: 1;
   background: var(--cream);
   overflow: hidden;
+}
+
+/* Cuando aspect-ratio funciona, cancelamos el padding-top */
+@supports (aspect-ratio: 1) {
+  .imgWrap {
+    padding-top: 0;
+  }
 }
 
 .img {
@@ -56,6 +65,7 @@
   flex-direction: column;
   gap: 6px;
   flex: 1;
+  min-height: 140px;
 }
 
 .category {

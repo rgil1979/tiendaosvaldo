@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { MLProduct, buildAffiliateLink, formatPrice, getDiscount, getHQThumbnail } from "@/lib/mercadolibre"
+import { renderStars } from "@/lib/utils"
 import styles from "./ProductCard.module.css"
 
 interface ProductCardProps {
@@ -53,7 +54,12 @@ export default function ProductCard({
         {/* Rating */}
         {product.reviews && (
           <div className={styles.rating}>
-            <span className={styles.stars}>★★★★★</span>
+            <span
+              className={styles.stars}
+              aria-label={`${product.reviews.rating_average.toFixed(1)} de 5 estrellas`}
+            >
+              {renderStars(product.reviews.rating_average)}
+            </span>
             <span className={styles.ratingNum}>
               {product.reviews.rating_average.toFixed(1)}
             </span>

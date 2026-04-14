@@ -270,6 +270,12 @@
 
 .btnSubmit:hover { background: var(--brown-mid); }
 
+.btnSubmit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--brown-mid);
+}
+
 /* Info cards sidebar */
 .infoCards {
   display: flex;

@@ -11,6 +11,7 @@ import {
   getDiscount,
   getHQThumbnail,
 } from "@/lib/mercadolibre"
+import { renderStars } from "@/lib/utils"
 import { siteConfig } from "@/config/site.config"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
@@ -67,7 +68,9 @@ export default async function ProductPage({ params }: Props) {
           <span>›</span>
           <Link href="/categoria/mascotas">Mascotas</Link>
           <span>›</span>
-          <span className={styles.breadcrumbCurrent}>{product.title.slice(0, 40)}...</span>
+          <span className={styles.breadcrumbCurrent}>
+            {product.title.length > 40 ? `${product.title.slice(0, 40)}...` : product.title}
+          </span>
         </div>
       </div>
 
@@ -145,7 +148,12 @@ export default async function ProductPage({ params }: Props) {
           {/* Rating */}
           {product.reviews && (
             <div className={styles.productRating}>
-              <span className={styles.stars}>★★★★★</span>
+              <span
+                className={styles.stars}
+                aria-label={`${product.reviews.rating_average.toFixed(1)} de 5 estrellas`}
+              >
+                {renderStars(product.reviews.rating_average)}
+              </span>
               <span className={styles.ratingNum}>
                 {product.reviews.rating_average.toFixed(1)}
               </span>
@@ -217,14 +225,6 @@ export default async function ProductPage({ params }: Props) {
               className={styles.btnML}
             >
               Comprar en Mercado Libre →
-            </a>
-            <a
-              href={affiliateLink}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className={styles.btnMLGhost}
-            >
-              Ver más detalles en ML
             </a>
           </div>
           <p className={styles.mlDisclaimer}>

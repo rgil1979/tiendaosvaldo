@@ -1,48 +1,46 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import Image from "next/image"
 import { siteConfig } from "@/config/site.config"
+import LegalLayout from "@/components/LegalLayout"
 import styles from "../legal.module.css"
 
-function LegalLayout({ children, active, title, subtitle }: { children: React.ReactNode; active: string; title: string; subtitle?: string }) {
-  const tabs = [
-    { href: "/privacidad", label: "Privacidad",           id: "privacidad" },
-    { href: "/terminos",   label: "Términos de uso",      id: "terminos" },
-    { href: "/afiliados",  label: "Política de afiliados",id: "afiliados" },
-    { href: "/contacto",   label: "Contacto",             id: "contacto" },
-  ]
-  return (
-    <>
-      <div className={styles.pageHero}>
-        <div className={styles.pageHeroInner}>
-          <div className={styles.eyebrow}>✉️ Contacto</div>
-          <h1 className={styles.pageTitle}>{title}</h1>
-          {subtitle && <p className={styles.pageMeta}>{subtitle}</p>}
-        </div>
-      </div>
-      <div className={styles.legalNav}>
-        <div className={styles.legalNavInner}>
-          {tabs.map((tab) => (
-            <Link key={tab.id} href={tab.href} className={`${styles.tab} ${active === tab.id ? styles.tabActive : ""}`}>
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-      <div className={styles.content}>{children}</div>
-    </>
-  )
-}
+// Para activar el formulario: agrega NEXT_PUBLIC_FORMSPREE_ID en tu .env.local
+// Obtené tu ID gratis en https://formspree.io
+const FORMSPREE_ID = process.env.NEXT_PUBLIC_FORMSPREE_ID
 
 export default function ContactoPage() {
-  const [status, setStatus] = useState<"idle" | "success">("idle")
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle")
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // Conectar con Formspree o similar cuando esté listo
-    setStatus("success")
+
+    if (!FORMSPREE_ID) {
+      setStatus("error")
+      return
+    }
+
+    setStatus("sending")
+
+    try {
+      const form = e.currentTarget
+      const data = new FormData(form)
+      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: "POST",
+        body: data,
+        headers: { Accept: "application/json" },
+      })
+
+      if (res.ok) {
+        setStatus("success")
+        form.reset()
+      } else {
+        setStatus("error")
+      }
+    } catch {
+      setStatus("error")
+    }
   }
 
   return (
@@ -50,6 +48,8 @@ export default function ContactoPage() {
       active="contacto"
       title="Hablemos"
       subtitle="¿Tenés una pregunta o sugerencia? Escribinos."
+      eyebrow="✉️ Contacto"
+      showUpdated={false}
     >
       <div className={styles.contactLayout}>
 
@@ -59,21 +59,30 @@ export default function ContactoPage() {
 
           {status === "success" ? (
             <div className={styles.highlight}>
-              <p>✅ ¡Mensaje enviado! Te respondemos en 24-48 horas hábiles.</p>
+              <p>✅ ¡Mensaje enviado! Te respondemos en 24–48 horas hábiles.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
+              {status === "error" && (
+                <div className={styles.highlight} style={{ marginBottom: "20px" }}>
+                  <p>
+                    {!FORMSPREE_ID
+                      ? "⚠️ El formulario aún no está configurado. Escribinos directamente a hola@tiendaosvaldo.com.ar"
+                      : "❌ Hubo un error al enviar. Intentá de nuevo o escribinos por email."}
+                  </p>
+                </div>
+              )}
               <div className={styles.field}>
                 <label htmlFor="nombre">Nombre</label>
-                <input id="nombre" type="text" placeholder="Tu nombre" required />
+                <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required />
               </div>
               <div className={styles.field}>
                 <label htmlFor="email">Email</label>
-                <input id="email" type="email" placeholder="tu@email.com" required />
+                <input id="email" name="email" type="email" placeholder="tu@email.com" required />
               </div>
               <div className={styles.field}>
                 <label htmlFor="motivo">Motivo</label>
-                <select id="motivo" required>
+                <select id="motivo" name="motivo" required>
                   <option value="">Seleccioná un motivo</option>
                   <option>Consulta general</option>
                   <option>Reportar un error en el sitio</option>
@@ -85,10 +94,14 @@ export default function ContactoPage() {
               </div>
               <div className={styles.field}>
                 <label htmlFor="mensaje">Mensaje</label>
-                <textarea id="mensaje" placeholder="Contanos en qué podemos ayudarte..." required />
+                <textarea id="mensaje" name="mensaje" placeholder="Contanos en qué podemos ayudarte..." required />
               </div>
-              <button type="submit" className={styles.btnSubmit}>
-                Enviar mensaje →
+              <button
+                type="submit"
+                className={styles.btnSubmit}
+                disabled={status === "sending"}
+              >
+                {status === "sending" ? "Enviando..." : "Enviar mensaje →"}
               </button>
             </form>
           )}

@@ -1,6 +1,6 @@
 // app/privacidad/page.tsx
 import { Metadata } from "next"
-import Link from "next/link"
+import LegalLayout from "@/components/LegalLayout"
 import styles from "../legal.module.css"
 
 export const metadata: Metadata = {
@@ -40,56 +40,6 @@ export default function PrivacidadPage() {
         <p>Para ejercer derechos sobre tus datos escribinos a <a href="mailto:hola@tiendaosvaldo.com.ar">hola@tiendaosvaldo.com.ar</a>.</p>
       </Section>
     </LegalLayout>
-  )
-}
-
-// ─── Componentes compartidos ───────────────────
-
-function LegalLayout({
-  children,
-  active,
-  title,
-}: {
-  children: React.ReactNode
-  active: string
-  title: string
-}) {
-  const tabs = [
-    { href: "/privacidad", label: "Privacidad", id: "privacidad" },
-    { href: "/terminos",   label: "Términos de uso", id: "terminos" },
-    { href: "/afiliados",  label: "Política de afiliados", id: "afiliados" },
-    { href: "/contacto",   label: "Contacto", id: "contacto" },
-  ]
-
-  return (
-    <>
-      <div className={styles.pageHero}>
-        <div className={styles.pageHeroInner}>
-          <div className={styles.eyebrow}>📄 Legal</div>
-          <h1 className={styles.pageTitle}>{title}</h1>
-          <p className={styles.pageMeta}>Última actualización: enero 2025</p>
-        </div>
-      </div>
-
-      <div className={styles.legalNav}>
-        <div className={styles.legalNavInner}>
-          {tabs.map((tab) => (
-            <Link
-              key={tab.id}
-              href={tab.href}
-              className={`${styles.tab} ${active === tab.id ? styles.tabActive : ""}`}
-            >
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.content}>
-        <div className={styles.updated}>✓ Documento vigente</div>
-        {children}
-      </div>
-    </>
   )
 }
 

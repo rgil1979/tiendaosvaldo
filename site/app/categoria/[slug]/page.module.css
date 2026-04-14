@@ -186,7 +186,22 @@
 .applyBtn {
   width: 100%;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 16px;
+}
+
+.clearFilters {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.clearFilters:hover {
+  color: var(--orange);
 }
 
 .filterOption {

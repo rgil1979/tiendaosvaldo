@@ -76,11 +76,8 @@
   border: 1.5px solid var(--sand);
   border-radius: var(--r);
   overflow: hidden;
-  cursor: pointer;
-  transition: var(--transition);
 }
 
-.thumb:hover,
 .thumbActive {
   border-color: var(--orange);
   background: var(--orange-soft);

@@ -80,8 +80,10 @@ export function buildAffiliateLink(permalink: string): string {
 
 // ── CLIENTE BASE ────────────────────────────────
 
-async function mlFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+// [UX-FIX] Retry con backoff exponencial para manejar rate limiting (429) de ML
+async function mlFetch<T>(endpoint: string, options?: RequestInit, attempt = 1): Promise<T> {
   const url = `${mlConfig.apiBaseUrl}${endpoint}`
+  const MAX_ATTEMPTS = 3
 
   const res = await fetch(url, {
     ...options,
@@ -91,6 +93,12 @@ async function mlFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
       ...options?.headers,
     },
   })
+
+  if (res.status === 429 && attempt < MAX_ATTEMPTS) {
+    const delay = Math.pow(2, attempt) * 500 // 1s, 2s
+    await new Promise((r) => setTimeout(r, delay))
+    return mlFetch<T>(endpoint, options, attempt + 1)
+  }
 
   if (!res.ok) {
     throw new Error(`ML API error: ${res.status} ${res.statusText} — ${url}`)
@@ -206,6 +214,11 @@ export function getDiscount(price: number, originalPrice: number | null): number
 
 // ── THUMBNAIL DE ALTA CALIDAD ───────────────────
 
+// [UX-FIX] Fallback al thumbnail original si el reemplazo de URL falla o la cadena no matchea
 export function getHQThumbnail(thumbnail: string): string {
-  return thumbnail.replace("I.jpg", "O.jpg").replace("-I.jpg", "-O.jpg")
+  if (!thumbnail) return ""
+  const hq = thumbnail.replace(/(-I|-I\.jpg|I\.jpg)$/, (match) =>
+    match.includes("-I") ? match.replace("-I", "-O") : match.replace("I", "O")
+  )
+  return hq !== thumbnail ? hq : thumbnail
 }

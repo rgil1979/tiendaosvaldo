@@ -6,6 +6,8 @@
   position: sticky;
   top: 0;
   z-index: 99;
+  /* Necesario para que el menú desplegable mobile se posicione relativo al header */
+  isolation: isolate;
 }
 
 .inner {
@@ -26,8 +28,8 @@
 }
 
 .logoMark {
-  width: 36px;
-  height: 36px;
+  width: 64px;
+  height: 64px;
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
@@ -78,15 +80,20 @@
   background: var(--orange-soft);
 }
 
-.navPill {
-  background: var(--orange) !important;
-  color: var(--white) !important;
-  margin-left: 8px;
+.navGhost {
+  border: 1.5px solid var(--sand-dark) !important;
 }
 
-.navPill:hover {
-  background: var(--brown-mid) !important;
-  color: var(--white) !important;
+.navGhost:hover {
+  border-color: var(--brown) !important;
+  background: var(--white) !important;
+  color: var(--brown) !important;
+}
+
+.navGhost.active {
+  color: var(--orange) !important;
+  background: var(--orange-soft) !important;
+  border-color: var(--orange) !important;
 }
 
 /* Mobile button */
@@ -106,16 +113,43 @@
   height: 2px;
   background: var(--brown);
   border-radius: 2px;
-  transition: var(--transition);
+  transition: transform .2s ease, opacity .2s ease;
+  transform-origin: center;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .nav {
     display: none;
+    position: absolute;
+    top: 68px;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--sand);
+    flex-direction: column;
+    padding: 12px 16px 20px;
+    gap: 4px;
+    z-index: 98;
+    box-shadow: var(--shadow-md);
+  }
+
+  .navOpen {
+    display: flex;
   }
 
   .menuBtn {
     display: flex;
+  }
+
+  /* Animación de las 3 líneas → X al abrir */
+  .menuBtnOpen span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .menuBtnOpen span:nth-child(2) {
+    opacity: 0;
+  }
+  .menuBtnOpen span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
   }
 }

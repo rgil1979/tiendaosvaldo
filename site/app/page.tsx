@@ -5,6 +5,9 @@ import { mlConfig, siteConfig } from "@/config/site.config"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
 
+// [UX-FIX] Revalidar el home cada hora para no hacer fetch en frío en cada visita
+export const revalidate = 3600
+
 export default async function HomePage() {
   // Traemos productos destacados desde ML
   let products: MLProduct[] = []
@@ -14,10 +17,11 @@ export default async function HomePage() {
     console.error("Error fetching products:", e)
   }
 
+  // [UX-FIX] Categorías alineadas con el navbar para evitar inconsistencia de navegación
   const categories = [
     { name: "Perros", href: "/categoria/perros", emoji: "🐕", count: "2.400+" },
     { name: "Gatos", href: "/categoria/gatos", emoji: "🐈", count: "1.800+" },
-    { name: "Paseo", href: "/categoria/paseo", emoji: "🦮", count: "680+" },
+    { name: "Accesorios", href: "/categoria/accesorios", emoji: "🦮", count: "680+" },
     { name: "Alimentación", href: "/categoria/alimentacion", emoji: "🍖", count: "950+" },
     { name: "Juguetes", href: "/categoria/juguetes", emoji: "🧸", count: "420+" },
   ]
@@ -47,15 +51,23 @@ export default async function HomePage() {
             </div>
             <div className={styles.heroTrust}>
               <div className={styles.trustItem}>
-                <div className={styles.trustDot} />
+                <svg className={styles.trustIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M11 6L7 10L5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
                 Comprás en Mercado Libre
               </div>
               <div className={styles.trustItem}>
-                <div className={styles.trustDot} />
+                <svg className={styles.trustIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 8L8 14L14 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
                 Envío a todo el país
               </div>
               <div className={styles.trustItem}>
-                <div className={styles.trustDot} />
+                <svg className={styles.trustIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="5" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M2 5V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
                 Pagos con Mercado Pago
               </div>
             </div>
@@ -63,7 +75,6 @@ export default async function HomePage() {
 
           {/* Card de Osvaldo */}
           <div className={styles.heroRight}>
-            <div className={styles.floatingTagTop}>🌟 +500 productos aprobados</div>
             <div className={styles.osvaldoCard}>
               <div className={styles.osvaldoAvatar}>
                 <Image
@@ -75,25 +86,18 @@ export default async function HomePage() {
               </div>
               <div className={styles.osvaldoLabel}>✅ Chief Sniff Officer</div>
               <h3 className={styles.osvaldoName}>Soy Osvaldo</h3>
-              <p className={styles.osvaldoDesc}>
+              <div className={styles.osvaldoDesc}>
                 Mestizo adoptado, 8 años. Probé cada categoría de esta tienda. Si no me copa, no lo publicamos.
-              </p>
-              <div className={styles.statsRow}>
-                <div className={styles.stat}>
-                  <span className={styles.statNum}>500+</span>
-                  <span className={styles.statLabel}>Productos</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNum}>5★</span>
-                  <span className={styles.statLabel}>Solo los mejores</span>
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statNum}>24/7</span>
-                  <span className={styles.statLabel}>Disponible</span>
-                </div>
               </div>
+              {/* UX: Solo 1 métrica destacada en lugar de 3 */}
+              <div className={styles.statSingle}>
+                <span className={styles.statNum}>500+</span>
+                <span className={styles.statLabel}>productos aprobados</span>
+              </div>
+              <Link href="/sobre-osvaldo#como-funciona" className="btn btn-fill">
+                🛍 Cómo funciona →
+              </Link>
             </div>
-            <div className={styles.floatingTagBottom}>🛍 Afiliados de Mercado Libre</div>
           </div>
         </div>
       </div>
@@ -109,11 +113,12 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className={styles.catsGrid}>
-          {categories.map((cat, i) => (
+          {/* [UX-FIX] Eliminado catActive hardcodeado — no refleja estado real del usuario */}
+          {categories.map((cat) => (
             <Link
               key={cat.href}
               href={cat.href}
-              className={`${styles.catCard} ${i === 0 ? styles.catActive : ""}`}
+              className={styles.catCard}
             >
               <span className={styles.catEmoji}>{cat.emoji}</span>
               <div className={styles.catName}>{cat.name}</div>
@@ -197,6 +202,7 @@ export default async function HomePage() {
       </div>
 
       {/* ── NEWSLETTER ── */}
+      {/* [UX-FIX] Botón eliminado — sin backend activo no debe haber CTA de envío */}
       <div className={styles.newsletter}>
         <div className={styles.newsletterInner}>
           <div className={styles.nlIcon}>🐾</div>
@@ -204,14 +210,11 @@ export default async function HomePage() {
           <p className={styles.nlDesc}>
             Cuando Osvaldo encuentra algo bueno, te avisa. Sin spam, sin pavadas.
           </p>
-          <div className={styles.nlForm}>
-            <input
-              type="email"
-              placeholder="tu@email.com"
-              className={styles.nlInput}
-            />
-            <button className="btn btn-fill">Suscribirme</button>
-          </div>
+          <input
+            type="email"
+            placeholder="tu@email.com"
+            className={styles.nlInput}
+          />
         </div>
       </div>
     </>

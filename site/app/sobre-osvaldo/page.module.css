@@ -26,21 +26,6 @@
   z-index: 1;
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 50px;
-  padding: 6px 18px;
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(255,255,255,.7);
-  margin-bottom: 28px;
-  letter-spacing: .5px;
-}
-
 .heroAvatar {
   position: relative;
   width: 140px;
@@ -70,120 +55,6 @@
   color: rgba(255,255,255,.65);
   line-height: 1.75;
   font-weight: 500;
-}
-
-/* Historia */
-.storyWrap {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 80px var(--padding-x) 0;
-  display: flex;
-  flex-direction: column;
-  gap: 72px;
-}
-
-.storyBlock {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: center;
-}
-
-.storyReverse {
-  direction: rtl;
-}
-
-.storyReverse > * {
-  direction: ltr;
-}
-
-.storyVisual {
-  background: var(--white);
-  border: 1.5px solid var(--sand);
-  border-radius: var(--rxl);
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 96px;
-}
-
-.visualOrange { background: var(--orange-soft); }
-.visualGreen  { background: var(--green-soft); }
-
-.storyText {}
-
-.storyLabel {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--orange);
-  text-transform: uppercase;
-  letter-spacing: .8px;
-  margin-bottom: 12px;
-}
-
-.storyText h2 {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--brown);
-  margin-bottom: 16px;
-  line-height: 1.2;
-}
-
-.storyText p {
-  font-size: 16px;
-  color: var(--muted);
-  line-height: 1.8;
-  font-weight: 500;
-}
-
-/* Stats */
-.stats {
-  background: var(--orange);
-  padding: 64px var(--padding-x);
-  margin-top: 80px;
-}
-
-.statsInner {
-  max-width: 900px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.statsTitle {
-  font-size: 32px;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 40px;
-}
-
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.statCard {
-  background: rgba(255,255,255,.15);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: var(--rl);
-  padding: 28px 20px;
-  text-align: center;
-}
-
-.statNum {
-  font-family: var(--font-display);
-  font-size: 40px;
-  font-weight: 800;
-  color: white;
-  display: block;
-  margin-bottom: 6px;
-}
-
-.statLabel {
-  font-size: 13px;
-  color: rgba(255,255,255,.75);
-  font-weight: 600;
 }
 
 /* Cómo funciona */
@@ -248,94 +119,6 @@
   font-weight: 500;
 }
 
-/* Perfil */
-.profile {
-  background: var(--white);
-  border-top: 1px solid var(--sand);
-  border-bottom: 1px solid var(--sand);
-  padding: 64px var(--padding-x);
-}
-
-.profileInner {
-  max-width: 900px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 48px;
-  align-items: center;
-}
-
-.profileCard {
-  background: var(--cream);
-  border: 1.5px solid var(--sand);
-  border-radius: var(--rxl);
-  padding: 32px;
-  text-align: center;
-}
-
-.profileAvatar {
-  position: relative;
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin: 0 auto 16px;
-  border: 3px solid var(--sand-dark);
-}
-
-.profileAvatarImg { object-fit: cover; }
-
-.profileName {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--brown);
-  margin-bottom: 4px;
-}
-
-.profileRole {
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-.profileTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-
-.profileTag {
-  background: var(--orange-soft);
-  border: 1.5px solid var(--sand-dark);
-  border-radius: 50px;
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--brown-mid);
-}
-
-.profileBio {}
-
-.profileBioTitle {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--brown);
-  margin-bottom: 16px;
-}
-
-.profileBio p {
-  font-size: 15px;
-  color: var(--muted);
-  line-height: 1.8;
-  font-weight: 500;
-  margin-bottom: 14px;
-}
-
-.profileBio strong { color: var(--brown); }
-
 /* CTA */
 .cta {
   background: var(--cream);
@@ -348,20 +131,10 @@
   margin: 0 auto;
 }
 
-.ctaIcon { font-size: 48px; margin-bottom: 16px; }
-
 .ctaTitle {
   font-size: 36px;
   font-weight: 800;
   color: var(--brown);
-  margin-bottom: 12px;
-}
-
-.ctaDesc {
-  font-size: 16px;
-  color: var(--muted);
-  line-height: 1.7;
-  font-weight: 500;
   margin-bottom: 32px;
 }
 
@@ -374,25 +147,10 @@
 /* Responsive */
 @media (max-width: 768px) {
   .heroTitle { font-size: 40px; }
-
-  .storyBlock,
-  .storyReverse {
-    grid-template-columns: 1fr;
-    direction: ltr;
-  }
-
-  .storyVisual { aspect-ratio: auto; padding: 32px; font-size: 64px; }
-
-  .statsGrid { grid-template-columns: repeat(2, 1fr); }
-
-  .profileInner { grid-template-columns: 1fr; }
-  .profileCard { max-width: 300px; margin: 0 auto; }
-
   .ctaButtons { flex-direction: column; align-items: center; }
 }
 
 @media (max-width: 480px) {
   .heroTitle { font-size: 32px; }
-  .statsGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .step { grid-template-columns: 44px 1fr; gap: 16px; }
 }

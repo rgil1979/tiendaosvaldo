@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { searchProducts, getCategory } from "@/lib/mercadolibre"
+import { searchProducts } from "@/lib/mercadolibre"
 import { mlConfig } from "@/config/site.config"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
@@ -69,6 +69,15 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const subcats = Object.entries(categoryMap).filter(([slug]) =>
     slug !== "mascotas" && slug !== params.slug
   )
+
+  // Construye href de paginación preservando todos los filtros activos
+  function pageHref(p: number) {
+    const qs = new URLSearchParams({ orden: sort })
+    if (searchParams.precioMin) qs.set("precioMin", searchParams.precioMin)
+    if (searchParams.precioMax) qs.set("precioMax", searchParams.precioMax)
+    qs.set("pagina", String(p))
+    return `/categoria/${params.slug}?${qs.toString()}`
+  }
 
   return (
     <>
@@ -143,9 +152,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                   className={styles.priceInput}
                 />
               </div>
-              <button type="submit" className={`btn btn-fill btn-sm ${styles.applyBtn}`}>
-                Aplicar
-              </button>
             </div>
 
             {/* Condición */}
@@ -156,7 +162,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                 { value: "used", label: "Usado" },
               ].map((opt) => (
                 <label key={opt.value} className={styles.filterOption}>
-                  <input type="radio" name="condicion" value={opt.value} className={styles.radio} />
+                  <input
+                    type="radio"
+                    name="condicion"
+                    value={opt.value}
+                    className={styles.radio}
+                  />
                   <span className={styles.filterLabel}>{opt.label}</span>
                 </label>
               ))}
@@ -179,6 +190,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               ))}
             </div>
 
+            <button type="submit" className={`btn btn-fill btn-sm ${styles.applyBtn}`}>
+              Aplicar filtros
+            </button>
+
+            <Link href={`/categoria/${params.slug}`} className={styles.clearFilters}>
+              Limpiar filtros
+            </Link>
+
           </form>
         </aside>
 
@@ -191,9 +210,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               {total.toLocaleString("es-AR")} productos
             </span>
             <div className={styles.toolbarRight}>
-              <select name="orden" className={styles.sortSelect}>
+              <select
+                name="orden"
+                defaultValue={sort}
+                className={styles.sortSelect}
+              >
                 {sortOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value} selected={sort === opt.value}>
+                  <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
                 ))}
@@ -204,11 +227,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {/* Grid */}
           {products.length > 0 ? (
             <div className={styles.productsGrid}>
-              {products.map((product, i) => (
+              {products.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
-                  badge={i === 0 ? "Top ventas" : undefined}
                 />
               ))}
             </div>
@@ -225,27 +247,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {totalPages > 1 && (
             <div className={styles.pagination}>
               {page > 1 && (
-                <Link
-                  href={`/categoria/${params.slug}?pagina=${page - 1}&orden=${sort}`}
-                  className={`${styles.pageBtn} ${styles.pageBtnArrow}`}
-                >
+                <Link href={pageHref(page - 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
                   ← Anterior
                 </Link>
               )}
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((p) => (
                 <Link
                   key={p}
-                  href={`/categoria/${params.slug}?pagina=${p}&orden=${sort}`}
+                  href={pageHref(p)}
                   className={`${styles.pageBtn} ${p === page ? styles.pageBtnActive : ""}`}
                 >
                   {p}
                 </Link>
               ))}
               {page < totalPages && (
-                <Link
-                  href={`/categoria/${params.slug}?pagina=${page + 1}&orden=${sort}`}
-                  className={`${styles.pageBtn} ${styles.pageBtnArrow}`}
-                >
+                <Link href={pageHref(page + 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
                   Siguiente →
                 </Link>
               )}
