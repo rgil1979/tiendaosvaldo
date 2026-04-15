@@ -55,6 +55,7 @@ export const mlConfig = {
   // ── CREDENCIALES (leer desde variables de entorno) ──
   appId: process.env.ML_APP_ID!,
   clientSecret: process.env.ML_CLIENT_SECRET!,
+  refreshToken: process.env.ML_REFRESH_TOKEN!,
   affiliateId: process.env.ML_AFFILIATE_ID!,
 
   // ── API ──

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
-import { MLProduct, buildAffiliateLink, formatPrice, getDiscount, getHQThumbnail } from "@/lib/mercadolibre"
+import type { MLProduct } from "@/lib/mercadolibre"
+import { buildAffiliateLink, formatPrice, getDiscount, getHQThumbnail } from "@/lib/ml-utils"
 import { renderStars } from "@/lib/utils"
 import styles from "./ProductCard.module.css"
 

@@ -68,34 +68,105 @@ export interface MLCategory {
   children_categories: { id: string; name: string; total_items_in_this_category: number }[]
 }
 
-// ── GENERADOR DE LINKS DE AFILIADO ─────────────
+// ── UTILIDADES PURAS (re-exportadas desde ml-utils para compatibilidad) ────
 
-export function buildAffiliateLink(permalink: string): string {
-  const url = new URL(permalink)
-  url.searchParams.set("partner_id", mlConfig.affiliateId)
-  url.searchParams.set("utm_source", "tiendaosvaldo")
-  url.searchParams.set("utm_medium", "affiliate")
-  return url.toString()
+export { buildAffiliateLink, formatPrice, getDiscount, getHQThumbnail } from "./ml-utils"
+
+// ── AUTENTICACIÓN OAuth2 (client_credentials) ──
+
+interface MLToken {
+  access_token: string
+  expiresAt: number
+}
+
+// Cache en memoria — válido mientras corre el proceso Node.js (tokens duran ~6h en ML)
+let _tokenCache: MLToken | null = null
+
+async function getAccessToken(): Promise<string | null> {
+  const appId = mlConfig.appId
+  const clientSecret = mlConfig.clientSecret
+  const refreshToken = mlConfig.refreshToken
+
+  if (!appId || !clientSecret) return null
+
+  // Devolver token cacheado si no expiró (5 min de margen)
+  if (_tokenCache && Date.now() < _tokenCache.expiresAt) {
+    return _tokenCache.access_token
+  }
+
+  // Preferir refresh_token (token de usuario) sobre client_credentials (token de app)
+  // El token de usuario tiene más permisos sobre el catálogo de ML
+  const body = refreshToken
+    ? new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: appId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+      })
+    : new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: appId,
+        client_secret: clientSecret,
+      })
+
+  const res = await fetch("https://api.mercadolibre.com/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+    cache: "no-store",
+  })
+
+  if (!res.ok) {
+    console.warn(`[ML] Error al obtener access token: ${res.status} ${res.statusText}`)
+    return null
+  }
+
+  const data = await res.json()
+  _tokenCache = {
+    access_token: data.access_token,
+    expiresAt: Date.now() + (data.expires_in - 300) * 1000,
+  }
+
+  console.log(`[ML] Access token obtenido (${refreshToken ? "refresh_token" : "client_credentials"}).`)
+  return _tokenCache.access_token
 }
 
 // ── CLIENTE BASE ────────────────────────────────
 
-// [UX-FIX] Retry con backoff exponencial para manejar rate limiting (429) de ML
+// Retry con backoff exponencial para manejar rate limiting (429) de ML.
+// 403 no se reintenta — es un rechazo definitivo.
 async function mlFetch<T>(endpoint: string, options?: RequestInit, attempt = 1): Promise<T> {
   const url = `${mlConfig.apiBaseUrl}${endpoint}`
   const MAX_ATTEMPTS = 3
+
+  const token = await getAccessToken()
 
   const res = await fetch(url, {
     ...options,
     next: { revalidate: mlConfig.cache.productsTTL },
     headers: {
       "Content-Type": "application/json",
+      "User-Agent": "TiendaOsvaldo/1.0 (tiendaosvaldo.com.ar)",
+      "Accept": "application/json",
+      ...(token && { "Authorization": `Bearer ${token}` }),
       ...options?.headers,
     },
   })
 
+  // 401 con token = token vencido antes de lo esperado, limpiamos cache y reintentamos una vez
+  if (res.status === 401 && token && attempt === 1) {
+    _tokenCache = null
+    return mlFetch<T>(endpoint, options, attempt + 1)
+  }
+
+  // 403 definitivo — no reintentamos
+  if (res.status === 403) {
+    console.warn(`[ML] 403 Forbidden en ${url} — verificá las credenciales en .env.local`)
+    throw new Error(`ML_FORBIDDEN: ${url}`)
+  }
+
   if (res.status === 429 && attempt < MAX_ATTEMPTS) {
-    const delay = Math.pow(2, attempt) * 500 // 1s, 2s
+    const delay = Math.pow(2, attempt) * 500
     await new Promise((r) => setTimeout(r, delay))
     return mlFetch<T>(endpoint, options, attempt + 1)
   }
@@ -105,6 +176,17 @@ async function mlFetch<T>(endpoint: string, options?: RequestInit, attempt = 1):
   }
 
   return res.json()
+}
+
+// ── RESULTADO VACÍO SEGURO ──────────────────────
+
+function emptySearchResult(limit: number, offset: number): MLSearchResult {
+  return {
+    results: [],
+    paging: { total: 0, offset, limit, primary_results: 0 },
+    filters: [],
+    available_filters: [],
+  }
 }
 
 // ── BÚSQUEDA DE PRODUCTOS ───────────────────────
@@ -139,10 +221,15 @@ export async function searchProducts(params: {
     ...(priceMin && priceMax && { price: `${priceMin}-${priceMax}` }),
   })
 
-  return mlFetch<MLSearchResult>(
-    `/sites/${mlConfig.siteId}/search?${query}`,
-    { next: { revalidate: mlConfig.cache.categoryTTL } }
-  )
+  try {
+    return await mlFetch<MLSearchResult>(
+      `/sites/${mlConfig.siteId}/search?${query}`,
+      { next: { revalidate: mlConfig.cache.categoryTTL } }
+    )
+  } catch (e) {
+    console.warn("[ML] searchProducts falló — retornando resultado vacío.", (e as Error).message)
+    return emptySearchResult(limit, offset)
+  }
 }
 
 // ── DETALLE DE PRODUCTO ─────────────────────────
@@ -175,50 +262,32 @@ export async function getCategory(categoryId: string): Promise<MLCategory> {
 // ── PRODUCTOS DESTACADOS (HOME) ─────────────────
 
 export async function getFeaturedProducts(limit = 8): Promise<MLProduct[]> {
-  const result = await searchProducts({
-    categoryId: mlConfig.categories.mascotas,
-    limit,
-    sort: "relevance",
-  })
-  return result.results
+  try {
+    const result = await searchProducts({
+      categoryId: mlConfig.categories.mascotas,
+      limit,
+      sort: "relevance",
+    })
+    return result.results
+  } catch (e) {
+    console.warn("[ML] getFeaturedProducts falló — retornando array vacío.", (e as Error).message)
+    return []
+  }
 }
 
 // ── PRODUCTOS MÁS VENDIDOS ──────────────────────
 
 export async function getTopSellingProducts(categoryId: string, limit = 8): Promise<MLProduct[]> {
-  const result = await searchProducts({
-    categoryId,
-    limit,
-    sort: "relevance",
-  })
-  return result.results
+  try {
+    const result = await searchProducts({
+      categoryId,
+      limit,
+      sort: "relevance",
+    })
+    return result.results
+  } catch (e) {
+    console.warn("[ML] getTopSellingProducts falló — retornando array vacío.", (e as Error).message)
+    return []
+  }
 }
 
-// ── FORMATEO DE PRECIO ──────────────────────────
-
-export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price)
-}
-
-// ── DESCUENTO ───────────────────────────────────
-
-export function getDiscount(price: number, originalPrice: number | null): number | null {
-  if (!originalPrice || originalPrice <= price) return null
-  return Math.round(((originalPrice - price) / originalPrice) * 100)
-}
-
-// ── THUMBNAIL DE ALTA CALIDAD ───────────────────
-
-// [UX-FIX] Fallback al thumbnail original si el reemplazo de URL falla o la cadena no matchea
-export function getHQThumbnail(thumbnail: string): string {
-  if (!thumbnail) return ""
-  const hq = thumbnail.replace(/(-I|-I\.jpg|I\.jpg)$/, (match) =>
-    match.includes("-I") ? match.replace("-I", "-O") : match.replace("I", "O")
-  )
-  return hq !== thumbnail ? hq : thumbnail
-}

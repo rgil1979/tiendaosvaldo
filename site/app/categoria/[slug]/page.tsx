@@ -1,10 +1,12 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { searchProducts } from "@/lib/mercadolibre"
 import { mlConfig } from "@/config/site.config"
-import ProductCard from "@/components/ProductCard"
+import CategoryProducts from "@/components/CategoryProducts"
 import styles from "./page.module.css"
+
+// Revalidar la página cada hora — permite recuperarse si ML estuvo caído durante el build
+export const revalidate = 3600
 
 // Mapa de slugs a IDs de ML
 const categoryMap: Record<string, { id: string; label: string; emoji: string; desc: string }> = {
@@ -41,24 +43,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const priceMin = searchParams.precioMin ? parseInt(searchParams.precioMin) : undefined
   const priceMax = searchParams.precioMax ? parseInt(searchParams.precioMax) : undefined
 
-  let result: import("@/lib/mercadolibre").MLSearchResult | null = null
-  try {
-    result = await searchProducts({
-      categoryId: cat.id,
-      limit,
-      offset,
-      sort,
-      priceMin,
-      priceMax,
-    })
-  } catch (e) {
-    console.error("Error fetching category:", e)
-  }
-
-  const products = result?.results || []
-  const total = result?.paging.total || 0
-  const totalPages = Math.ceil(total / limit)
-
   const sortOptions = [
     { value: "relevance",              label: "Más relevantes" },
     { value: "price_asc",              label: "Menor precio" },
@@ -69,15 +53,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const subcats = Object.entries(categoryMap).filter(([slug]) =>
     slug !== "mascotas" && slug !== params.slug
   )
-
-  // Construye href de paginación preservando todos los filtros activos
-  function pageHref(p: number) {
-    const qs = new URLSearchParams({ orden: sort })
-    if (searchParams.precioMin) qs.set("precioMin", searchParams.precioMin)
-    if (searchParams.precioMax) qs.set("precioMax", searchParams.precioMax)
-    qs.set("pagina", String(p))
-    return `/categoria/${params.slug}?${qs.toString()}`
-  }
 
   return (
     <>
@@ -98,8 +73,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             <div>
               <h1 className={styles.catTitle}>{cat.label}</h1>
               <div className={styles.catMeta}>
-                <span>{total.toLocaleString("es-AR")}+ productos</span>
-                <div className={styles.catDot} />
                 <span>⭐ Solo rep. verde en ML</span>
                 <div className={styles.catDot} />
                 <span>Actualizado ahora</span>
@@ -207,7 +180,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {/* Toolbar */}
           <div className={styles.toolbar}>
             <span className={styles.resultsCount}>
-              {total.toLocaleString("es-AR")} productos
+              {cat.label}
             </span>
             <div className={styles.toolbarRight}>
               <select
@@ -224,49 +197,16 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             </div>
           </div>
 
-          {/* Grid */}
-          {products.length > 0 ? (
-            <div className={styles.productsGrid}>
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className={styles.empty}>
-              <p>No encontramos productos. Probá con otros filtros.</p>
-              <Link href={`/categoria/${params.slug}`} className="btn btn-ghost">
-                Limpiar filtros
-              </Link>
-            </div>
-          )}
-
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <div className={styles.pagination}>
-              {page > 1 && (
-                <Link href={pageHref(page - 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                  ← Anterior
-                </Link>
-              )}
-              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((p) => (
-                <Link
-                  key={p}
-                  href={pageHref(p)}
-                  className={`${styles.pageBtn} ${p === page ? styles.pageBtnActive : ""}`}
-                >
-                  {p}
-                </Link>
-              ))}
-              {page < totalPages && (
-                <Link href={pageHref(page + 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                  Siguiente →
-                </Link>
-              )}
-            </div>
-          )}
+          {/* Grid + Paginación — carga en el browser directamente desde ML */}
+          <CategoryProducts
+            categoryId={cat.id}
+            slug={params.slug}
+            limit={limit}
+            offset={offset}
+            sort={sort}
+            priceMin={priceMin}
+            priceMax={priceMax}
+          />
         </div>
       </div>
     </>

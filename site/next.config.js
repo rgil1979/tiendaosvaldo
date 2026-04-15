@@ -12,6 +12,11 @@ const nextConfig = {
         hostname: "*.mlstatic.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+        pathname: "/**",
+      },
     ],
     formats: ["image/webp", "image/avif"],
   },

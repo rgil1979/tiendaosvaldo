@@ -1,22 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
-import { getFeaturedProducts, MLProduct } from "@/lib/mercadolibre"
 import { mlConfig, siteConfig } from "@/config/site.config"
-import ProductCard from "@/components/ProductCard"
+import FeaturedProducts from "@/components/FeaturedProducts"
 import styles from "./page.module.css"
 
-// [UX-FIX] Revalidar el home cada hora para no hacer fetch en frío en cada visita
-export const revalidate = 3600
-
 export default async function HomePage() {
-  // Traemos productos destacados desde ML
-  let products: MLProduct[] = []
-  try {
-    products = await getFeaturedProducts(8)
-  } catch (e) {
-    console.error("Error fetching products:", e)
-  }
-
   // [UX-FIX] Categorías alineadas con el navbar para evitar inconsistencia de navegación
   const categories = [
     { name: "Perros", href: "/categoria/perros", emoji: "🐕", count: "2.400+" },
@@ -139,21 +127,7 @@ export default async function HomePage() {
               Ver todos →
             </Link>
           </div>
-          {products.length > 0 ? (
-            <div className={styles.productsGrid}>
-              {products.slice(0, 8).map((product, i) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  badge={i === 0 ? "Top ventas" : undefined}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className={styles.productsEmpty}>
-              <p>Cargando productos...</p>
-            </div>
-          )}
+          <FeaturedProducts categoryId={mlConfig.categories.mascotas} limit={8} />
           <div className={styles.productsMore}>
             <Link href="/categoria/mascotas" className="btn btn-ghost">
               Ver todos los productos
