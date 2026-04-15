@@ -1,5 +1,6 @@
-import Link from "next/link"
-import Image from "next/image"
+"use client"
+
+import { useState } from "react"
 import type { MLProduct } from "@/lib/mercadolibre"
 import { buildAffiliateLink, formatPrice, getDiscount, getHQThumbnail } from "@/lib/ml-utils"
 import { renderStars } from "@/lib/utils"
@@ -19,18 +20,23 @@ export default function ProductCard({
   const affiliateLink = buildAffiliateLink(product.permalink)
   const discount = getDiscount(product.price, product.original_price)
   const thumbnail = getHQThumbnail(product.thumbnail)
+  const [imgError, setImgError] = useState(false)
 
   return (
     <div className={styles.card}>
       {/* Imagen */}
       <div className={styles.imgWrap}>
-        <Image
-          src={thumbnail}
-          alt={product.title}
-          fill
-          className={styles.img}
-          sizes="(max-width: 768px) 50vw, 25vw"
-        />
+        {!imgError && thumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumbnail}
+            alt={product.title}
+            className={styles.img}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className={styles.imgFallback}>🐾</div>
+        )}
         {badge && (
           <span className={`${styles.badge} ${styles[`badge-${badgeVariant}`]}`}>
             {badge}
@@ -52,7 +58,6 @@ export default function ProductCard({
 
         <h3 className={styles.title}>{product.title}</h3>
 
-        {/* Rating */}
         {product.reviews && (
           <div className={styles.rating}>
             <span
