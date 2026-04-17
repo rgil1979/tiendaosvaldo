@@ -1,0 +1,22 @@
+services:
+  tiendaosvaldo:
+    image: node:20-alpine
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install && npm run build && npm run start"
+    volumes:
+      - /docker/tiendaosvaldo/site:/app
+      - tiendaosvaldo_node_modules:/app/node_modules
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tiendaosvaldo.rule=Host(`tiendaosvaldo.com.ar`) || Host(`www.tiendaosvaldo.com.ar`)"
+      - "traefik.http.routers.tiendaosvaldo.entrypoints=websecure"
+      - "traefik.http.routers.tiendaosvaldo.tls=true"
+      - "traefik.http.routers.tiendaosvaldo.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tiendaosvaldo.middlewares=hsts"
+      - "traefik.http.middlewares.hsts.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.hsts.headers.stsPreload=true"
+      - "traefik.http.services.tiendaosvaldo.loadbalancer.server.port=3000"
+volumes:
+  tiendaosvaldo_node_modules:
