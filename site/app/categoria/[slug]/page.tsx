@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SLUG_CONFIG } from "@/config/site.config"
-import { getProducts, getProducts_batch } from "@/lib/mercadolibre"
+import { getProducts, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
@@ -45,10 +45,23 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   let total   = 0
 
   try {
-    const result = await getProducts({ domainId: cfg.domainId, query, limit: LIMIT, offset })
-    total   = Math.min(result.total, MAX_TOTAL) // capear en 300
-    if (result.products.length) {
-      products = await getProducts_batch(result.products.map((p) => p.id))
+    const useHighlights = cfg.hlCategoryId && page === 1 && !mascotaFilter
+
+    if (useHighlights) {
+      // Página 1 sin filtro: highlights garantizan precios. Total del search para paginar.
+      const [hlProducts, searchResult] = await Promise.all([
+        getHighlights(cfg.hlCategoryId!, LIMIT),
+        getProducts({ domainId: cfg.domainId, query, limit: 1, offset: 0 }),
+      ])
+      products = hlProducts
+      total    = Math.min(searchResult.total, MAX_TOTAL)
+    } else {
+      // Con filtro activo o páginas 2+: search paginado respeta el query con mascota
+      const result = await getProducts({ domainId: cfg.domainId, query, limit: LIMIT, offset })
+      total   = Math.min(result.total, MAX_TOTAL)
+      if (result.products.length) {
+        products = await getProducts_batch(result.products.map((p) => p.id), false)
+      }
     }
   } catch {
     // Vacío silencioso

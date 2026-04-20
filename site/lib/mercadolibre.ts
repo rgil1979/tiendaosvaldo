@@ -231,9 +231,15 @@ export async function getProduct(productId: string): Promise<MLProductFull> {
 // ── LOTE DE PRODUCTOS ────────────────────────────────────────────────────────
 // Máx 10 en paralelo para respetar rate limits de ML
 
+function isAvailable(p: MLProductFull, requirePrice: boolean): boolean {
+  if (p.status !== "active") return false
+  if (requirePrice && p.price <= 0) return false
+  return true
+}
+
 export async function getProducts_batch(
   productIds:   string[],
-  requirePrice = false,   // false → muestra igual aunque no tenga precio activo
+  requirePrice = true,  // por defecto solo muestra productos con precio y status active
 ): Promise<MLProductFull[]> {
   const CHUNK   = 10
   const results: MLProductFull[] = []
@@ -244,7 +250,7 @@ export async function getProducts_batch(
     )
     for (const r of settled) {
       if (r.status === "fulfilled") {
-        if (!requirePrice || r.value.price > 0) results.push(r.value)
+        if (isAvailable(r.value, requirePrice)) results.push(r.value)
       } else {
         console.warn("[ML] Producto fallido en batch:", (r.reason as Error).message)
       }

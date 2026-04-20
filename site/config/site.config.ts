@@ -95,24 +95,23 @@ export type DomainId = keyof typeof DOMINIOS_MASCOTAS
 // ─────────────────────────────────────────────
 
 export const SLUG_CONFIG: Record<string, {
-  label:    string
-  emoji:    string
-  domainId: string
-  query?:   string
+  label:         string
+  emoji:         string
+  domainId:      string
+  query?:        string
+  hlCategoryId?: string  // categoria ML para getHighlights (garantiza precios reales)
 }> = {
-  // Slugs nuevos
-  "alimento-perro": { label: "Alimento para perros", emoji: "🍖", domainId: "", query: "alimento perro"           },
-  "alimento-gato":  { label: "Alimento para gatos",  emoji: "🐟", domainId: "", query: "alimento gato"            },
-  "collares":       { label: "Collares y correas",   emoji: "🦮", domainId: "", query: "collar correa perro"      },
-  "camas":          { label: "Camas y cuchas",        emoji: "🛏️", domainId: "", query: "cama cucha perro"         },
-  "arena-gato":     { label: "Arena para gatos",     emoji: "🧂", domainId: "", query: "arena sanitaria gato"     },
-  // Slugs legacy (navbar existente)
-  "mascotas":       { label: "Mascotas",              emoji: "🐾", domainId: "", query: "accesorio mascota"        },
-  "perros":         { label: "Perros",                emoji: "🐕", domainId: "", query: "alimento perro"           },
-  "gatos":          { label: "Gatos",                 emoji: "🐈", domainId: "", query: "alimento gato"            },
-  "accesorios":     { label: "Accesorios",            emoji: "🦮", domainId: "", query: "collar correa accesorio"  },
-  "alimentacion":   { label: "Alimentación",          emoji: "🍖", domainId: "", query: "alimento mascota"         },
-  "juguetes":       { label: "Juguetes",              emoji: "🧸", domainId: "", query: "juguete mascota"          },
+  "alimento-perro": { label: "Alimento para perros", emoji: "🍖", domainId: "", query: "alimento perro",          hlCategoryId: "MLA434760" },
+  "alimento-gato":  { label: "Alimento para gatos",  emoji: "🐟", domainId: "", query: "alimento gato",           hlCategoryId: "MLA434760" },
+  "collares":       { label: "Collares y correas",   emoji: "🦮", domainId: "", query: "collar correa perro",     hlCategoryId: "MLA434764" },
+  "camas":          { label: "Camas y cuchas",        emoji: "🛏️", domainId: "", query: "cama cucha perro",        hlCategoryId: "MLA11060"  },
+  "arena-gato":     { label: "Arena para gatos",     emoji: "🧂", domainId: "", query: "arena sanitaria gato",    hlCategoryId: "MLA1081"   },
+  "mascotas":       { label: "Mascotas",              emoji: "🐾", domainId: "", query: "accesorio mascota",       hlCategoryId: "MLA1071"   },
+  "perros":         { label: "Perros",                emoji: "🐕", domainId: "", query: "alimento perro",          hlCategoryId: "MLA1072"   },
+  "gatos":          { label: "Gatos",                 emoji: "🐈", domainId: "", query: "alimento gato",           hlCategoryId: "MLA1081"   },
+  "accesorios":     { label: "Accesorios",            emoji: "🦮", domainId: "", query: "collar correa accesorio", hlCategoryId: "MLA434764" },
+  "alimentacion":   { label: "Alimentación",          emoji: "🍖", domainId: "", query: "alimento mascota",        hlCategoryId: "MLA434760" },
+  "juguetes":       { label: "Juguetes",              emoji: "🧸", domainId: "", query: "juguete mascota",         hlCategoryId: "MLA1074"   },
 }
 
 export const mlConfig = {
