@@ -1,35 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
-import { searchProducts } from "@/lib/mercadolibre"
-import { curatedProducts } from "@/data/curated-products"
+import { getProducts, getProducts_batch } from "@/lib/mercadolibre"
+
+// Usado por FeaturedProducts.tsx (client component legacy)
+// Devuelve MLProductFull[] para que ProductCard funcione
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-  const category = searchParams.get("category") ?? ""
-  const limit    = parseInt(searchParams.get("limit")  ?? "8")
+  const query    = searchParams.get("q")       ?? undefined
+  const domainId = searchParams.get("domain")  ?? "MLA-CAT_AND_DOG_FOODS"
+  const limit    = Math.min(parseInt(searchParams.get("limit") ?? "8"), 20)
   const offset   = parseInt(searchParams.get("offset") ?? "0")
-  const sort     = searchParams.get("sort")     ?? "relevance"
-  const priceMin = searchParams.get("priceMin") ? parseInt(searchParams.get("priceMin")!) : undefined
-  const priceMax = searchParams.get("priceMax") ? parseInt(searchParams.get("priceMax")!) : undefined
 
-  // 1. Intentamos la API de ML (ya tiene manejo de errores interno — devuelve vacío si falla)
-  const result = await searchProducts({ categoryId: category, limit, offset, sort, priceMin, priceMax })
+  try {
+    const result   = await getProducts({ query, domainId, limit, offset })
+    const products = result.products.length
+      ? await getProducts_batch(result.products.map((p) => p.id))
+      : []
 
-  if (result.results.length > 0) {
-    return NextResponse.json(result, { status: 200 })
+    return NextResponse.json({
+      results: products,
+      paging:  { total: result.total, offset, limit, primary_results: products.length },
+    })
+  } catch (e) {
+    console.error("[API /ml-search] Error:", (e as Error).message)
+    return NextResponse.json(
+      { results: [], paging: { total: 0, offset, limit, primary_results: 0 } },
+      { status: 200 } // 200 para que el cliente no rompa
+    )
   }
-
-  // 2. Fallback: datos curados estáticos
-  const curated = curatedProducts[category] ?? curatedProducts["default"] ?? []
-  const paginated = curated.slice(offset, offset + limit)
-
-  return NextResponse.json(
-    {
-      results: paginated,
-      paging: { total: curated.length, offset, limit, primary_results: paginated.length },
-      filters: [],
-      available_filters: [],
-      source: "curated",
-    },
-    { status: 200 }
-  )
 }

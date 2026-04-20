@@ -2,26 +2,29 @@ import { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getProduct } from "@/lib/mercadolibre"
+import { getProductFromCatalog } from "@/lib/mercadolibre"
 import { formatPrice } from "@/lib/ml-utils"
 import { siteConfig } from "@/config/site.config"
 import styles from "./page.module.css"
 
-// Server-rendered on demand con ISR de 1 hora
+// Server-rendered on demand con ISR — evita llamadas a la API de ML durante el build
 export const revalidate = 3600
 
-interface Props { params: { id: string } }
+interface Props {
+  params: { id: string }
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const p = await getProduct(params.id)
+    const product = await getProductFromCatalog(params.id)
     return {
-      title:       p.name,
-      description: p.short_description?.slice(0, 155) ||
-        `${p.name} — disponible en Mercado Libre`,
+      title: product.name,
+      description: product.short_description
+        ? product.short_description.slice(0, 155)
+        : `${product.name} — disponible en Mercado Libre`,
       openGraph: {
-        title:  p.name,
-        images: p.pictures[0] ? [{ url: p.pictures[0].url }] : [],
+        title: product.name,
+        images: product.pictures[0] ? [{ url: product.pictures[0].url }] : [],
       },
     }
   } catch {
@@ -29,11 +32,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ProductPage({ params }: Props) {
-  let product: Awaited<ReturnType<typeof getProduct>> | null = null
+export default async function CatalogProductPage({ params }: Props) {
+  let product: import("@/lib/mercadolibre").MLProductFull | null = null
 
   try {
-    product = await getProduct(params.id)
+    product = await getProductFromCatalog(params.id)
   } catch {
     notFound()
   }
@@ -41,11 +44,6 @@ export default async function ProductPage({ params }: Props) {
   if (!product) notFound()
 
   const mainImage = product.pictures[0]?.url ?? ""
-
-  // Atributos a mostrar en la tabla (filtra los que tienen valor)
-  const relevantAttrs = product.attributes
-    .filter((a) => a.value_name && !["GTIN", "SELLER_SKU"].includes(a.id))
-    .slice(0, 10)
 
   return (
     <>
@@ -57,15 +55,15 @@ export default async function ProductPage({ params }: Props) {
           <Link href="/categoria/mascotas">Mascotas</Link>
           <span>›</span>
           <span className={styles.breadcrumbCurrent}>
-            {product.name.length > 50 ? `${product.name.slice(0, 50)}…` : product.name}
+            {product.name.length > 50 ? `${product.name.slice(0, 50)}...` : product.name}
           </span>
         </div>
       </div>
 
-      {/* Layout producto */}
+      {/* Layout principal */}
       <div className={styles.productPage}>
 
-        {/* Galería */}
+        {/* Galería de imágenes */}
         <div className={styles.gallery}>
           <div className={styles.galleryMain}>
             {mainImage ? (
@@ -82,13 +80,14 @@ export default async function ProductPage({ params }: Props) {
             )}
           </div>
 
+          {/* Miniaturas */}
           {product.pictures.length > 1 && (
             <div className={styles.thumbs}>
               {product.pictures.slice(0, 5).map((pic, i) => (
                 <div key={pic.id ?? i} className={`${styles.thumb} ${i === 0 ? styles.thumbActive : ""}`}>
                   <Image
                     src={pic.url}
-                    alt={`${product.name} ${i + 1}`}
+                    alt={`${product.name} - imagen ${i + 1}`}
                     fill
                     className={styles.thumbImg}
                     sizes="80px"
@@ -101,33 +100,39 @@ export default async function ProductPage({ params }: Props) {
           {/* Nota de Osvaldo */}
           <div className={styles.osvaldoNote}>
             <div className={styles.osvaldoNoteAvatar}>
-              <Image src={siteConfig.logo} alt="Osvaldo" fill className={styles.osvaldoNoteAvatarImg} />
+              <Image
+                src={siteConfig.logo}
+                alt="Osvaldo"
+                fill
+                className={styles.osvaldoNoteAvatarImg}
+              />
             </div>
             <div>
-              <strong className={styles.osvaldoNoteTitle}>✓ Osvaldo lo recomienda</strong>
+              <strong className={styles.osvaldoNoteTitle}>Osvaldo dice:</strong>
               <p className={styles.osvaldoNoteText}>
-                Producto disponible con toda la protección al comprador de Mercado Libre.
+                Este producto cumple con mis estándares. Disponible con toda la protección al comprador de Mercado Libre.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Info */}
+        {/* Info del producto */}
         <div className={styles.productInfo}>
 
           {/* Tags */}
           <div className={styles.productMeta}>
-            <span className={product.condition === "new" ? styles.tagNew : styles.tagUsed}>
+            <span className={styles.conditionTag}>
               {product.condition === "new" ? "✅ Nuevo" : "🔄 Usado"}
             </span>
             {product.free_shipping && (
-              <span className={styles.tagShipping}>🚚 Envío gratis</span>
+              <span className={styles.shippingTag}>🚚 Envío gratis</span>
             )}
             {product.accepts_mercadopago && (
-              <span className={styles.tagMP}>💳 Mercado Pago</span>
+              <span className={styles.mpTag}>💳 Mercado Pago</span>
             )}
           </div>
 
+          {/* Título */}
           <h1 className={styles.productTitle}>{product.name}</h1>
 
           <div className={styles.divider} />
@@ -141,7 +146,9 @@ export default async function ProductPage({ params }: Props) {
 
           {/* Garantía */}
           {product.warranty && (
-            <div className={styles.warrantyRow}>🛡️ {product.warranty}</div>
+            <div className={styles.warrantyRow}>
+              🛡️ <span>{product.warranty}</span>
+            </div>
           )}
 
           {/* Features principales */}
@@ -149,17 +156,17 @@ export default async function ProductPage({ params }: Props) {
             <div className={styles.mainFeatures}>
               <h2 className={styles.featuresTitle}>Características principales</h2>
               <ul className={styles.featuresList}>
-                {product.main_features.map((feat, i) => (
+                {product.main_features.map((feature, i) => (
                   <li key={i} className={styles.featureItem}>
-                    <span className={styles.featureCheck}>✓</span>
-                    {feat}
+                    <span className={styles.featureDot}>•</span>
+                    {feature}
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* CTA principal */}
+          {/* CTA */}
           <div className={styles.ctaBlock}>
             <a
               href={product.affiliateUrl}
@@ -183,17 +190,20 @@ export default async function ProductPage({ params }: Props) {
             </div>
           )}
 
-          {/* Tabla de atributos */}
-          {relevantAttrs.length > 0 && (
+          {/* Atributos */}
+          {product.attributes.length > 0 && (
             <div className={styles.attrs}>
               <h2 className={styles.attrsTitle}>Ficha técnica</h2>
               <div className={styles.attrsGrid}>
-                {relevantAttrs.map((attr) => (
-                  <div key={attr.id} className={styles.attrRow}>
-                    <span className={styles.attrKey}>{attr.name}</span>
-                    <span className={styles.attrVal}>{attr.value_name}</span>
-                  </div>
-                ))}
+                {product.attributes
+                  .filter((a) => a.value_name)
+                  .slice(0, 10)
+                  .map((attr) => (
+                    <div key={attr.id} className={styles.attrRow}>
+                      <span className={styles.attrKey}>{attr.name}</span>
+                      <span className={styles.attrVal}>{attr.value_name}</span>
+                    </div>
+                  ))}
               </div>
             </div>
           )}

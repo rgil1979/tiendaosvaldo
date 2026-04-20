@@ -324,10 +324,39 @@
   border-bottom: 1px solid var(--sand);
 }
 
-.productsGrid {
+.productsGrid,
+.grid4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* Dos columnas de secciones (perros + gatos) */
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+/* Skeleton de carga */
+.skeleton {
+  height: 300px;
+  border-radius: var(--rl);
+  background: linear-gradient(90deg, var(--sand) 25%, #f0ebe3 50%, var(--sand) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .productsEmpty {
@@ -340,6 +369,22 @@
 .productsMore {
   margin-top: 32px;
   text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .grid4 { grid-template-columns: repeat(3, 1fr); }
+  .twoCol { gap: 32px; }
+}
+
+@media (max-width: 768px) {
+  .grid4 { grid-template-columns: repeat(2, 1fr); }
+  .grid2 { grid-template-columns: 1fr; }
+  .twoCol { grid-template-columns: 1fr; gap: 48px; }
+  .skeleton { height: 240px; }
+}
+
+@media (max-width: 480px) {
+  .grid4 { grid-template-columns: 1fr 1fr; gap: 10px; }
 }
 
 /* ── BANNER ── */

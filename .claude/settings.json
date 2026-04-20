@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s 'https://api.mercadolibre.com/products/search?status=active&site_id=MLA&q=alimento+perro&limit=4' -H 'Authorization: Bearer APP_USR-1024774218353172-041921-e86569d13241f93af40922476835c98f-57351994')",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('total:', d.get\\('paging',{}\\).get\\('total',0\\), 'results:', len\\(d.get\\('results',[]\\)\\)\\)\")",
+      "Bash(curl -s 'https://api.mercadolibre.com/products/search?status=active&site_id=MLA&domain_id=MLA-CAT_AND_DOG_FOODS&q=collar+correa&limit=4' -H 'Authorization: Bearer APP_USR-1024774218353172-041921-e86569d13241f93af40922476835c98f-57351994')",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); r=d.get\\('results',[]\\); print\\('total:', d.get\\('paging',{}\\).get\\('total',0\\), 'results:', len\\(r\\)\\); [print\\(x.get\\('name',''\\)[:60]\\) for x in r[:2]]\")",
+      "Bash(curl -s 'https://api.mercadolibre.com/sites/MLA/search?q=alimento+perro&limit=3' -H 'Authorization: Bearer APP_USR-1024774218353172-042007-61a0d161447a1b09bb98aa75c2c3fdc9-57351994')",
+      "Bash(python -c ' *)"
+    ]
+  }
+}

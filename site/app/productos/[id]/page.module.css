@@ -1,0 +1,380 @@
+/* Breadcrumb */
+.breadcrumb {
+  background: var(--cream);
+  border-bottom: 1px solid var(--sand);
+  padding: 12px var(--padding-x);
+}
+
+.breadcrumbInner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.breadcrumbInner a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.breadcrumbInner a:hover {
+  color: var(--orange);
+}
+
+.breadcrumbCurrent {
+  color: var(--brown);
+}
+
+/* Layout principal */
+.productPage {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 48px var(--padding-x);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .productPage {
+    grid-template-columns: 1fr;
+    padding: 24px var(--padding-x);
+    gap: 32px;
+  }
+}
+
+/* Galería */
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.galleryMain {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--rl);
+  overflow: hidden;
+  background: var(--cream);
+  border: 1.5px solid var(--sand);
+}
+
+.galleryImg {
+  object-fit: contain;
+  padding: 24px;
+}
+
+.galleryFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 96px;
+}
+
+/* Miniaturas */
+.thumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.thumb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--cream);
+  border: 1.5px solid var(--sand);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.thumbActive {
+  border-color: var(--orange);
+}
+
+.thumbImg {
+  object-fit: contain;
+  padding: 6px;
+}
+
+/* Nota de Osvaldo */
+.osvaldoNote {
+  background: var(--orange-soft);
+  border: 1.5px solid var(--sand-dark);
+  border-radius: var(--r);
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.osvaldoNoteAvatar {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--orange);
+}
+
+.osvaldoNoteAvatarImg {
+  object-fit: cover;
+}
+
+.osvaldoNoteTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brown);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.osvaldoNoteText {
+  font-size: 13px;
+  color: #555555;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Info */
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.productMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.conditionTag,
+.shippingTag,
+.mpTag {
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.conditionTag {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.shippingTag {
+  background: var(--cream);
+  color: var(--brown-mid);
+  border: 1.5px solid var(--sand-dark);
+}
+
+.mpTag {
+  background: var(--cream);
+  color: var(--brown-mid);
+  border: 1.5px solid var(--sand-dark);
+}
+
+.productTitle {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--brown);
+  line-height: 1.25;
+  letter-spacing: -0.3px;
+}
+
+@media (max-width: 768px) {
+  .productTitle {
+    font-size: 22px;
+  }
+}
+
+.divider {
+  height: 1px;
+  background: var(--sand);
+}
+
+/* Precio */
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.price {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--orange);
+  line-height: 1;
+}
+
+/* Garantía */
+.warrantyRow {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Features */
+.mainFeatures {
+  background: var(--cream);
+  border-radius: var(--r);
+  padding: 20px;
+}
+
+.featuresTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brown);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.featuresList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.featureItem {
+  font-size: 14px;
+  color: #444444;
+  line-height: 1.5;
+  font-weight: 500;
+  display: flex;
+  gap: 8px;
+}
+
+.featureDot {
+  color: var(--orange);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+/* CTAs */
+.ctaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btnML {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--orange);
+  color: white;
+  border-radius: 50px;
+  padding: 16px 24px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.btnML:hover {
+  background: var(--brown-mid);
+}
+
+.mlDisclaimer {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.mlDisclaimer a {
+  color: var(--orange);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+/* Descripción */
+.description {
+  border-top: 1px solid var(--sand);
+  padding-top: 20px;
+}
+
+.descTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brown);
+  margin-bottom: 12px;
+}
+
+.descText {
+  font-size: 14px;
+  color: #555555;
+  line-height: 1.75;
+  font-weight: 500;
+  white-space: pre-line;
+}
+
+/* Atributos */
+.attrs {
+  border-top: 1px solid var(--sand);
+  padding-top: 20px;
+}
+
+.attrsTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brown);
+  margin-bottom: 12px;
+}
+
+.attrsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1.5px solid var(--sand);
+}
+
+.attrRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 10px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--sand);
+}
+
+.attrRow:last-child {
+  border-bottom: none;
+}
+
+.attrRow:nth-child(even) {
+  background: var(--cream);
+}
+
+.attrKey {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.attrVal {
+  font-weight: 600;
+  color: var(--brown);
+}

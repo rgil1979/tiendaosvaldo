@@ -51,6 +51,70 @@ export const siteConfig = {
 // CONFIGURACIÓN DE MERCADO LIBRE
 // ─────────────────────────────────────────────
 
+// ─────────────────────────────────────────────
+// DOMINIOS DE CATÁLOGO — Mercado Libre
+// Usados en /products/search?domain_id=...
+// ─────────────────────────────────────────────
+
+export const DOMINIOS_MASCOTAS = {
+  "MLA-CAT_AND_DOG_FOODS": {
+    label:      "Alimentos",
+    pet:        "ambos" as const,
+    queryPerro: "perro",
+    queryGato:  "gato",
+  },
+  "MLA-CAT_AND_DOG_BEDS": {
+    label: "Camas y cuchas",
+    pet:   "ambos" as const,
+  },
+  "MLA-PET_COLLARS": {
+    label:      "Collares y correas",
+    pet:        "ambos" as const,
+    queryPerro: "collar correa perro",
+    queryGato:  "collar correa gato",
+  },
+  "MLA-CATS_LITTER": {
+    label: "Arena para gatos",
+    pet:   "gatos" as const,
+  },
+  "MLA-PET_CARRIERS_AND_CARRYING_BAGS": {
+    label: "Transportadoras",
+    pet:   "ambos" as const,
+  },
+  "MLA-PET_FOOD_STORAGE_CONTAINERS": {
+    label: "Contenedores de alimento",
+    pet:   "ambos" as const,
+  },
+} as const
+
+export type DomainId = keyof typeof DOMINIOS_MASCOTAS
+
+// ─────────────────────────────────────────────
+// MAPA DE SLUGS DE CATEGORÍA → DOMINIO + QUERY
+// Usado en /categoria/[slug]
+// ─────────────────────────────────────────────
+
+export const SLUG_CONFIG: Record<string, {
+  label:    string
+  emoji:    string
+  domainId: string
+  query?:   string
+}> = {
+  // Slugs nuevos
+  "alimento-perro": { label: "Alimento para perros", emoji: "🍖", domainId: "", query: "alimento perro"           },
+  "alimento-gato":  { label: "Alimento para gatos",  emoji: "🐟", domainId: "", query: "alimento gato"            },
+  "collares":       { label: "Collares y correas",   emoji: "🦮", domainId: "", query: "collar correa perro"      },
+  "camas":          { label: "Camas y cuchas",        emoji: "🛏️", domainId: "", query: "cama cucha perro"         },
+  "arena-gato":     { label: "Arena para gatos",     emoji: "🧂", domainId: "", query: "arena sanitaria gato"     },
+  // Slugs legacy (navbar existente)
+  "mascotas":       { label: "Mascotas",              emoji: "🐾", domainId: "", query: "accesorio mascota"        },
+  "perros":         { label: "Perros",                emoji: "🐕", domainId: "", query: "alimento perro"           },
+  "gatos":          { label: "Gatos",                 emoji: "🐈", domainId: "", query: "alimento gato"            },
+  "accesorios":     { label: "Accesorios",            emoji: "🦮", domainId: "", query: "collar correa accesorio"  },
+  "alimentacion":   { label: "Alimentación",          emoji: "🍖", domainId: "", query: "alimento mascota"         },
+  "juguetes":       { label: "Juguetes",              emoji: "🧸", domainId: "", query: "juguete mascota"          },
+}
+
 export const mlConfig = {
   // ── CREDENCIALES (leer desde variables de entorno) ──
   appId: process.env.ML_APP_ID!,

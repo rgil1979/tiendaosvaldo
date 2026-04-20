@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { navConfig, siteConfig } from "@/config/site.config"
+import SearchBar from "./SearchBar"
 import styles from "./Navbar.module.css"
 
 export default function Navbar() {
@@ -57,6 +58,11 @@ export default function Navbar() {
             {navConfig.cta.label}
           </Link>
         </nav>
+
+        {/* Barra de búsqueda — oculta en mobile, visible en desktop */}
+        <div className={styles.searchWrap}>
+          <SearchBar />
+        </div>
 
         {/* Mobile menu button */}
         <button

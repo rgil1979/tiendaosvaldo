@@ -96,6 +96,15 @@
   border-color: var(--orange) !important;
 }
 
+/* Search wrap */
+.searchWrap {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .searchWrap { display: none; }
+}
+
 /* Mobile button */
 .menuBtn {
   display: none;

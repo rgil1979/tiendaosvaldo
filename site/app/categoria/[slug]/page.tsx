@@ -1,58 +1,72 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { mlConfig } from "@/config/site.config"
-import CategoryProducts from "@/components/CategoryProducts"
+import { SLUG_CONFIG } from "@/config/site.config"
+import { getProducts, getProducts_batch } from "@/lib/mercadolibre"
+import type { MLProductFull } from "@/lib/mercadolibre"
+import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
 
-// Revalidar la página cada hora — permite recuperarse si ML estuvo caído durante el build
 export const revalidate = 3600
 
-// Mapa de slugs a IDs de ML
-const categoryMap: Record<string, { id: string; label: string; emoji: string; desc: string }> = {
-  mascotas:    { id: mlConfig.categories.mascotas,    label: "Mascotas",    emoji: "🐾", desc: "Todo para tus peludos" },
-  perros:      { id: mlConfig.categories.perros,      label: "Perros",      emoji: "🐕", desc: "Accesorios, alimentos y más para tu perro" },
-  gatos:       { id: mlConfig.categories.gatos,       label: "Gatos",       emoji: "🐈", desc: "Todo lo que tu gato necesita" },
-  accesorios:  { id: mlConfig.categories.accesorios,  label: "Accesorios",  emoji: "🦮", desc: "Collares, correas, ropa y más" },
-  alimentacion:{ id: mlConfig.categories.alimentacion,label: "Alimentación",emoji: "🍖", desc: "Alimentos y snacks para mascotas" },
-  juguetes:    { id: mlConfig.categories.juguetes,    label: "Juguetes",    emoji: "🧸", desc: "Juguetes y entretenimiento" },
+interface Props {
+  params:       { slug: string }
+  searchParams: { pagina?: string; mascota?: string }
 }
 
-interface Props {
-  params: { slug: string }
-  searchParams: { orden?: string; pagina?: string; precioMin?: string; precioMax?: string }
+export function generateStaticParams() {
+  return Object.keys(SLUG_CONFIG).map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const cat = categoryMap[params.slug]
-  if (!cat) return {}
+  const cfg = SLUG_CONFIG[params.slug]
+  if (!cfg) return {}
   return {
-    title: cat.label,
-    description: cat.desc,
+    title:       `${cfg.label} — Tienda Osvaldo`,
+    description: `${cfg.label} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
   }
 }
 
+const LIMIT = 20
+
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const cat = categoryMap[params.slug]
-  if (!cat) notFound()
+  const cfg = SLUG_CONFIG[params.slug]
+  if (!cfg) notFound()
 
-  const page = parseInt(searchParams.pagina || "1")
-  const limit = mlConfig.search.defaultLimit
-  const offset = (page - 1) * limit
-  const sort = searchParams.orden || mlConfig.search.defaultSort
-  const priceMin = searchParams.precioMin ? parseInt(searchParams.precioMin) : undefined
-  const priceMax = searchParams.precioMax ? parseInt(searchParams.precioMax) : undefined
+  const page   = Math.max(1, parseInt(searchParams.pagina ?? "1"))
+  const offset = (page - 1) * LIMIT
 
-  const sortOptions = [
-    { value: "relevance",              label: "Más relevantes" },
-    { value: "price_asc",              label: "Menor precio" },
-    { value: "price_desc",             label: "Mayor precio" },
-    { value: "reviews_rating_average", label: "Mejor calificados" },
-  ]
+  const mascotaFilter = searchParams.mascota
+  const query = [cfg.query, mascotaFilter].filter(Boolean).join(" ") || undefined
 
-  const subcats = Object.entries(categoryMap).filter(([slug]) =>
-    slug !== "mascotas" && slug !== params.slug
+  let products: MLProductFull[] = []
+  let total   = 0
+  let hasMore = false
+
+  try {
+    const result = await getProducts({ domainId: cfg.domainId, query, limit: LIMIT, offset })
+    total   = result.total
+    hasMore = result.hasMore
+    if (result.products.length) {
+      products = await getProducts_batch(result.products.map((p) => p.id))
+    }
+  } catch {
+    // Vacío silencioso
+  }
+
+  const totalPages = Math.ceil(total / LIMIT) || 1
+
+  const siblings = Object.entries(SLUG_CONFIG).filter(
+    ([s]) => s !== params.slug && !["mascotas", "alimentacion"].includes(s)
   )
+
+  function pageHref(p: number) {
+    const qs = new URLSearchParams()
+    if (p > 1) qs.set("pagina", String(p))
+    if (mascotaFilter) qs.set("mascota", mascotaFilter)
+    const q = qs.toString()
+    return `/categoria/${params.slug}${q ? `?${q}` : ""}`
+  }
 
   return (
     <>
@@ -61,36 +75,27 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <div className={styles.breadcrumbInner}>
           <Link href="/">Inicio</Link>
           <span>›</span>
-          <span>{cat.label}</span>
+          <span>{cfg.label}</span>
         </div>
       </div>
 
-      {/* Header de categoría */}
+      {/* Header */}
       <div className={styles.catHeader}>
         <div className={styles.catHeaderInner}>
           <div className={styles.catHeaderLeft}>
-            <div className={styles.catIconBig}>{cat.emoji}</div>
+            <div className={styles.catIconBig}>{cfg.emoji}</div>
             <div>
-              <h1 className={styles.catTitle}>{cat.label}</h1>
-              <div className={styles.catMeta}>
-                <span>⭐ Solo rep. verde en ML</span>
-                <div className={styles.catDot} />
-                <span>Actualizado ahora</span>
-              </div>
+              <h1 className={styles.catTitle}>{cfg.label}</h1>
+              {total > 0 && (
+                <p className={styles.catMeta}>
+                  {total.toLocaleString("es-AR")} productos disponibles
+                </p>
+              )}
             </div>
           </div>
-
-          {/* Subcategorías */}
           <div className={styles.subcats}>
-            <Link href="/categoria/mascotas" className={styles.subcat}>
-              Todos
-            </Link>
-            {subcats.map(([slug, info]) => (
-              <Link
-                key={slug}
-                href={`/categoria/${slug}`}
-                className={`${styles.subcat} ${slug === params.slug ? styles.subcatActive : ""}`}
-              >
+            {siblings.slice(0, 6).map(([slug, info]) => (
+              <Link key={slug} href={`/categoria/${slug}`} className={styles.subcat}>
                 {info.emoji} {info.label}
               </Link>
             ))}
@@ -98,115 +103,92 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      {/* Body */}
+      {/* Layout */}
       <div className={styles.pageBody}>
 
         {/* Sidebar */}
         <aside className={styles.sidebar}>
           <form method="GET" className={styles.sidebarForm}>
-
-            {/* Precio */}
             <div className={styles.sidebarSection}>
-              <div className={styles.sidebarTitle}>Precio</div>
-              <div className={styles.priceRange}>
-                <input
-                  name="precioMin"
-                  type="number"
-                  placeholder="Mín"
-                  defaultValue={searchParams.precioMin}
-                  className={styles.priceInput}
-                />
-                <span className={styles.priceSep}>—</span>
-                <input
-                  name="precioMax"
-                  type="number"
-                  placeholder="Máx"
-                  defaultValue={searchParams.precioMax}
-                  className={styles.priceInput}
-                />
-              </div>
-            </div>
-
-            {/* Condición */}
-            <div className={styles.sidebarSection}>
-              <div className={styles.sidebarTitle}>Condición</div>
+              <div className={styles.sidebarTitle}>Tipo de mascota</div>
               {[
-                { value: "new",  label: "Nuevo" },
-                { value: "used", label: "Usado" },
+                { value: "",      label: "Todos" },
+                { value: "perro", label: "🐕 Perros" },
+                { value: "gato",  label: "🐈 Gatos"  },
               ].map((opt) => (
                 <label key={opt.value} className={styles.filterOption}>
                   <input
                     type="radio"
-                    name="condicion"
+                    name="mascota"
                     value={opt.value}
+                    defaultChecked={(searchParams.mascota ?? "") === opt.value}
                     className={styles.radio}
                   />
                   <span className={styles.filterLabel}>{opt.label}</span>
                 </label>
               ))}
             </div>
-
-            {/* Orden */}
-            <div className={styles.sidebarSection}>
-              <div className={styles.sidebarTitle}>Ordenar por</div>
-              {sortOptions.map((opt) => (
-                <label key={opt.value} className={styles.filterOption}>
-                  <input
-                    type="radio"
-                    name="orden"
-                    value={opt.value}
-                    defaultChecked={sort === opt.value}
-                    className={styles.radio}
-                  />
-                  <span className={styles.filterLabel}>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-
             <button type="submit" className={`btn btn-fill btn-sm ${styles.applyBtn}`}>
               Aplicar filtros
             </button>
-
             <Link href={`/categoria/${params.slug}`} className={styles.clearFilters}>
               Limpiar filtros
             </Link>
-
           </form>
         </aside>
 
         {/* Productos */}
         <div className={styles.productsArea}>
-
-          {/* Toolbar */}
           <div className={styles.toolbar}>
             <span className={styles.resultsCount}>
-              {cat.label}
+              {total > 0 ? `${total.toLocaleString("es-AR")} productos` : cfg.label}
             </span>
-            <div className={styles.toolbarRight}>
-              <select
-                name="orden"
-                defaultValue={sort}
-                className={styles.sortSelect}
-              >
-                {sortOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {totalPages > 1 && (
+              <span className={styles.pageInfo}>Página {page} de {totalPages}</span>
+            )}
           </div>
 
-          {/* Grid + Paginación — carga en el browser directamente desde ML */}
-          <CategoryProducts
-            categoryId={cat.id}
-            slug={params.slug}
-            limit={limit}
-            offset={offset}
-            sort={sort}
-            priceMin={priceMin}
-            priceMax={priceMax}
-          />
+          {products.length > 0 ? (
+            <div className={styles.productsGrid}>
+              {products.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          ) : (
+            <div className={styles.empty}>
+              <span>🐾</span>
+              <p>No encontramos productos en este momento.</p>
+              <Link href="/" className="btn btn-ghost">Volver al inicio</Link>
+            </div>
+          )}
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <nav className={styles.pagination} aria-label="Páginas">
+              {page > 1 && (
+                <Link href={pageHref(page - 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
+                  ← Anterior
+                </Link>
+              )}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const n = Math.max(1, Math.min(page - 2, totalPages - 4)) + i
+                return (
+                  <Link
+                    key={n}
+                    href={pageHref(n)}
+                    className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ""}`}
+                  >
+                    {n}
+                  </Link>
+                )
+              })}
+              {hasMore && (
+                <Link href={pageHref(page + 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
+                  Siguiente →
+                </Link>
+              )}
+            </nav>
+          )}
         </div>
       </div>
     </>

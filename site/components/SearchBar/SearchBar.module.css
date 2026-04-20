@@ -1,0 +1,56 @@
+.form {
+  display:     flex;
+  align-items: center;
+  background:  var(--cream);
+  border:      1.5px solid var(--sand-dark);
+  border-radius: 50px;
+  overflow:    hidden;
+  transition:  var(--transition);
+  width:       220px;
+}
+
+.form:focus-within {
+  border-color: var(--orange);
+  background:   var(--white);
+  box-shadow:   0 0 0 3px rgba(232,98,42,.12);
+}
+
+.input {
+  flex:        1;
+  border:      none;
+  background:  transparent;
+  padding:     8px 14px;
+  font-family: var(--font-body);
+  font-size:   13px;
+  font-weight: 500;
+  color:       var(--brown);
+  outline:     none;
+  min-width:   0;
+}
+
+.input::placeholder { color: var(--muted); }
+
+/* Ocultar el botón nativo de clear en search inputs */
+.input::-webkit-search-cancel-button { display: none; }
+
+.btn {
+  background:  transparent;
+  border:      none;
+  padding:     8px 12px 8px 4px;
+  color:       var(--muted);
+  cursor:      pointer;
+  display:     flex;
+  align-items: center;
+  transition:  var(--transition);
+  flex-shrink: 0;
+}
+
+.btn:hover { color: var(--orange); }
+
+@media (max-width: 900px) {
+  .form { width: 180px; }
+}
+
+@media (max-width: 700px) {
+  .form { width: 100%; border-radius: var(--r); }
+}

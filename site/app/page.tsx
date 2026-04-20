@@ -1,17 +1,96 @@
+import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { mlConfig, siteConfig } from "@/config/site.config"
-import FeaturedProducts from "@/components/FeaturedProducts"
+import { siteConfig } from "@/config/site.config"
+import { getHighlights } from "@/lib/mercadolibre"
+import type { MLProductFull } from "@/lib/mercadolibre"
+import ProductCard from "@/components/ProductCard"
+import ProductCarousel from "@/components/ProductCarousel"
 import styles from "./page.module.css"
 
-export default async function HomePage() {
-  // [UX-FIX] Categorías alineadas con el navbar para evitar inconsistencia de navegación
+// ISR: revalidar cada hora
+export const revalidate = 3600
+
+// ── SECCIONES ASYNC (Server Components) ──────────────────────────────────────
+
+async function ProductSection({
+  categoryId, limit, cols,
+}: {
+  categoryId: string
+  limit:      number
+  cols:       2 | 4
+}) {
+  const products = await getHighlights(categoryId, limit)
+  if (!products.length) return null
+
+  const gridClass = cols === 4 ? styles.grid4 : styles.grid2
+
+  return (
+    <div className={gridClass}>
+      {products.map((p, i) => (
+        <ProductCard key={p.id} product={p} badge={i === 0 ? "Recomendado" : undefined} />
+      ))}
+    </div>
+  )
+}
+
+async function CarouselSection() {
+  // Combina paseo/viaje + higiene para garantizar 8 productos con precio
+  const [a, b] = await Promise.all([
+    getHighlights("MLA434764", 10), // paseo y viaje
+    getHighlights("MLA1076",   10), // higiene y estética
+  ])
+  // Mezcla alternada para tener variedad de categorías
+  const merged: typeof a = []
+  const maxLen = Math.max(a.length, b.length)
+  for (let i = 0; i < maxLen && merged.length < 8; i++) {
+    if (a[i]) merged.push(a[i])
+    if (merged.length < 8 && b[i]) merged.push(b[i])
+  }
+  if (!merged.length) return null
+  return <ProductCarousel products={merged} visibleCount={5} />
+}
+
+// Toma 1 producto aleatorio de cada categoría → 4 productos de categorías distintas
+async function FeaturedSection() {
+  const CATEGORIES = ["MLA1072", "MLA1081", "MLA434764", "MLA1074"] // perros, gatos, paseo, juguetes
+  const pools = await Promise.all(CATEGORIES.map((id) => getHighlights(id, 10)))
+
+  const featured: MLProductFull[] = pools
+    .map((pool) => pool[Math.floor(Math.random() * pool.length)])
+    .filter(Boolean)
+
+  if (!featured.length) return null
+
+  return (
+    <div className={styles.grid4}>
+      {featured.map((p) => (
+        <ProductCard key={p.id} product={p} />
+      ))}
+    </div>
+  )
+}
+
+function ProductSkeleton({ count, cols }: { count: number; cols: 2 | 4 }) {
+  const gridClass = cols === 4 ? styles.grid4 : styles.grid2
+  return (
+    <div className={gridClass}>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className={styles.skeleton} />
+      ))}
+    </div>
+  )
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+
+export default function HomePage() {
   const categories = [
-    { name: "Perros", href: "/categoria/perros", emoji: "🐕", count: "2.400+" },
-    { name: "Gatos", href: "/categoria/gatos", emoji: "🐈", count: "1.800+" },
-    { name: "Accesorios", href: "/categoria/accesorios", emoji: "🦮", count: "680+" },
-    { name: "Alimentación", href: "/categoria/alimentacion", emoji: "🍖", count: "950+" },
-    { name: "Juguetes", href: "/categoria/juguetes", emoji: "🧸", count: "420+" },
+    { name: "Alimento perro", href: "/categoria/alimento-perro", emoji: "🍖" },
+    { name: "Alimento gato",  href: "/categoria/alimento-gato",  emoji: "🐟" },
+    { name: "Collares",       href: "/categoria/collares",        emoji: "🦮" },
+    { name: "Camas",          href: "/categoria/camas",           emoji: "🛏️" },
+    { name: "Arena gato",     href: "/categoria/arena-gato",      emoji: "🧂" },
   ]
 
   return (
@@ -27,10 +106,11 @@ export default async function HomePage() {
               Lo mejor para<br />tus <span>peludos</span>,<br />sin vueltas.
             </h1>
             <p className={styles.heroSub}>
-              Encontrá accesorios, alimentos y juguetes seleccionados para perros y gatos. Todo disponible en Mercado Libre con envío a todo el país.
+              Encontrá accesorios, alimentos y juguetes seleccionados para perros y gatos.
+              Todo disponible en Mercado Libre con envío a todo el país.
             </p>
             <div className={styles.heroActions}>
-              <Link href="/categoria/perros" className="btn btn-fill">
+              <Link href="/categoria/alimento-perro" className="btn btn-fill">
                 Ver productos →
               </Link>
               <Link href="/sobre-osvaldo" className="btn btn-ghost">
@@ -38,26 +118,19 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className={styles.heroTrust}>
-              <div className={styles.trustItem}>
-                <svg className={styles.trustIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M11 6L7 10L5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Comprás en Mercado Libre
-              </div>
-              <div className={styles.trustItem}>
-                <svg className={styles.trustIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 8L8 14L14 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Envío a todo el país
-              </div>
-              <div className={styles.trustItem}>
-                <svg className={styles.trustIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect x="2" y="5" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M2 5V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-                Pagos con Mercado Pago
-              </div>
+              {[
+                { icon: "✓", text: "Comprás en Mercado Libre" },
+                { icon: "✓", text: "Envío a todo el país" },
+                { icon: "✓", text: "Pagos con Mercado Pago" },
+              ].map((t) => (
+                <div key={t.text} className={styles.trustItem}>
+                  <svg className={styles.trustIcon} width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M11 6L7 10L5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {t.text}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -65,19 +138,14 @@ export default async function HomePage() {
           <div className={styles.heroRight}>
             <div className={styles.osvaldoCard}>
               <div className={styles.osvaldoAvatar}>
-                <Image
-                  src={siteConfig.logo}
-                  alt="Osvaldo"
-                  fill
-                  className={styles.osvaldoAvatarImg}
-                />
+                <Image src={siteConfig.logo} alt="Osvaldo" fill className={styles.osvaldoAvatarImg} />
               </div>
               <div className={styles.osvaldoLabel}>✅ Chief Sniff Officer</div>
               <h3 className={styles.osvaldoName}>Soy Osvaldo</h3>
               <div className={styles.osvaldoDesc}>
-                Mestizo adoptado, 8 años. Probé cada categoría de esta tienda. Si no me copa, no lo publicamos.
+                Mestizo adoptado, 8 años. Probé cada categoría de esta tienda.
+                Si no me copa, no lo publicamos.
               </div>
-              {/* UX: Solo 1 métrica destacada en lugar de 3 */}
               <div className={styles.statSingle}>
                 <span className={styles.statNum}>500+</span>
                 <span className={styles.statLabel}>productos aprobados</span>
@@ -101,36 +169,72 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className={styles.catsGrid}>
-          {/* [UX-FIX] Eliminado catActive hardcodeado — no refleja estado real del usuario */}
           {categories.map((cat) => (
-            <Link
-              key={cat.href}
-              href={cat.href}
-              className={styles.catCard}
-            >
+            <Link key={cat.href} href={cat.href} className={styles.catCard}>
               <span className={styles.catEmoji}>{cat.emoji}</span>
               <div className={styles.catName}>{cat.name}</div>
-              <div className={styles.catCount}>{cat.count} productos</div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* ── PRODUCTOS DESTACADOS ── */}
+      {/* ── DESTACADOS ── */}
       <div className={styles.productsBg}>
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>
-              🔥 Más vendidos <span>esta semana</span>
+              🌟 Destacados para tu <span>mascota</span>
             </h2>
-            <Link href="/categoria/mascotas" className={styles.seeAll}>
-              Ver todos →
-            </Link>
+            <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
           </div>
-          <FeaturedProducts categoryId={mlConfig.categories.mascotas} limit={8} />
+          <Suspense fallback={<ProductSkeleton count={4} cols={4} />}>
+            <FeaturedSection />
+          </Suspense>
+        </div>
+      </div>
+
+      {/* ── PERROS + GATOS ── */}
+      <div className={styles.section}>
+        <div className={styles.twoCol}>
+          {/* Para perros */}
+          <div>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
+              <Link href="/categoria/perros" className={styles.seeAll}>Ver más →</Link>
+            </div>
+            <Suspense fallback={<ProductSkeleton count={1} cols={2} />}>
+              <ProductSection categoryId="MLA1072" limit={1} cols={2} />
+            </Suspense>
+          </div>
+
+          {/* Para gatos */}
+          <div>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>🐈 Para <span>gatos</span></h2>
+              <Link href="/categoria/gatos" className={styles.seeAll}>Ver más →</Link>
+            </div>
+            <Suspense fallback={<ProductSkeleton count={1} cols={2} />}>
+              <ProductSection categoryId="MLA1081" limit={1} cols={2} />
+            </Suspense>
+          </div>
+        </div>
+      </div>
+
+      {/* ── ACCESORIOS ── */}
+      <div className={styles.productsBg}>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>
+              🦮 <span>Accesorios</span> y collares
+            </h2>
+            <Link href="/categoria/collares" className={styles.seeAll}>Ver todos →</Link>
+          </div>
+          <Suspense fallback={<ProductSkeleton count={5} cols={4} />}>
+            <CarouselSection />
+          </Suspense>
           <div className={styles.productsMore}>
-            <Link href="/categoria/mascotas" className="btn btn-ghost">
-              Ver todos los productos
+            <Link href="/categoria/collares" className="btn btn-ghost">
+              Ver todos los accesorios
             </Link>
           </div>
         </div>
@@ -144,7 +248,8 @@ export default async function HomePage() {
               ¿Por qué confiar<br />en la selección<br />de <span>Osvaldo?</span>
             </h2>
             <p className={styles.bannerDesc}>
-              No somos una tienda genérica. Osvaldo revisa cada categoría, filtramos por reputación de vendedor y calificaciones reales de compradores.
+              No somos una tienda genérica. Osvaldo revisa cada categoría, filtramos
+              por reputación de vendedor y calificaciones reales de compradores.
             </p>
             <div className={styles.bannerPills}>
               <span className={styles.bannerPill}>🐾 Solo rep. verde en ML</span>
@@ -158,10 +263,10 @@ export default async function HomePage() {
           </div>
           <div className={styles.bannerRight}>
             {[
-              { icon: "🛡️", title: "Comprás en Mercado Libre", desc: "Con toda la protección al comprador de ML" },
-              { icon: "💳", title: "Pagos seguros", desc: "Tarjeta, efectivo y cuotas con Mercado Pago" },
-              { icon: "📦", title: "Envíos con Mercado Envíos", desc: "Tracking en tiempo real a cualquier provincia" },
-              { icon: "🔄", title: "Devoluciones sin drama", desc: "La política de devoluciones es la de Mercado Libre" },
+              { icon: "🛡️", title: "Comprás en Mercado Libre",      desc: "Con toda la protección al comprador de ML" },
+              { icon: "💳", title: "Pagos seguros",                  desc: "Tarjeta, efectivo y cuotas con Mercado Pago" },
+              { icon: "📦", title: "Envíos con Mercado Envíos",      desc: "Tracking en tiempo real a cualquier provincia" },
+              { icon: "🔄", title: "Devoluciones sin drama",         desc: "La política de devoluciones es la de Mercado Libre" },
             ].map((item) => (
               <div key={item.title} className={styles.bannerItem}>
                 <div className={styles.bannerIcon}>{item.icon}</div>
@@ -176,7 +281,6 @@ export default async function HomePage() {
       </div>
 
       {/* ── NEWSLETTER ── */}
-      {/* [UX-FIX] Botón eliminado — sin backend activo no debe haber CTA de envío */}
       <div className={styles.newsletter}>
         <div className={styles.newsletterInner}>
           <div className={styles.nlIcon}>🐾</div>
@@ -184,11 +288,7 @@ export default async function HomePage() {
           <p className={styles.nlDesc}>
             Cuando Osvaldo encuentra algo bueno, te avisa. Sin spam, sin pavadas.
           </p>
-          <input
-            type="email"
-            placeholder="tu@email.com"
-            className={styles.nlInput}
-          />
+          <input type="email" placeholder="tu@email.com" className={styles.nlInput} />
         </div>
       </div>
     </>
