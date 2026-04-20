@@ -27,13 +27,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-const LIMIT = 20
+const LIMIT     = 20
+const MAX_TOTAL = 300                          // cap de productos por categoría
+const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT) // 15 páginas
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const cfg = SLUG_CONFIG[params.slug]
   if (!cfg) notFound()
 
-  const page   = Math.max(1, parseInt(searchParams.pagina ?? "1"))
+  const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1")), MAX_PAGES)
   const offset = (page - 1) * LIMIT
 
   const mascotaFilter = searchParams.mascota
@@ -41,12 +43,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   let products: MLProductFull[] = []
   let total   = 0
-  let hasMore = false
 
   try {
     const result = await getProducts({ domainId: cfg.domainId, query, limit: LIMIT, offset })
-    total   = result.total
-    hasMore = result.hasMore
+    total   = Math.min(result.total, MAX_TOTAL) // capear en 300
     if (result.products.length) {
       products = await getProducts_batch(result.products.map((p) => p.id))
     }
@@ -171,7 +171,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                 </Link>
               )}
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const n = Math.max(1, Math.min(page - 2, totalPages - 4)) + i
+                const start = Math.max(1, Math.min(page - 2, totalPages - 4))
+                const n = start + i
+                if (n > totalPages) return null
                 return (
                   <Link
                     key={n}
@@ -182,7 +184,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                   </Link>
                 )
               })}
-              {hasMore && (
+              {page < totalPages && (
                 <Link href={pageHref(page + 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
                   Siguiente →
                 </Link>

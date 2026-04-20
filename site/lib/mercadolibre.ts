@@ -231,7 +231,10 @@ export async function getProduct(productId: string): Promise<MLProductFull> {
 // ── LOTE DE PRODUCTOS ────────────────────────────────────────────────────────
 // Máx 10 en paralelo para respetar rate limits de ML
 
-export async function getProducts_batch(productIds: string[]): Promise<MLProductFull[]> {
+export async function getProducts_batch(
+  productIds:   string[],
+  requirePrice = false,   // false → muestra igual aunque no tenga precio activo
+): Promise<MLProductFull[]> {
   const CHUNK   = 10
   const results: MLProductFull[] = []
 
@@ -240,8 +243,11 @@ export async function getProducts_batch(productIds: string[]): Promise<MLProduct
       productIds.slice(i, i + CHUNK).map((id) => getProduct(id))
     )
     for (const r of settled) {
-      if (r.status === "fulfilled" && r.value.price > 0) results.push(r.value)
-      else if (r.status === "rejected") console.warn("[ML] Producto fallido en batch:", (r.reason as Error).message)
+      if (r.status === "fulfilled") {
+        if (!requirePrice || r.value.price > 0) results.push(r.value)
+      } else {
+        console.warn("[ML] Producto fallido en batch:", (r.reason as Error).message)
+      }
     }
   }
   return results
@@ -256,7 +262,7 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
       3600
     )
     const ids = (data.content ?? []).slice(0, limit).map((c) => c.id)
-    return getProducts_batch(ids)
+    return getProducts_batch(ids, true) // highlights siempre con precio
   } catch (e) {
     console.error("[ML] getHighlights falló:", (e as Error).message)
     return []

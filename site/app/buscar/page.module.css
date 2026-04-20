@@ -77,7 +77,7 @@
 /* Grid */
 .grid {
   display:               grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap:                   16px;
 }
 
@@ -138,7 +138,7 @@
 .pageBtnArrow      { width: auto; padding: 0 16px; border-radius: 50px; }
 
 @media (max-width: 1024px) {
-  .grid { grid-template-columns: repeat(3, 1fr); }
+  .grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
