@@ -149,8 +149,8 @@ export function buildAffiliateUrl(productId: string): string {
 export function buildAffiliateLink(permalink: string): string {
   try {
     const url  = new URL(permalink)
-    const id   = process.env.NEXT_PUBLIC_ML_AFFILIATE_ID ?? process.env.ML_AFFILIATE_ID ?? ""
-    if (id) url.searchParams.set("partner_id", id)
+    const id = (process.env.NEXT_PUBLIC_ML_AFFILIATE_ID ?? process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    if (id) url.searchParams.set("partner_id", `cbpar_${id}`)
     return url.toString()
   } catch {
     return permalink

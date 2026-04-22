@@ -4,9 +4,9 @@
 export function buildAffiliateLink(permalink: string): string {
   try {
     const url = new URL(permalink)
-    const affiliateId = process.env.NEXT_PUBLIC_ML_AFFILIATE_ID
+    const affiliateId = (process.env.NEXT_PUBLIC_ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
     if (affiliateId) {
-      url.searchParams.set("partner_id", affiliateId)
+      url.searchParams.set("partner_id", `cbpar_${affiliateId}`)
     }
     url.searchParams.set("utm_source", "tiendaosvaldo")
     url.searchParams.set("utm_medium", "affiliate")
