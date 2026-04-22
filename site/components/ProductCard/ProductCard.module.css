@@ -18,7 +18,7 @@
 .imgWrap {
   position:      relative;
   aspect-ratio:  1;
-  background:    var(--cream);
+  background:    var(--white);
   overflow:      hidden;
   display:       block;
   /* fallback Safari < 15 */

@@ -20,7 +20,7 @@
   /* [UX-FIX] Fallback para Safari < 15 que no soporta aspect-ratio */
   padding-top: 100%;
   aspect-ratio: 1;
-  background: var(--cream);
+  background: var(--white);
   overflow: hidden;
 }
 

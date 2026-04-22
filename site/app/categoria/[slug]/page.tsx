@@ -39,7 +39,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const offset = (page - 1) * LIMIT
 
   const mascotaFilter = searchParams.mascota
-  const query = [cfg.query, mascotaFilter].filter(Boolean).join(" ") || undefined
+  // cfg.query ya tiene el filtro base del slug ("perro", "gato", "collar", etc.)
+  // mascotaFilter agrega refinamiento extra solo si es distinto al ya incluido
+  const query = [cfg.query, mascotaFilter].filter(Boolean).join(" ")
 
   let products: MLProductFull[] = []
   let total   = 0
@@ -51,13 +53,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       // Página 1 sin filtro: highlights garantizan precios. Total del search para paginar.
       const [hlProducts, searchResult] = await Promise.all([
         getHighlights(cfg.hlCategoryId!, LIMIT),
-        getProducts({ domainId: cfg.domainId, query, limit: 1, offset: 0 }),
+        getProducts({ domainId: cfg.domainId || undefined, query, limit: 1, offset: 0 }),
       ])
       products = hlProducts
       total    = Math.min(searchResult.total, MAX_TOTAL)
     } else {
       // Con filtro activo o páginas 2+: search paginado respeta el query con mascota
-      const result = await getProducts({ domainId: cfg.domainId, query, limit: LIMIT, offset })
+      const result = await getProducts({ domainId: cfg.domainId || undefined, query, limit: LIMIT, offset })
       total   = Math.min(result.total, MAX_TOTAL)
       if (result.products.length) {
         products = await getProducts_batch(result.products.map((p) => p.id), false)

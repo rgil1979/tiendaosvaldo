@@ -2,82 +2,134 @@ import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { siteConfig } from "@/config/site.config"
-import { getHighlights } from "@/lib/mercadolibre"
+import { getProducts, getProducts_batch } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
-import ProductCarousel from "@/components/ProductCarousel"
 import styles from "./page.module.css"
 
-// ISR: revalidar cada hora
 export const revalidate = 3600
 
-// ── SECCIONES ASYNC (Server Components) ──────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 
-async function ProductSection({
-  categoryId, limit, cols,
-}: {
-  categoryId: string
-  limit:      number
-  cols:       2 | 4
-}) {
-  const products = await getHighlights(categoryId, limit)
-  if (!products.length) return null
-
-  const gridClass = cols === 4 ? styles.grid4 : styles.grid2
-
-  return (
-    <div className={gridClass}>
-      {products.map((p, i) => (
-        <ProductCard key={p.id} product={p} badge={i === 0 ? "Recomendado" : undefined} />
-      ))}
-    </div>
-  )
-}
-
-async function CarouselSection() {
-  // Combina paseo/viaje + higiene para garantizar 8 productos con precio
-  const [a, b] = await Promise.all([
-    getHighlights("MLA434764", 10), // paseo y viaje
-    getHighlights("MLA1076",   10), // higiene y estética
-  ])
-  // Mezcla alternada para tener variedad de categorías
-  const merged: typeof a = []
-  const maxLen = Math.max(a.length, b.length)
-  for (let i = 0; i < maxLen && merged.length < 8; i++) {
-    if (a[i]) merged.push(a[i])
-    if (merged.length < 8 && b[i]) merged.push(b[i])
+async function fetchProductsFull(
+  domainId: string,
+  query: string,
+  limit: number,
+): Promise<MLProductFull[]> {
+  try {
+    const result = await getProducts({ domainId, query, limit })
+    if (!result.products.length) return []
+    return getProducts_batch(result.products.map((p) => p.id), false)
+  } catch {
+    return []
   }
-  if (!merged.length) return null
-  return <ProductCarousel products={merged} visibleCount={5} />
 }
 
-// Toma 1 producto aleatorio de cada categoría → 4 productos de categorías distintas
-async function FeaturedSection() {
-  const CATEGORIES = ["MLA1072", "MLA1081", "MLA434764", "MLA1074"] // perros, gatos, paseo, juguetes
-  const pools = await Promise.all(CATEGORIES.map((id) => getHighlights(id, 10)))
+// ── SKELETON ─────────────────────────────────────────────────────────────────
 
-  const featured: MLProductFull[] = pools
-    .map((pool) => pool[Math.floor(Math.random() * pool.length)])
-    .filter(Boolean)
-
-  if (!featured.length) return null
-
+function SectionSkeleton({ count }: { count: number }) {
   return (
     <div className={styles.grid4}>
-      {featured.map((p) => (
-        <ProductCard key={p.id} product={p} />
-      ))}
-    </div>
-  )
-}
-
-function ProductSkeleton({ count, cols }: { count: number; cols: 2 | 4 }) {
-  const gridClass = cols === 4 ? styles.grid4 : styles.grid2
-  return (
-    <div className={gridClass}>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className={styles.skeleton} />
       ))}
+    </div>
+  )
+}
+
+// ── SECCIONES ASYNC ───────────────────────────────────────────────────────────
+
+async function FeaturedSection() {
+  // Mezcla alimento perro + gato para variedad sin mezcla de especie en cada par
+  const [dogFood, catFood] = await Promise.all([
+    fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "alimento perro", 4),
+    fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "alimento gato",  4),
+  ])
+  // Intercala: 1 perro, 1 gato, 1 perro, 1 gato...
+  const products: MLProductFull[] = []
+  for (let i = 0; i < 4 && products.length < 8; i++) {
+    if (dogFood[i]) products.push(dogFood[i])
+    if (catFood[i]) products.push(catFood[i])
+  }
+  if (!products.length) return null
+
+  return (
+    <div className={styles.productsBg}>
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>🌟 Destacados para tu <span>mascota</span></h2>
+          <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
+        </div>
+        <div className={styles.grid4}>
+          {products.slice(0, 8).map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+async function PerrosSection() {
+  const products = await fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "perro", 4)
+  if (!products.length) return null
+
+  return (
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
+        <Link href="/categoria/perros" className={styles.seeAll}>Ver más →</Link>
+      </div>
+      <div className={styles.grid4}>
+        {products.map((p) => (
+          <ProductCard key={p.id} product={p} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+async function GatosSection() {
+  const products = await fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "gato", 4)
+  if (!products.length) return null
+
+  return (
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>🐈 Para <span>gatos</span></h2>
+        <Link href="/categoria/gatos" className={styles.seeAll}>Ver más →</Link>
+      </div>
+      <div className={styles.grid4}>
+        {products.map((p) => (
+          <ProductCard key={p.id} product={p} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+async function AccesoriosSection() {
+  const products = await fetchProductsFull("MLA-PET_COLLARS", "collar", 4)
+  if (!products.length) return null
+
+  return (
+    <div className={styles.productsBg}>
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>🦮 <span>Accesorios</span> y collares</h2>
+          <Link href="/categoria/collares" className={styles.seeAll}>Ver todos →</Link>
+        </div>
+        <div className={styles.grid4}>
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+        <div className={styles.productsMore}>
+          <Link href="/categoria/collares" className="btn btn-ghost">
+            Ver todos los accesorios
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
@@ -179,66 +231,44 @@ export default function HomePage() {
       </section>
 
       {/* ── DESTACADOS ── */}
-      <div className={styles.productsBg}>
+      <Suspense fallback={
+        <div className={styles.productsBg}>
+          <div className={styles.section}>
+            <SectionSkeleton count={8} />
+          </div>
+        </div>
+      }>
+        <FeaturedSection />
+      </Suspense>
+
+      {/* ── PERROS ── */}
+      <Suspense fallback={
         <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>
-              🌟 Destacados para tu <span>mascota</span>
-            </h2>
-            <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
-          </div>
-          <Suspense fallback={<ProductSkeleton count={4} cols={4} />}>
-            <FeaturedSection />
-          </Suspense>
+          <SectionSkeleton count={4} />
         </div>
-      </div>
+      }>
+        <PerrosSection />
+      </Suspense>
 
-      {/* ── PERROS + GATOS ── */}
-      <div className={styles.section}>
-        <div className={styles.twoCol}>
-          {/* Para perros */}
-          <div>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
-              <Link href="/categoria/perros" className={styles.seeAll}>Ver más →</Link>
-            </div>
-            <Suspense fallback={<ProductSkeleton count={1} cols={2} />}>
-              <ProductSection categoryId="MLA1072" limit={1} cols={2} />
-            </Suspense>
-          </div>
-
-          {/* Para gatos */}
-          <div>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>🐈 Para <span>gatos</span></h2>
-              <Link href="/categoria/gatos" className={styles.seeAll}>Ver más →</Link>
-            </div>
-            <Suspense fallback={<ProductSkeleton count={1} cols={2} />}>
-              <ProductSection categoryId="MLA1081" limit={1} cols={2} />
-            </Suspense>
-          </div>
+      {/* ── GATOS ── */}
+      <Suspense fallback={
+        <div className={styles.section}>
+          <SectionSkeleton count={4} />
         </div>
-      </div>
+      }>
+        <GatosSection />
+      </Suspense>
 
       {/* ── ACCESORIOS ── */}
-      <div className={styles.productsBg}>
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>
-              🦮 <span>Accesorios</span> y collares
-            </h2>
-            <Link href="/categoria/collares" className={styles.seeAll}>Ver todos →</Link>
-          </div>
-          <Suspense fallback={<ProductSkeleton count={5} cols={4} />}>
-            <CarouselSection />
-          </Suspense>
-          <div className={styles.productsMore}>
-            <Link href="/categoria/collares" className="btn btn-ghost">
-              Ver todos los accesorios
-            </Link>
+      <Suspense fallback={
+        <div className={styles.productsBg}>
+          <div className={styles.section}>
+            <SectionSkeleton count={4} />
           </div>
         </div>
-      </div>
+      }>
+        <AccesoriosSection />
+      </Suspense>
 
       {/* ── BANNER OSVALDO ── */}
       <div className={styles.banner}>

@@ -141,7 +141,7 @@ interface _MLPriceItem {
 // ── AFFILIATE URL ────────────────────────────────────────────────────────────
 
 export function buildAffiliateUrl(productId: string): string {
-  const id = process.env.ML_AFFILIATE_ID ?? ""
+  const id = (process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
   return `https://www.mercadolibre.com.ar/p/${productId}?partner_id=cbpar_${id}`
 }
 

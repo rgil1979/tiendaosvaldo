@@ -241,6 +241,12 @@
   font-weight: 600;
 }
 
+.pageInfo {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .toolbarRight {
   display: flex;
   align-items: center;
@@ -277,6 +283,8 @@
   font-weight: 600;
   font-size: 16px;
 }
+
+.empty span { font-size: 64px; }
 
 /* Paginación */
 .pagination {
