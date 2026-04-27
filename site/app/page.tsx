@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { siteConfig } from "@/config/site.config"
-import { getProducts, getProducts_batch } from "@/lib/mercadolibre"
+import { getProducts, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
@@ -17,9 +17,11 @@ async function fetchProductsFull(
   limit: number,
 ): Promise<MLProductFull[]> {
   try {
-    const result = await getProducts({ domainId, query, limit })
+    // Pide el triple para compensar productos sin precio activo
+    const result = await getProducts({ domainId, query, limit: Math.min(limit * 3, 50) })
     if (!result.products.length) return []
-    return getProducts_batch(result.products.map((p) => p.id), false)
+    const all = await getProducts_batch(result.products.map((p) => p.id), true)
+    return all.slice(0, limit)
   } catch {
     return []
   }
@@ -40,14 +42,14 @@ function SectionSkeleton({ count }: { count: number }) {
 // ── SECCIONES ASYNC ───────────────────────────────────────────────────────────
 
 async function FeaturedSection() {
-  // Mezcla alimento perro + gato para variedad sin mezcla de especie en cada par
+  // Highlights garantizan precios: MLA434760=alimento perros, MLA1081=gatos
   const [dogFood, catFood] = await Promise.all([
-    fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "alimento perro", 4),
-    fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "alimento gato",  4),
+    getHighlights("MLA434760", 3),
+    getHighlights("MLA1081",   3),
   ])
   // Intercala: 1 perro, 1 gato, 1 perro, 1 gato...
   const products: MLProductFull[] = []
-  for (let i = 0; i < 4 && products.length < 8; i++) {
+  for (let i = 0; i < 4 && products.length < 4; i++) {
     if (dogFood[i]) products.push(dogFood[i])
     if (catFood[i]) products.push(catFood[i])
   }
@@ -61,7 +63,7 @@ async function FeaturedSection() {
           <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
         </div>
         <div className={styles.grid4}>
-          {products.slice(0, 8).map((p) => (
+          {products.slice(0, 4).map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
@@ -71,7 +73,7 @@ async function FeaturedSection() {
 }
 
 async function PerrosSection() {
-  const products = await fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "perro", 4)
+  const products = await getHighlights("MLA434760", 4) // alimento perros
   if (!products.length) return null
 
   return (
@@ -90,7 +92,7 @@ async function PerrosSection() {
 }
 
 async function GatosSection() {
-  const products = await fetchProductsFull("MLA-CAT_AND_DOG_FOODS", "gato", 4)
+  const products = await getHighlights("MLA1081", 4) // alimento gatos
   if (!products.length) return null
 
   return (
@@ -109,7 +111,17 @@ async function GatosSection() {
 }
 
 async function AccesoriosSection() {
-  const products = await fetchProductsFull("MLA-PET_COLLARS", "collar", 4)
+  // MLA434764 = paseo/viaje, MLA1076 = higiene/estética — ambas retornan productos con precio
+  const [paseo, higiene] = await Promise.all([
+    getHighlights("MLA434764", 4),
+    getHighlights("MLA1076",   4),
+  ])
+  const merged: typeof paseo = []
+  for (let i = 0; i < 4 && merged.length < 4; i++) {
+    if (paseo[i])                     merged.push(paseo[i])
+    if (merged.length < 4 && higiene[i]) merged.push(higiene[i])
+  }
+  const products = merged
   if (!products.length) return null
 
   return (

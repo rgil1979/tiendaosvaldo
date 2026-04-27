@@ -138,6 +138,19 @@ interface _MLPriceItem {
   free_shipping?:      boolean
 }
 
+interface _MLItemsResponse {
+  results:         _MLPriceItem[]
+  buy_box_winner?: {
+    item_id:             string
+    price:               number
+    currency_id:         string
+    condition?:          "new" | "used"
+    warranty?:           string | null
+    accepts_mercadopago?: boolean
+    free_shipping?:       boolean
+  }
+}
+
 // ── AFFILIATE URL ────────────────────────────────────────────────────────────
 
 export function buildAffiliateUrl(productId: string): string {
@@ -200,12 +213,20 @@ export async function getProducts(options: {
 export async function getProduct(productId: string): Promise<MLProductFull> {
   const [detail, priceResp] = await Promise.all([
     mlFetch<_MLProductDetail>(`/products/${productId}`, 3600),
-    mlFetch<{ results: _MLPriceItem[] }>(`/products/${productId}/items`, 3600).catch(() => ({ results: [] })),
+    mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600).catch(() => ({ results: [] } as _MLItemsResponse)),
   ])
 
-  const p: _MLPriceItem = priceResp.results?.[0] ?? {
-    item_id: "", price: 0, currency_id: "ARS",
-    condition: "new", warranty: null, accepts_mercadopago: true, free_shipping: false,
+  // Intenta results[0], si no hay usa buy_box_winner como fallback de precio
+  const winner = priceResp.buy_box_winner
+  const first  = priceResp.results?.[0]
+  const p: _MLPriceItem = first ?? {
+    item_id:             winner?.item_id            ?? "",
+    price:               winner?.price              ?? 0,
+    currency_id:         winner?.currency_id        ?? "ARS",
+    condition:           winner?.condition          ?? "new",
+    warranty:            winner?.warranty           ?? null,
+    accepts_mercadopago: winner?.accepts_mercadopago ?? true,
+    free_shipping:       winner?.free_shipping       ?? false,
   }
 
   return {

@@ -58,11 +58,13 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       products = hlProducts
       total    = Math.min(searchResult.total, MAX_TOTAL)
     } else {
-      // Con filtro activo o páginas 2+: search paginado respeta el query con mascota
-      const result = await getProducts({ domainId: cfg.domainId || undefined, query, limit: LIMIT, offset })
+      // Pide el doble de IDs para compensar productos sin precio activo
+      const fetchLimit = Math.min(LIMIT * 2, 50)
+      const result = await getProducts({ domainId: cfg.domainId || undefined, query, limit: fetchLimit, offset })
       total   = Math.min(result.total, MAX_TOTAL)
       if (result.products.length) {
-        products = await getProducts_batch(result.products.map((p) => p.id), false)
+        const all = await getProducts_batch(result.products.map((p) => p.id), true)
+        products = all.slice(0, LIMIT)
       }
     }
   } catch {

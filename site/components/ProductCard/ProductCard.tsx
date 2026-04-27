@@ -61,7 +61,7 @@ export default function ProductCard({ product, badge }: Props) {
             {product.price > 0 ? (
               <span className={styles.price}>{formatPrice(product.price)}</span>
             ) : (
-              <span className={styles.priceNA}>Ver precio</span>
+              <span className={styles.priceNA}>Ver precio en ML</span>
             )}
           </div>
 
