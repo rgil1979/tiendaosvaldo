@@ -90,7 +90,7 @@ async function _doRefresh(): Promise<string> {
   return _token
 }
 
-export async function refreshTokenIfNeeded(): Promise<string> {
+async function refreshTokenIfNeeded(): Promise<string> {
   const BUFFER = 5 * 60_000 // refrescar 5 min antes de expirar
   if (_token && Date.now() < _expiresAt - BUFFER) return _token
 
@@ -174,7 +174,6 @@ export interface MLProductFull {
   affiliateUrl:        string
 }
 
-export type MLProduct = MLProductFull
 
 export interface MLSearchResult {
   products: MLProductSummary[]
@@ -229,18 +228,6 @@ interface _MLItemsResponse {
 export function buildAffiliateUrl(productId: string): string {
   const id = (process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
   return `https://www.mercadolibre.com.ar/p/${productId}?partner_id=cbpar_${id}`
-}
-
-export function buildAffiliateLink(permalink: string): string {
-  try {
-    const url = new URL(permalink)
-    const id  = (process.env.NEXT_PUBLIC_ML_AFFILIATE_ID ?? process.env.ML_AFFILIATE_ID ?? "")
-      .toLowerCase().replace(/[^a-z0-9]/g, "")
-    if (id) url.searchParams.set("partner_id", `cbpar_${id}`)
-    return url.toString()
-  } catch {
-    return permalink
-  }
 }
 
 // ── BÚSQUEDA FILTRADA (centralizada) ─────────────────────────────────────────
@@ -438,23 +425,12 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
       `/highlights/MLA/category/${categoryId}`,
       3600
     )
-    const ids = (data.content ?? []).slice(0, limit * 2).map((c) => c.id)
+    const ids = (data.content ?? []).slice(0, Math.min(limit * 2, limit + 10)).map((c) => c.id)
     const products = await getProducts_batch(ids, true)
     return products.slice(0, limit)
   } catch (e) {
     console.error("[ML] getHighlights falló:", (e as Error).message?.slice(0, 100))
     return []
-  }
-}
-
-// ── CATEGORÍA ────────────────────────────────────────────────────────────────
-
-export async function getCategory(categoryId: string): Promise<MLCategory | null> {
-  try {
-    return await mlFetch<MLCategory>(`/categories/${categoryId}`, 86_400)
-  } catch (e) {
-    console.error("[ML] getCategory falló:", (e as Error).message?.slice(0, 100))
-    return null
   }
 }
 

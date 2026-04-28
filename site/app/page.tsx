@@ -106,8 +106,8 @@ async function GatosSection() {
 async function AccesoriosSection() {
   // MLA434764 = paseo/viaje, MLA1076 = higiene/estética — ambas retornan productos con precio
   const [paseo, higiene] = await Promise.all([
-    getHighlights("MLA434764", 4),
-    getHighlights("MLA1076",   4),
+    getHighlightsCached("MLA434764", 4),
+    getHighlightsCached("MLA1076",   4),
   ])
   const merged: typeof paseo = []
   for (let i = 0; i < 4 && merged.length < 4; i++) {
