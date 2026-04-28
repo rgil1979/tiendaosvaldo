@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SLUG_CONFIG } from "@/config/site.config"
-import { getProducts, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
+import { getProductsFiltered, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
@@ -35,13 +35,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const cfg = SLUG_CONFIG[params.slug]
   if (!cfg) notFound()
 
-  const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1")), MAX_PAGES)
+  const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1", 10)), MAX_PAGES)
   const offset = (page - 1) * LIMIT
 
-  const mascotaFilter = searchParams.mascota
-  // cfg.query ya tiene el filtro base del slug ("perro", "gato", "collar", etc.)
-  // mascotaFilter agrega refinamiento extra solo si es distinto al ya incluido
-  const query = [cfg.query, mascotaFilter].filter(Boolean).join(" ")
+  const mascotaFilter = searchParams.mascota as "perro" | "gato" | undefined
 
   let products: MLProductFull[] = []
   let total   = 0
@@ -53,14 +50,25 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       // Página 1 sin filtro: highlights garantizan precios. Total del search para paginar.
       const [hlProducts, searchResult] = await Promise.all([
         getHighlights(cfg.hlCategoryId!, LIMIT),
-        getProducts({ domainId: cfg.domainId || undefined, query, limit: 1, offset: 0 }),
+        getProductsFiltered({
+          query:     cfg.query,
+          domainIds: cfg.domainId ? [cfg.domainId] : undefined,
+          limit:     1,
+          offset:    0,
+        }),
       ])
       products = hlProducts
       total    = Math.min(searchResult.total, MAX_TOTAL)
     } else {
       // Pide el doble de IDs para compensar productos sin precio activo
       const fetchLimit = Math.min(LIMIT * 2, 50)
-      const result = await getProducts({ domainId: cfg.domainId || undefined, query, limit: fetchLimit, offset })
+      const result = await getProductsFiltered({
+        query:     cfg.query,
+        domainIds: cfg.domainId ? [cfg.domainId] : undefined,
+        mascota:   mascotaFilter ?? null,
+        limit:     fetchLimit,
+        offset,
+      })
       total   = Math.min(result.total, MAX_TOTAL)
       if (result.products.length) {
         const all = await getProducts_batch(result.products.map((p) => p.id), true)

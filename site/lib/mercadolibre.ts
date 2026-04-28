@@ -9,63 +9,137 @@
  *   GET /categories/{id}
  */
 
+// ── VALIDACIÓN DE ENV AL ARRANCAR ─────────────────────────────────────────────
+// Falla rápido en lugar de fallar silenciosamente horas después.
+
+const REQUIRED_ENV = ["ML_APP_ID", "ML_CLIENT_SECRET", "ML_REFRESH_TOKEN", "ML_AFFILIATE_ID"] as const
+
+function validateEnv(): void {
+  const missing = REQUIRED_ENV.filter((k) => !process.env[k])
+  if (missing.length > 0) {
+    console.error(`[ML] CONFIGURACIÓN INCOMPLETA — variables faltantes: ${missing.join(", ")}`)
+    console.error("[ML] El sitio funcionará en modo degradado hasta que se configuren.")
+  }
+}
+
+// Solo validar en runtime del servidor, nunca durante npm run build
+if (typeof window === "undefined" && process.env.NEXT_PHASE !== "phase-production-build") {
+  validateEnv()
+}
+
 // ── TOKEN EN MEMORIA ─────────────────────────────────────────────────────────
-// Inicializado desde env al arrancar el proceso Node. Se refresca solo.
+// ML rota el refresh_token en cada uso — hay que guardar el nuevo en memoria.
+// _expiresAt = 0 fuerza refresh en el primer request del proceso.
 
-let _token     = process.env.ML_ACCESS_TOKEN ?? ""
-let _expiresAt = 0 // fuerza refresh en el primer request; se actualiza al refrescar
+let _token        = process.env.ML_ACCESS_TOKEN   ?? ""
+let _refreshToken = process.env.ML_REFRESH_TOKEN   ?? ""
+let _expiresAt    = 0
 
-export async function refreshTokenIfNeeded(): Promise<string> {
-  const BUFFER = 5 * 60_000 // pedir token nuevo 5 min antes de expirar
-  if (_token && Date.now() < _expiresAt - BUFFER) return _token
+// Single-flight: evita que requests concurrentes disparen múltiples refreshes.
+let _refreshPromise: Promise<string> | null = null
 
-  const { ML_APP_ID, ML_CLIENT_SECRET, ML_REFRESH_TOKEN } = process.env
-  if (!ML_APP_ID || !ML_CLIENT_SECRET || !ML_REFRESH_TOKEN) {
-    console.warn("[ML] Credenciales incompletas — usando token actual")
-    return _token
+async function _doRefresh(): Promise<string> {
+  const { ML_APP_ID, ML_CLIENT_SECRET } = process.env
+
+  if (!ML_APP_ID || !ML_CLIENT_SECRET || !_refreshToken) {
+    console.error("[ML] No se puede refrescar el token — credenciales incompletas")
+    return _token // devuelve lo que hay; mlFetch manejará el 401
   }
 
-  const res = await fetch("https://api.mercadolibre.com/oauth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type:    "refresh_token",
-      client_id:     ML_APP_ID,
-      client_secret: ML_CLIENT_SECRET,
-      refresh_token: ML_REFRESH_TOKEN,
-    }),
-    cache: "no-store",
-  })
+  const oauthController = new AbortController()
+  const oauthTimer = setTimeout(() => oauthController.abort(), 10_000)
+
+  let res: Response
+  try {
+    res = await fetch("https://api.mercadolibre.com/oauth/token", {
+      method:  "POST",
+      signal:  oauthController.signal,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type:    "refresh_token",
+        client_id:     ML_APP_ID,
+        client_secret: ML_CLIENT_SECRET,
+        refresh_token: _refreshToken,
+      }),
+      cache: "no-store",
+    })
+  } catch (e) {
+    clearTimeout(oauthTimer)
+    const label = (e as Error).name === "AbortError" ? "Timeout 10s" : (e as Error).message
+    console.error(`[ML] OAuth fetch falló: ${label}`)
+    return _token
+  }
+  clearTimeout(oauthTimer)
 
   if (!res.ok) {
-    console.error(`[ML] Refresh falló: ${res.status} ${res.statusText}`)
+    // No loguear el body completo — puede contener info sensible
+    console.error(`[ML] Refresh falló: HTTP ${res.status} — el token actual puede estar expirado`)
     return _token
   }
 
-  const data   = await res.json()
-  _token       = data.access_token
-  _expiresAt   = Date.now() + (data.expires_in - 300) * 1000
-  console.log(`[ML] Token refrescado — expira en ${Math.round(data.expires_in / 60)} min`)
+  const data = await res.json()
+
+  _token        = data.access_token
+  // ML rota el refresh_token en cada uso — guardarlo en memoria es crítico.
+  // Sin esto, el segundo refresh (cuando expire el access_token) usará el token
+  // original del .env (ya inválido) y la app quedará sin acceso.
+  _refreshToken = data.refresh_token ?? _refreshToken
+  _expiresAt    = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
+
+  console.log(`[ML] Token refrescado — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
   return _token
+}
+
+export async function refreshTokenIfNeeded(): Promise<string> {
+  const BUFFER = 5 * 60_000 // refrescar 5 min antes de expirar
+  if (_token && Date.now() < _expiresAt - BUFFER) return _token
+
+  // Single-flight: si ya hay un refresh en curso, los demás esperan el mismo resultado
+  if (_refreshPromise) return _refreshPromise
+  _refreshPromise = _doRefresh().finally(() => { _refreshPromise = null })
+  return _refreshPromise
 }
 
 // ── CLIENTE BASE ─────────────────────────────────────────────────────────────
 
-async function mlFetch<T>(endpoint: string, revalidate = 3600): Promise<T> {
+const FETCH_TIMEOUT_MS = 12_000 // 12s — ISR no debe quedar colgado
+
+async function mlFetch<T>(endpoint: string, revalidate = 3600, _retry = true): Promise<T> {
   const token = await refreshTokenIfNeeded()
   const url   = `https://api.mercadolibre.com${endpoint}`
 
-  const res = await fetch(url, {
-    next: { revalidate },
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept:        "application/json",
-    },
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+  let res: Response
+  try {
+    res = await fetch(url, {
+      signal: controller.signal,
+      next:   { revalidate },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept:        "application/json",
+      },
+    })
+  } catch (e) {
+    clearTimeout(timer)
+    const msg = (e as Error).name === "AbortError"
+      ? `[ML] Timeout después de ${FETCH_TIMEOUT_MS}ms — ${endpoint}`
+      : `[ML] Error de red — ${endpoint}: ${(e as Error).message}`
+    throw new Error(msg)
+  }
+  clearTimeout(timer)
+
+  // 401 → forzar refresh e intentar una vez más
+  if (res.status === 401 && _retry) {
+    console.warn("[ML] 401 recibido — forzando refresh de token y reintentando")
+    _expiresAt = 0 // invalida el token en memoria para forzar _doRefresh
+    return mlFetch<T>(endpoint, revalidate, false)
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "")
-    throw new Error(`[ML] ${res.status} ${res.statusText} — ${endpoint}\n${body.slice(0, 200)}`)
+    throw new Error(`[ML] HTTP ${res.status} — ${endpoint.split("?")[0]}\n${body.slice(0, 200)}`)
   }
 
   return res.json() as Promise<T>
@@ -100,7 +174,6 @@ export interface MLProductFull {
   affiliateUrl:        string
 }
 
-// Alias de compatibilidad — código existente que usa MLProduct sigue compilando
 export type MLProduct = MLProductFull
 
 export interface MLSearchResult {
@@ -116,7 +189,7 @@ export interface MLCategory {
   children_categories:          { id: string; name: string; total_items_in_this_category: number }[]
 }
 
-// Tipos internos — solo usados dentro de este módulo
+// Tipos internos
 interface _MLProductDetail {
   id:                string
   name:              string
@@ -141,11 +214,11 @@ interface _MLPriceItem {
 interface _MLItemsResponse {
   results:         _MLPriceItem[]
   buy_box_winner?: {
-    item_id:             string
-    price:               number
-    currency_id:         string
-    condition?:          "new" | "used"
-    warranty?:           string | null
+    item_id:              string
+    price:                number
+    currency_id:          string
+    condition?:           "new" | "used"
+    warranty?:            string | null
     accepts_mercadopago?: boolean
     free_shipping?:       boolean
   }
@@ -158,11 +231,11 @@ export function buildAffiliateUrl(productId: string): string {
   return `https://www.mercadolibre.com.ar/p/${productId}?partner_id=cbpar_${id}`
 }
 
-// Alias: versión legacy que acepta un permalink completo
 export function buildAffiliateLink(permalink: string): string {
   try {
-    const url  = new URL(permalink)
-    const id = (process.env.NEXT_PUBLIC_ML_AFFILIATE_ID ?? process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const url = new URL(permalink)
+    const id  = (process.env.NEXT_PUBLIC_ML_AFFILIATE_ID ?? process.env.ML_AFFILIATE_ID ?? "")
+      .toLowerCase().replace(/[^a-z0-9]/g, "")
     if (id) url.searchParams.set("partner_id", `cbpar_${id}`)
     return url.toString()
   } catch {
@@ -170,14 +243,95 @@ export function buildAffiliateLink(permalink: string): string {
   }
 }
 
+// ── BÚSQUEDA FILTRADA (centralizada) ─────────────────────────────────────────
+
+type MascotaFilter = "perro" | "gato" | "ambas" | null
+
+interface GetProductsFilteredOptions {
+  query?:     string
+  domainIds?: string[]
+  mascota?:   MascotaFilter
+  limit?:     number
+  offset?:    number
+}
+
+const MASCOTAS_DOMAINS = [
+  "MLA-CAT_AND_DOG_FOODS",
+  "MLA-CAT_AND_DOG_BEDS",
+  "MLA-PET_COLLARS",
+  "MLA-CATS_LITTER",
+  "MLA-PET_CARRIERS_AND_CARRYING_BAGS",
+  "MLA-PET_FOOD_STORAGE_CONTAINERS",
+]
+
+export async function getProductsFiltered(
+  options: GetProductsFilteredOptions,
+): Promise<MLSearchResult> {
+  const domainsToSearch = options.domainIds ?? MASCOTAS_DOMAINS
+  let finalQuery = options.query ?? ""
+
+  if (options.mascota === "perro") finalQuery = `${finalQuery} perro`.trim()
+  else if (options.mascota === "gato") finalQuery = `${finalQuery} gato`.trim()
+
+  // Un solo dominio → llamada directa (preserva paginación exacta)
+  if (domainsToSearch.length === 1) {
+    return getProducts({
+      query:    finalQuery || undefined,
+      domainId: domainsToSearch[0],
+      limit:    options.limit,
+      offset:   options.offset,
+    })
+  }
+
+  // Páginas 2+ con multi-dominio → offset independiente por dominio produce solapamiento.
+  // Fallback: primer dominio del array — mantiene resultados dentro de mascotas.
+  if ((options.offset ?? 0) > 0) {
+    return getProducts({
+      query:    finalQuery || undefined,
+      domainId: domainsToSearch[0],
+      limit:    options.limit,
+      offset:   options.offset,
+    })
+  }
+
+  // Múltiples dominios → paralelo + dedup (búsqueda global, sólo página 1)
+  const perDomain = Math.ceil((options.limit ?? 20) * 1.5)
+  const responses = await Promise.all(
+    domainsToSearch.map((domain) =>
+      getProducts({
+        query:    finalQuery || undefined,
+        domainId: domain,
+        limit:    perDomain,
+        offset:   options.offset ?? 0,
+      }).catch(() => ({ products: [], total: 0, hasMore: false } as MLSearchResult))
+    )
+  )
+
+  const deduped = new Map<string, MLProductSummary>()
+  let totalMax = 0
+  for (const res of responses) {
+    // Max en vez de suma: evita multiplicar el total por la cantidad de dominios
+    if (res.total > totalMax) totalMax = res.total
+    for (const p of res.products) {
+      if (!deduped.has(p.id)) deduped.set(p.id, p)
+    }
+  }
+
+  const all = Array.from(deduped.values())
+  return {
+    products: all.slice(0, options.limit ?? 20),
+    total:    Math.min(totalMax, 300),
+    hasMore:  all.length > (options.limit ?? 20),
+  }
+}
+
 // ── BÚSQUEDA ─────────────────────────────────────────────────────────────────
 
 export async function getProducts(options: {
-  query?:      string
-  domainId?:   string
-  categoryId?: string
-  limit?:      number
-  offset?:     number
+  query?:    string
+  domainId?: string
+  limit?:    number
+  offset?:   number
 }): Promise<MLSearchResult> {
   const { query, domainId, limit = 20, offset = 0 } = options
 
@@ -187,8 +341,8 @@ export async function getProducts(options: {
     limit:   String(Math.min(limit, 50)),
     offset:  String(offset),
   })
-  if (query)              params.set("q",         query)
-  if (domainId?.trim())   params.set("domain_id", domainId)
+  if (query)            params.set("q",         query)
+  if (domainId?.trim()) params.set("domain_id", domainId)
 
   try {
     const data = await mlFetch<{
@@ -213,29 +367,30 @@ export async function getProducts(options: {
 export async function getProduct(productId: string): Promise<MLProductFull> {
   const [detail, priceResp] = await Promise.all([
     mlFetch<_MLProductDetail>(`/products/${productId}`, 3600),
-    mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600).catch(() => ({ results: [] } as _MLItemsResponse)),
+    mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600)
+      .catch(() => ({ results: [] } as _MLItemsResponse)),
   ])
 
-  // Intenta results[0], si no hay usa buy_box_winner como fallback de precio
+  // Prioridad: results[0] → buy_box_winner → defaults vacíos
   const winner = priceResp.buy_box_winner
   const first  = priceResp.results?.[0]
   const p: _MLPriceItem = first ?? {
-    item_id:             winner?.item_id            ?? "",
-    price:               winner?.price              ?? 0,
-    currency_id:         winner?.currency_id        ?? "ARS",
-    condition:           winner?.condition          ?? "new",
-    warranty:            winner?.warranty           ?? null,
-    accepts_mercadopago: winner?.accepts_mercadopago ?? true,
-    free_shipping:       winner?.free_shipping       ?? false,
+    item_id:             winner?.item_id             ?? "",
+    price:               winner?.price               ?? 0,
+    currency_id:         winner?.currency_id         ?? "ARS",
+    condition:           winner?.condition            ?? "new",
+    warranty:            winner?.warranty             ?? null,
+    accepts_mercadopago: winner?.accepts_mercadopago  ?? true,
+    free_shipping:       winner?.free_shipping        ?? false,
   }
 
   return {
     id:                  productId,
     name:                detail.name,
-    pictures:            detail.pictures          ?? [],
-    short_description:   detail.short_description?.content ?? "",
-    main_features:       (detail.main_features    ?? []).map((f) => f.text),
-    attributes:          detail.attributes         ?? [],
+    pictures:            detail.pictures                       ?? [],
+    short_description:   detail.short_description?.content     ?? "",
+    main_features:       (detail.main_features ?? []).map((f) => f.text),
+    attributes:          detail.attributes                     ?? [],
     domain_id:           detail.domain_id,
     status:              detail.status,
     price:               p.price,
@@ -250,7 +405,6 @@ export async function getProduct(productId: string): Promise<MLProductFull> {
 }
 
 // ── LOTE DE PRODUCTOS ────────────────────────────────────────────────────────
-// Máx 10 en paralelo para respetar rate limits de ML
 
 function isAvailable(p: MLProductFull, requirePrice: boolean): boolean {
   if (p.status !== "active") return false
@@ -260,21 +414,17 @@ function isAvailable(p: MLProductFull, requirePrice: boolean): boolean {
 
 export async function getProducts_batch(
   productIds:   string[],
-  requirePrice = true,  // por defecto solo muestra productos con precio y status active
+  requirePrice = true,
 ): Promise<MLProductFull[]> {
-  const CHUNK   = 10
+  const settled = await Promise.allSettled(
+    productIds.map((id) => getProduct(id))
+  )
   const results: MLProductFull[] = []
-
-  for (let i = 0; i < productIds.length; i += CHUNK) {
-    const settled = await Promise.allSettled(
-      productIds.slice(i, i + CHUNK).map((id) => getProduct(id))
-    )
-    for (const r of settled) {
-      if (r.status === "fulfilled") {
-        if (isAvailable(r.value, requirePrice)) results.push(r.value)
-      } else {
-        console.warn("[ML] Producto fallido en batch:", (r.reason as Error).message)
-      }
+  for (const r of settled) {
+    if (r.status === "fulfilled") {
+      if (isAvailable(r.value, requirePrice)) results.push(r.value)
+    } else {
+      console.warn("[ML] Producto omitido en batch:", (r.reason as Error).message?.slice(0, 100))
     }
   }
   return results
@@ -288,44 +438,26 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
       `/highlights/MLA/category/${categoryId}`,
       3600
     )
-    const ids = (data.content ?? []).slice(0, limit).map((c) => c.id)
-    return getProducts_batch(ids, true) // highlights siempre con precio
+    const ids = (data.content ?? []).slice(0, limit * 2).map((c) => c.id)
+    const products = await getProducts_batch(ids, true)
+    return products.slice(0, limit)
   } catch (e) {
-    console.error("[ML] getHighlights falló:", (e as Error).message)
+    console.error("[ML] getHighlights falló:", (e as Error).message?.slice(0, 100))
     return []
   }
 }
 
 // ── CATEGORÍA ────────────────────────────────────────────────────────────────
 
-export async function getCategory(categoryId: string): Promise<MLCategory> {
-  return mlFetch<MLCategory>(`/categories/${categoryId}`, 86_400)
+export async function getCategory(categoryId: string): Promise<MLCategory | null> {
+  try {
+    return await mlFetch<MLCategory>(`/categories/${categoryId}`, 86_400)
+  } catch (e) {
+    console.error("[ML] getCategory falló:", (e as Error).message?.slice(0, 100))
+    return null
+  }
 }
 
 // ── UTILIDADES ───────────────────────────────────────────────────────────────
 
-export { formatPrice, getDiscount, getHQThumbnail } from "./ml-utils"
-
-// ── ALIAS DE COMPATIBILIDAD CON VERSIÓN ANTERIOR ─────────────────────────────
-
-export const getProductFromCatalog  = getProduct
-export const getProductsFromCatalog = getProducts_batch
-
-// Legacy: searchProducts — devuelve resultado vacío (endpoint /sites/MLA/search da 403)
-export async function searchProducts(_params: {
-  categoryId: string; limit?: number; offset?: number;
-  sort?: string; priceMin?: number; priceMax?: number; condition?: string;
-}) {
-  return { results: [], paging: { total: 0, offset: 0, limit: 20, primary_results: 0 }, filters: [], available_filters: [] }
-}
-
-export async function getProductDescription(_id: string): Promise<{ plain_text: string }> {
-  return { plain_text: "" }
-}
-
-// Mantener MLFilter/MLSearchResult legacy para CategoryProducts.tsx
-export interface MLFilter {
-  id:     string
-  name:   string
-  values: { id: string; name: string; results: number }[]
-}
+export { formatPrice } from "./ml-utils"

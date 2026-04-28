@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
@@ -10,11 +11,14 @@ import styles from "./page.module.css"
 // Server-rendered on demand con ISR de 1 hora
 export const revalidate = 3600
 
+// cache() deduplica: generateMetadata y la página comparten el mismo fetch dentro del mismo request
+const getProductCached = cache(getProduct)
+
 interface Props { params: { id: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const p = await getProduct(params.id)
+    const p = await getProductCached(params.id)
     return {
       title:       p.name,
       description: p.short_description?.slice(0, 155) ||
@@ -33,7 +37,7 @@ export default async function ProductPage({ params }: Props) {
   let product: Awaited<ReturnType<typeof getProduct>> | null = null
 
   try {
-    product = await getProduct(params.id)
+    product = await getProductCached(params.id)
   } catch {
     notFound()
   }

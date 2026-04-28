@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { getProducts, getProducts_batch } from "@/lib/mercadolibre"
+import { getProductsFiltered, getProducts_batch } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
@@ -23,7 +23,7 @@ const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT) // 15
 
 export default async function SearchPage({ searchParams }: Props) {
   const query  = searchParams.q?.trim() ?? ""
-  const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1")), MAX_PAGES)
+  const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1", 10)), MAX_PAGES)
   const offset = (page - 1) * LIMIT
 
   let products: MLProductFull[] = []
@@ -31,10 +31,11 @@ export default async function SearchPage({ searchParams }: Props) {
 
   if (query) {
     try {
-      const result = await getProducts({ query, limit: LIMIT, offset })
+      const result = await getProductsFiltered({ query, limit: LIMIT * 3, offset })
       total   = Math.min(result.total, MAX_TOTAL)
       if (result.products.length) {
-        products = await getProducts_batch(result.products.map((p) => p.id))
+        const all = await getProducts_batch(result.products.map((p) => p.id), true)
+        products = all.slice(0, LIMIT)
       }
     } catch {
       // Error silencioso

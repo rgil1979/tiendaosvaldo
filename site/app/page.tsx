@@ -1,31 +1,17 @@
-import { Suspense } from "react"
+import { cache, Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { siteConfig } from "@/config/site.config"
-import { getProducts, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
+import { getHighlights } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
 
 export const revalidate = 3600
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-
-async function fetchProductsFull(
-  domainId: string,
-  query: string,
-  limit: number,
-): Promise<MLProductFull[]> {
-  try {
-    // Pide el triple para compensar productos sin precio activo
-    const result = await getProducts({ domainId, query, limit: Math.min(limit * 3, 50) })
-    if (!result.products.length) return []
-    const all = await getProducts_batch(result.products.map((p) => p.id), true)
-    return all.slice(0, limit)
-  } catch {
-    return []
-  }
-}
+// cache() deduplica llamadas idénticas dentro del mismo render — evita pedir
+// dos veces el mismo endpoint y que los mismos productos aparezcan en dos secciones.
+const getHighlightsCached = cache(getHighlights)
 
 // ── SKELETON ─────────────────────────────────────────────────────────────────
 
@@ -42,14 +28,15 @@ function SectionSkeleton({ count }: { count: number }) {
 // ── SECCIONES ASYNC ───────────────────────────────────────────────────────────
 
 async function FeaturedSection() {
-  // Highlights garantizan precios: MLA434760=alimento perros, MLA1081=gatos
+  // Pedimos 6 de cada categoría: los primeros 2 de cada una van a Destacados,
+  // los restantes 4 van a PerrosSection / GatosSection sin repetición.
   const [dogFood, catFood] = await Promise.all([
-    getHighlights("MLA434760", 3),
-    getHighlights("MLA1081",   3),
+    getHighlightsCached("MLA434760", 6),
+    getHighlightsCached("MLA1081",   6),
   ])
-  // Intercala: 1 perro, 1 gato, 1 perro, 1 gato...
+  // Intercala dog[0], cat[0], dog[1], cat[1] → 4 productos sin repetir con las secciones de abajo
   const products: MLProductFull[] = []
-  for (let i = 0; i < 4 && products.length < 4; i++) {
+  for (let i = 0; i < 2 && products.length < 4; i++) {
     if (dogFood[i]) products.push(dogFood[i])
     if (catFood[i]) products.push(catFood[i])
   }
@@ -63,7 +50,7 @@ async function FeaturedSection() {
           <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
         </div>
         <div className={styles.grid4}>
-          {products.slice(0, 4).map((p) => (
+          {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
@@ -73,7 +60,10 @@ async function FeaturedSection() {
 }
 
 async function PerrosSection() {
-  const products = await getHighlights("MLA434760", 4) // alimento perros
+  // Misma llamada cacheada que FeaturedSection — sin request extra al API.
+  // Empieza en índice 2 para no repetir los que ya mostró Destacados.
+  const all = await getHighlightsCached("MLA434760", 6)
+  const products = all.slice(2)
   if (!products.length) return null
 
   return (
@@ -92,7 +82,10 @@ async function PerrosSection() {
 }
 
 async function GatosSection() {
-  const products = await getHighlights("MLA1081", 4) // alimento gatos
+  // Misma llamada cacheada que FeaturedSection — sin request extra al API.
+  // Empieza en índice 2 para no repetir los que ya mostró Destacados.
+  const all = await getHighlightsCached("MLA1081", 6)
+  const products = all.slice(2)
   if (!products.length) return null
 
   return (
@@ -128,8 +121,8 @@ async function AccesoriosSection() {
     <div className={styles.productsBg}>
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>🦮 <span>Accesorios</span> y collares</h2>
-          <Link href="/categoria/collares" className={styles.seeAll}>Ver todos →</Link>
+          <h2 className={styles.sectionTitle}>🎒 <span>Accesorios</span> y collares</h2>
+          <Link href="/categoria/accesorios" className={styles.seeAll}>Ver todos →</Link>
         </div>
         <div className={styles.grid4}>
           {products.map((p) => (
@@ -137,7 +130,7 @@ async function AccesoriosSection() {
           ))}
         </div>
         <div className={styles.productsMore}>
-          <Link href="/categoria/collares" className="btn btn-ghost">
+          <Link href="/categoria/accesorios" className="btn btn-ghost">
             Ver todos los accesorios
           </Link>
         </div>
@@ -246,7 +239,7 @@ export default function HomePage() {
       <Suspense fallback={
         <div className={styles.productsBg}>
           <div className={styles.section}>
-            <SectionSkeleton count={8} />
+            <SectionSkeleton count={4} />
           </div>
         </div>
       }>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import { formatPrice } from "@/lib/ml-utils"
@@ -20,10 +21,11 @@ export default function ProductCard({ product, badge }: Props) {
       {/* Imagen */}
       <Link href={`/producto/${product.id}`} className={styles.imgWrap} tabIndex={-1}>
         {!imgErr && mainImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={mainImage}
             alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className={styles.img}
             onError={() => setImgErr(true)}
           />

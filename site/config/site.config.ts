@@ -41,53 +41,13 @@ export const siteConfig = {
     defaultTitle: "Tienda Osvaldo — El pet shop aprobado por Osvaldo",
     titleTemplate: "%s — Tienda Osvaldo",
     defaultDescription: "Encontrá los mejores accesorios, alimentos y juguetes para perros y gatos. Aprobado por Osvaldo, disponible en Mercado Libre.",
-    // [UX-FIX] Ruta para imagen OG dedicada (1200x630px) — reemplaza al logo que era demasiado pequeño para previews sociales
-    // TODO: Crear /public/img/og-image.jpg con captura del hero del sitio (1200x630px)
-    ogImage: "/img/og-image.jpg",
+    ogImage: "/img/logo.jpeg",
   },
 } as const
 
 // ─────────────────────────────────────────────
 // CONFIGURACIÓN DE MERCADO LIBRE
 // ─────────────────────────────────────────────
-
-// ─────────────────────────────────────────────
-// DOMINIOS DE CATÁLOGO — Mercado Libre
-// Usados en /products/search?domain_id=...
-// ─────────────────────────────────────────────
-
-export const DOMINIOS_MASCOTAS = {
-  "MLA-CAT_AND_DOG_FOODS": {
-    label:      "Alimentos",
-    pet:        "ambos" as const,
-    queryPerro: "perro",
-    queryGato:  "gato",
-  },
-  "MLA-CAT_AND_DOG_BEDS": {
-    label: "Camas y cuchas",
-    pet:   "ambos" as const,
-  },
-  "MLA-PET_COLLARS": {
-    label:      "Collares y correas",
-    pet:        "ambos" as const,
-    queryPerro: "collar correa perro",
-    queryGato:  "collar correa gato",
-  },
-  "MLA-CATS_LITTER": {
-    label: "Arena para gatos",
-    pet:   "gatos" as const,
-  },
-  "MLA-PET_CARRIERS_AND_CARRYING_BAGS": {
-    label: "Transportadoras",
-    pet:   "ambos" as const,
-  },
-  "MLA-PET_FOOD_STORAGE_CONTAINERS": {
-    label: "Contenedores de alimento",
-    pet:   "ambos" as const,
-  },
-} as const
-
-export type DomainId = keyof typeof DOMINIOS_MASCOTAS
 
 // ─────────────────────────────────────────────
 // MAPA DE SLUGS DE CATEGORÍA → DOMINIO + QUERY
@@ -108,84 +68,13 @@ export const SLUG_CONFIG: Record<string, {
   "camas":          { label: "Camas y cuchas",        emoji: "🛏️", domainId: "MLA-CAT_AND_DOG_BEDS",   query: "cama",               hlCategoryId: "MLA11060"  },
   "arena-gato":     { label: "Arena para gatos",     emoji: "🧂", domainId: "MLA-CATS_LITTER",        query: "arena gato",                                    },
   "mascotas":       { label: "Mascotas",              emoji: "🐾", domainId: "",                       query: "mascota",            hlCategoryId: "MLA1071"   },
-  // perros/gatos: domain filtra especie, query filtra por nombre dentro del dominio
-  "perros":         { label: "Perros",                emoji: "🐕", domainId: "MLA-CAT_AND_DOG_FOODS",  query: "perro"                                          },
-  "gatos":          { label: "Gatos",                 emoji: "🐈", domainId: "MLA-CAT_AND_DOG_FOODS",  query: "gato"                                           },
-  "accesorios":     { label: "Accesorios",            emoji: "🦮", domainId: "MLA-PET_COLLARS",        query: "collar",             hlCategoryId: "MLA434764" },
+  // perros/gatos: sin domainId → multi-dominio → muestra alimentos, camas, collares, etc. filtrados por especie
+  "perros":         { label: "Perros",                emoji: "🐕", domainId: "",                       query: "perro"                                          },
+  "gatos":          { label: "Gatos",                 emoji: "🐈", domainId: "",                       query: "gato"                                           },
+  "accesorios":     { label: "Accesorios",            emoji: "🎒", domainId: "",                       query: "accesorio mascota"                                      },
   "alimentacion":   { label: "Alimentación",          emoji: "🍖", domainId: "MLA-CAT_AND_DOG_FOODS",  query: "alimento",           hlCategoryId: "MLA434760" },
   "juguetes":       { label: "Juguetes",              emoji: "🧸", domainId: "",                       query: "juguete mascota",    hlCategoryId: "MLA1074"   },
 }
-
-export const mlConfig = {
-  // ── CREDENCIALES (leer desde variables de entorno) ──
-  appId: process.env.ML_APP_ID!,
-  clientSecret: process.env.ML_CLIENT_SECRET!,
-  refreshToken: process.env.ML_REFRESH_TOKEN!,
-  affiliateId: process.env.ML_AFFILIATE_ID!,
-
-  // ── API ──
-  apiBaseUrl: "https://api.mercadolibre.com",
-  siteId: "MLA", // Argentina
-
-  // ── CATEGORÍAS DE MASCOTAS (IDs verificados via API) ──
-  categories: {
-    mascotas:     "MLA1071",   // Mascotas (raíz) — 1.8M productos
-    perros:       "MLA1072",   // Perros — 935K productos
-    gatos:        "MLA1081",   // Gatos — 370K productos
-    alimentacion: "MLA434760", // Alimento, Premios y Suplemento (perros)
-    juguetes:     "MLA1074",   // Juguetes (perros)
-    paseo:        "MLA434764", // Viaje y Paseo (perros)
-    camas:        "MLA11060",  // Camas y Cuchas (perros)
-    higiene:      "MLA1076",   // Estética e Higiene (perros)
-    accesorios:   "MLA1088",   // Accesorios (gatos)
-    collares:     "MLA458036", // Collares
-  },
-
-  // ── PARÁMETROS DE BÚSQUEDA ──
-  search: {
-    defaultLimit: 20,          // Productos por página
-    maxLimit: 48,
-    defaultSort: "relevance",  // relevance | price_asc | price_desc | reviews_rating_average
-    minRating: 3,              // Calificación mínima de vendedor
-    condition: "new",          // new | used | all
-  },
-
-  // ── CACHÉ ──
-  cache: {
-    productsTTL: 3600,         // 1 hora en segundos
-    categoryTTL: 3600,
-    productDetailTTL: 1800,    // 30 minutos
-  },
-
-  // ── AFFILIATE LINK ──
-  affiliateLinkBase: "https://www.mercadolibre.com.ar",
-
-  // ── FILTROS DE REPUTACIÓN ──
-  allowedSellerReputations: ["green", "light_green"],
-} as const
-
-// ─────────────────────────────────────────────
-// CONFIGURACIÓN DE GOOGLE ANALYTICS
-// ─────────────────────────────────────────────
-
-export const analyticsConfig = {
-  measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "",
-  enabled: process.env.NODE_ENV === "production",
-} as const
-
-// ─────────────────────────────────────────────
-// CONFIGURACIÓN DE ADSENSE
-// ─────────────────────────────────────────────
-
-export const adsenseConfig = {
-  publisherId: process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID || "",
-  enabled: process.env.NODE_ENV === "production",
-  slots: {
-    sidebar: process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR || "",
-    inArticle: process.env.NEXT_PUBLIC_ADSENSE_SLOT_IN_ARTICLE || "",
-    productBottom: process.env.NEXT_PUBLIC_ADSENSE_SLOT_PRODUCT_BOTTOM || "",
-  },
-} as const
 
 // ─────────────────────────────────────────────
 // NAVEGACIÓN

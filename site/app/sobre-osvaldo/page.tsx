@@ -65,7 +65,7 @@ export default function SobreOsvaldoPage() {
           <h2 className={styles.ctaTitle}>¿Listo para hacer feliz a tu peludo?</h2>
           <div className={styles.ctaButtons}>
             <Link href="/categoria/mascotas" className="btn btn-fill">Ver todos los productos</Link>
-            <Link href="/categoria/mascotas" className="btn btn-ghost">Ver todas las categorías</Link>
+            <Link href="/" className="btn btn-ghost">Ver todas las categorías</Link>
           </div>
         </div>
       </div>
