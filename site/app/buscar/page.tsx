@@ -37,8 +37,8 @@ export default async function SearchPage({ searchParams }: Props) {
         const all = await getProducts_batch(result.products.map((p) => p.id), true)
         products = all.slice(0, LIMIT)
       }
-    } catch {
-      // Error silencioso
+    } catch (e) {
+      console.error("[buscar] Error al buscar productos:", (e as Error).message)
     }
   }
 

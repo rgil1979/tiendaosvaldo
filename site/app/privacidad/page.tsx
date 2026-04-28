@@ -19,14 +19,12 @@ export default function PrivacidadPage() {
         <p>Recolectamos información de uso del sitio de forma anónima a través de:</p>
         <ul>
           <li><strong>Google Analytics 4:</strong> datos de navegación anónimos como páginas visitadas, tiempo en el sitio y ubicación geográfica aproximada.</li>
-          <li><strong>Google AdSense:</strong> cookies para mostrar anuncios relevantes según el historial de navegación.</li>
-          <li><strong>Formulario de contacto:</strong> nombre y email para responder consultas.</li>
-          <li><strong>Newsletter:</strong> email para enviar novedades. Podés darte de baja en cualquier momento.</li>
+          <li><strong>Formulario de contacto:</strong> nombre y email para responder consultas. No compartimos esta información con terceros.</li>
         </ul>
       </Section>
 
       <Section title="2. Cookies">
-        <p>Este sitio usa cookies propias y de terceros. Podés desactivar las publicitarias desde <a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>.</p>
+        <p>Este sitio usa cookies de Google Analytics para medir el tráfico de forma anónima. No usamos cookies publicitarias propias.</p>
       </Section>
 
       <Section title="3. Servicios de terceros">

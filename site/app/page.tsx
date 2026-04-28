@@ -315,17 +315,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── NEWSLETTER ── */}
-      <div className={styles.newsletter}>
-        <div className={styles.newsletterInner}>
-          <div className={styles.nlIcon}>🐾</div>
-          <h3 className={styles.nlTitle}>Ofertas directas de Osvaldo</h3>
-          <p className={styles.nlDesc}>
-            Cuando Osvaldo encuentra algo bueno, te avisa. Sin spam, sin pavadas.
-          </p>
-          <input type="email" placeholder="tu@email.com" className={styles.nlInput} />
-        </div>
-      </div>
     </>
   )
 }

@@ -181,13 +181,6 @@ export interface MLSearchResult {
   hasMore:  boolean
 }
 
-export interface MLCategory {
-  id:                           string
-  name:                         string
-  total_items_in_this_category: number
-  children_categories:          { id: string; name: string; total_items_in_this_category: number }[]
-}
-
 // Tipos internos
 interface _MLProductDetail {
   id:                string
@@ -434,6 +427,3 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
   }
 }
 
-// ── UTILIDADES ───────────────────────────────────────────────────────────────
-
-export { formatPrice } from "./ml-utils"
