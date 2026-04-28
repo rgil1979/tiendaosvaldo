@@ -27,13 +27,45 @@ if (typeof window === "undefined" && process.env.NEXT_PHASE !== "phase-productio
   validateEnv()
 }
 
-// ── TOKEN EN MEMORIA ─────────────────────────────────────────────────────────
-// ML rota el refresh_token en cada uso — hay que guardar el nuevo en memoria.
-// _expiresAt = 0 fuerza refresh en el primer request del proceso.
+// ── PERSISTENCIA DE TOKENS EN DISCO ─────────────────────────────────────────
+// Hostinger reinicia el proceso en cada deploy. Sin persistencia, el refresh_token
+// rotado en memoria se pierde y el siguiente arranque usa el token del .env ya
+// inválido → 401. Escribir en disco garantiza que los reinicios lean el token más
+// reciente, no el original del .env.
 
-let _token        = process.env.ML_ACCESS_TOKEN   ?? ""
-let _refreshToken = process.env.ML_REFRESH_TOKEN   ?? ""
-let _expiresAt    = 0
+import { readFileSync, writeFileSync } from "fs"
+import { join } from "path"
+
+const TOKEN_CACHE = join(process.cwd(), ".ml-token-cache.json")
+
+interface _TokenCache { token: string; refreshToken: string; expiresAt: number }
+
+function _readCache(): _TokenCache | null {
+  try {
+    return JSON.parse(readFileSync(TOKEN_CACHE, "utf8")) as _TokenCache
+  } catch {
+    return null
+  }
+}
+
+function _writeCache(token: string, refreshToken: string, expiresAt: number): void {
+  try {
+    writeFileSync(TOKEN_CACHE, JSON.stringify({ token, refreshToken, expiresAt }), "utf8")
+  } catch (e) {
+    console.warn("[ML] No se pudo guardar token cache en disco:", (e as Error).message)
+  }
+}
+
+// Inicializar desde caché en disco, con fallback a variables de entorno.
+const _cached = _readCache()
+
+let _token        = _cached?.token        ?? process.env.ML_ACCESS_TOKEN  ?? ""
+let _refreshToken = _cached?.refreshToken ?? process.env.ML_REFRESH_TOKEN ?? ""
+let _expiresAt    = _cached?.expiresAt    ?? 0
+
+if (_cached) {
+  console.log("[ML] Tokens cargados desde caché en disco")
+}
 
 // Single-flight: evita que requests concurrentes disparen múltiples refreshes.
 let _refreshPromise: Promise<string> | null = null
@@ -72,7 +104,6 @@ async function _doRefresh(): Promise<string> {
   clearTimeout(oauthTimer)
 
   if (!res.ok) {
-    // No loguear el body completo — puede contener info sensible
     console.error(`[ML] Refresh falló: HTTP ${res.status} — el token actual puede estar expirado`)
     return _token
   }
@@ -80,11 +111,11 @@ async function _doRefresh(): Promise<string> {
   const data = await res.json()
 
   _token        = data.access_token
-  // ML rota el refresh_token en cada uso — guardarlo en memoria es crítico.
-  // Sin esto, el segundo refresh (cuando expire el access_token) usará el token
-  // original del .env (ya inválido) y la app quedará sin acceso.
   _refreshToken = data.refresh_token ?? _refreshToken
   _expiresAt    = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
+
+  // Persistir en disco para sobrevivir reinicios del proceso.
+  _writeCache(_token, _refreshToken, _expiresAt)
 
   console.log(`[ML] Token refrescado — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
   return _token

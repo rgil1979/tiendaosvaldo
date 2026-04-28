@@ -1,3 +1,6 @@
+# ML token cache — generado en runtime, nunca subir a git
+.ml-token-cache.json
+
 # Dependencies
 node_modules/
 
