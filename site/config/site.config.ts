@@ -64,7 +64,7 @@ export const SLUG_CONFIG: Record<string, {
   // domainId + query garantizan resultados filtrados (domain solo da 0 sin q)
   "alimento-perro": { label: "Alimento para perros", emoji: "🍖", domainId: "MLA-CAT_AND_DOG_FOODS", query: "perro",               hlCategoryId: "MLA434760" },
   "alimento-gato":  { label: "Alimento para gatos",  emoji: "🐟", domainId: "MLA-CAT_AND_DOG_FOODS", query: "gato",                hlCategoryId: "MLA1081"   },
-  "collares":       { label: "Collares y correas",   emoji: "🦮", domainId: "MLA-PET_COLLARS",        query: "collar",             hlCategoryId: "MLA434764" },
+  "collares":       { label: "Collares y correas",   emoji: "🦮", domainId: "MLA-PET_COLLARS",        query: "collar",             hlCategoryId: "MLA458036" },
   "camas":          { label: "Camas y cuchas",        emoji: "🛏️", domainId: "MLA-CAT_AND_DOG_BEDS",   query: "cama",               hlCategoryId: "MLA11060"  },
   "arena-gato":     { label: "Arena para gatos",     emoji: "🧂", domainId: "MLA-CATS_LITTER",        query: "arena gato",                                    },
   "mascotas":       { label: "Mascotas",              emoji: "🐾", domainId: "",                       query: "mascota",            hlCategoryId: "MLA1071"   },
