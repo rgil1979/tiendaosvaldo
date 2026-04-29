@@ -24,7 +24,8 @@ export default function PrivacidadPage() {
       </Section>
 
       <Section title="2. Cookies">
-        <p>Este sitio usa cookies de Google Analytics para medir el tráfico de forma anónima. No usamos cookies publicitarias propias.</p>
+        <p>Este sitio ofrece un consentimiento explicito antes de cargar Google Analytics. Si rechazás las cookies analiticas, podés seguir navegando con normalidad.</p>
+        <p>Si aceptás, usamos cookies de Google Analytics para medir trafico de forma agregada. No usamos cookies publicitarias propias.</p>
       </Section>
 
       <Section title="3. Servicios de terceros">
