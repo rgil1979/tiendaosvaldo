@@ -3,7 +3,7 @@ import "@/styles/globals.css"
 import { siteConfig } from "@/config/site.config"
 import Navbar from "@/components/Navbar"
 import Footer from "@/components/Footer"
-import { GoogleAnalytics } from "@next/third-parties/google"
+import AnalyticsConsent from "@/components/AnalyticsConsent"
 
 export const metadata: Metadata = {
   title: {
@@ -37,14 +37,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const gaMeasurementId =
+    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? process.env.NEXT_PUBLIC_GA_ID
+
   return (
     <html lang="es">
       <body>
         <Navbar />
         <main>{children}</main>
         <Footer />
-        {process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        {process.env.NODE_ENV === "production" && (
+          <AnalyticsConsent gaId={gaMeasurementId} />
         )}
       </body>
     </html>
