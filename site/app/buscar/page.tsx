@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { getProducts, getProductsFiltered, getProducts_batch } from "@/lib/mercadolibre"
+import { searchByHighlights } from "@/lib/mercadolibre"
 import SearchResults from "./SearchResults"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import styles from "./page.module.css"
@@ -12,37 +12,33 @@ interface Props {
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const q = searchParams.q?.trim() ?? ""
   return {
-    title:       q ? `"${q}" — Resultados — Tienda Osvaldo` : "Buscar — Tienda Osvaldo",
-    description: q ? `Resultados de búsqueda para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
+    title:       q ? `"${q}" — Tienda Osvaldo` : "Buscar — Tienda Osvaldo",
+    description: q ? `Productos destacados para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
   }
 }
 
 const LIMIT     = 16
-const MAX_TOTAL = 300
-const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT) // ~19
+const MAX_FETCH = 96
 
 export default async function SearchPage({ searchParams }: Props) {
-  const query  = searchParams.q?.trim() ?? ""
-  const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1", 10)), MAX_PAGES)
-  const offset = (page - 1) * LIMIT
+  const query = searchParams.q?.trim() ?? ""
+  const page  = Math.max(1, parseInt(searchParams.pagina ?? "1", 10))
 
-  let products: MLProductFull[] = []
-  let total = 0
+  let allProducts: MLProductFull[] = []
 
   if (query) {
     try {
-      const result = await getProducts({ query, limit: 50, offset })
-      total   = Math.min(result.total, MAX_TOTAL)
-      if (result.products.length) {
-        const all = await getProducts_batch(result.products.map((p) => p.id), false)
-        products = all.slice(0, LIMIT)
-      }
+      allProducts = await searchByHighlights(query, MAX_FETCH)
     } catch (e) {
       console.error("[buscar] Error al buscar productos:", (e as Error).message)
     }
   }
 
-  const totalPages = Math.ceil(total / LIMIT) || 1
+  const total      = allProducts.length
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT))
+  const safePage   = Math.min(page, totalPages)
+  const offset     = (safePage - 1) * LIMIT
+  const products   = allProducts.slice(offset, offset + LIMIT)
 
   return (
     <div className={styles.wrap}>
@@ -66,7 +62,7 @@ export default async function SearchPage({ searchParams }: Props) {
           {query && (
             <p className={styles.searchMeta}>
               {total > 0
-                ? <>{total.toLocaleString("es-AR")} resultados para <strong>&ldquo;{query}&rdquo;</strong></>
+                ? <>Productos destacados para <strong>&ldquo;{query}&rdquo;</strong></>
                 : <>Sin resultados para <strong>&ldquo;{query}&rdquo;</strong></>}
             </p>
           )}
@@ -99,7 +95,7 @@ export default async function SearchPage({ searchParams }: Props) {
         {products.length > 0 && (
           <SearchResults
             products={products}
-            page={page}
+            page={safePage}
             totalPages={totalPages}
             query={query}
           />

@@ -518,6 +518,47 @@ export async function getProducts_batch(
   return results
 }
 
+// ── BÚSQUEDA CON PRECIOS (via highlights por categoría detectada) ─────────────
+
+const SEARCH_CATEGORY_MAP: { pattern: RegExp; categoryIds: string[] }[] = [
+  { pattern: /arnes|pechera/i,                                categoryIds: ["MLA1072", "MLA370459"] },
+  { pattern: /collar|correa|traill[ae]/i,                     categoryIds: ["MLA370459"] },
+  { pattern: /cama|cucha|colch[oó]n|guarida/i,                categoryIds: ["MLA11060"] },
+  { pattern: /alimento|comida|croqueta|kibble|snack|premio/i, categoryIds: ["MLA434760", "MLA1081"] },
+  { pattern: /juguete|pelota|mordedor/i,                      categoryIds: ["MLA1074"] },
+  { pattern: /arena|bandeja|arenero/i,                        categoryIds: ["MLA1071"] },
+  { pattern: /gato|felino|gatito|minino/i,                    categoryIds: ["MLA1081"] },
+  { pattern: /perro|canino|cachorro/i,                        categoryIds: ["MLA1072"] },
+]
+const DEFAULT_SEARCH_CATEGORIES = ["MLA1072", "MLA1081", "MLA1074"]
+
+export async function searchByHighlights(query: string, limit: number): Promise<MLProductFull[]> {
+  const categoryIds = new Set<string>()
+  for (const { pattern, categoryIds: ids } of SEARCH_CATEGORY_MAP) {
+    if (pattern.test(query)) ids.forEach(id => categoryIds.add(id))
+  }
+  if (categoryIds.size === 0) DEFAULT_SEARCH_CATEGORIES.forEach(id => categoryIds.add(id))
+
+  const perCat = Math.ceil((limit * 3) / categoryIds.size)
+  const batches = await Promise.all(
+    Array.from(categoryIds).map(id => getHighlights(id, perCat).catch(() => [] as MLProductFull[]))
+  )
+
+  const seen = new Set<string>()
+  const all: MLProductFull[] = []
+  for (const batch of batches) {
+    for (const p of batch) {
+      if (!seen.has(p.id)) { seen.add(p.id); all.push(p) }
+    }
+  }
+
+  const words    = query.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+  const matched  = all.filter(p =>  words.some(w => p.name.toLowerCase().includes(w)))
+  const rest     = all.filter(p => !words.some(w => p.name.toLowerCase().includes(w)))
+
+  return [...matched, ...rest].slice(0, limit)
+}
+
 // ── HIGHLIGHTS (best sellers por categoría) ──────────────────────────────────
 
 export async function getHighlights(categoryId: string, limit = 20): Promise<MLProductFull[]> {
@@ -537,4 +578,5 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
     return []
   }
 }
+
 
