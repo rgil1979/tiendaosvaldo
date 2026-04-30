@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { readFileSync, writeFileSync } from "fs"
 import { join } from "path"
+import { cookies } from "next/headers"
 
 export async function GET(request: Request) {
   const url   = new URL(request.url)
@@ -19,7 +20,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Credenciales ML no configuradas" }, { status: 500 })
   }
 
-  const redirectUri = `${url.origin}/api/ml-auth/callback`
+  const cookieStore   = cookies()
+  const codeVerifier  = cookieStore.get("ml_code_verifier")?.value
+  if (!codeVerifier) {
+    return NextResponse.json({ error: "code_verifier no encontrado — iniciá el flujo desde /api/ml-auth" }, { status: 400 })
+  }
+
+  const base        = process.env.NEXT_PUBLIC_SITE_URL ?? url.origin
+  const redirectUri = `${base}/api/ml-auth/callback`
 
   const res = await fetch("https://api.mercadolibre.com/oauth/token", {
     method:  "POST",
@@ -30,6 +38,7 @@ export async function GET(request: Request) {
       client_secret: ML_CLIENT_SECRET,
       code,
       redirect_uri:  redirectUri,
+      code_verifier: codeVerifier,
     }),
   })
 
