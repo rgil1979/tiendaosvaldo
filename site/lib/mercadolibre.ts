@@ -73,51 +73,76 @@ let _refreshPromise: Promise<string> | null = null
 async function _doRefresh(): Promise<string> {
   const { ML_APP_ID, ML_CLIENT_SECRET } = process.env
 
-  if (!ML_APP_ID || !ML_CLIENT_SECRET || !_refreshToken) {
+  if (!ML_APP_ID || !ML_CLIENT_SECRET) {
     console.error("[ML] No se puede refrescar el token — credenciales incompletas")
-    return _token // devuelve lo que hay; mlFetch manejará el 401
+    return _token
   }
 
-  const oauthController = new AbortController()
-  const oauthTimer = setTimeout(() => oauthController.abort(), 10_000)
+  const oauthPost = async (body: URLSearchParams): Promise<Response> => {
+    const ctrl = new AbortController()
+    const t = setTimeout(() => ctrl.abort(), 10_000)
+    try {
+      const res = await fetch("https://api.mercadolibre.com/oauth/token", {
+        method:  "POST",
+        signal:  ctrl.signal,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+        cache: "no-store",
+      })
+      return res
+    } finally {
+      clearTimeout(t)
+    }
+  }
 
-  let res: Response
-  try {
-    res = await fetch("https://api.mercadolibre.com/oauth/token", {
-      method:  "POST",
-      signal:  oauthController.signal,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
+  // Intentar refresh_token primero (si hay uno disponible)
+  if (_refreshToken) {
+    try {
+      const res = await oauthPost(new URLSearchParams({
         grant_type:    "refresh_token",
         client_id:     ML_APP_ID,
         client_secret: ML_CLIENT_SECRET,
         refresh_token: _refreshToken,
-      }),
-      cache: "no-store",
-    })
+      }))
+
+      if (res.ok) {
+        const data = await res.json()
+        _token        = data.access_token
+        _refreshToken = data.refresh_token ?? _refreshToken
+        _expiresAt    = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
+        _writeCache(_token, _refreshToken, _expiresAt)
+        console.log(`[ML] Token refrescado — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
+        return _token
+      }
+      console.warn(`[ML] Refresh token inválido (HTTP ${res.status}) — usando client_credentials`)
+    } catch (e) {
+      const label = (e as Error).name === "AbortError" ? "Timeout 10s" : (e as Error).message
+      console.warn(`[ML] OAuth refresh falló: ${label} — usando client_credentials`)
+    }
+  }
+
+  // Fallback: client_credentials (no requiere refresh_token válido)
+  try {
+    const res = await oauthPost(new URLSearchParams({
+      grant_type:    "client_credentials",
+      client_id:     ML_APP_ID,
+      client_secret: ML_CLIENT_SECRET,
+    }))
+
+    if (res.ok) {
+      const data = await res.json()
+      _token     = data.access_token
+      _expiresAt = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
+      _writeCache(_token, _refreshToken, _expiresAt)
+      console.log(`[ML] Token obtenido via client_credentials — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
+      return _token
+    }
+    console.error(`[ML] client_credentials falló: HTTP ${res.status}`)
   } catch (e) {
-    clearTimeout(oauthTimer)
     const label = (e as Error).name === "AbortError" ? "Timeout 10s" : (e as Error).message
-    console.error(`[ML] OAuth fetch falló: ${label}`)
-    return _token
-  }
-  clearTimeout(oauthTimer)
-
-  if (!res.ok) {
-    console.error(`[ML] Refresh falló: HTTP ${res.status} — el token actual puede estar expirado`)
-    return _token
+    console.error(`[ML] OAuth client_credentials falló: ${label}`)
   }
 
-  const data = await res.json()
-
-  _token        = data.access_token
-  _refreshToken = data.refresh_token ?? _refreshToken
-  _expiresAt    = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
-
-  // Persistir en disco para sobrevivir reinicios del proceso.
-  _writeCache(_token, _refreshToken, _expiresAt)
-
-  console.log(`[ML] Token refrescado — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
   return _token
 }
 
@@ -449,7 +474,10 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
       `/highlights/MLA/category/${categoryId}`,
       3600
     )
-    const ids = (data.content ?? []).slice(0, Math.min(limit * 2, limit + 10)).map((c) => c.id)
+    const ids = (data.content ?? [])
+      .map((c) => c.id)
+      .filter((id) => /^MLA\d+$/.test(id))
+      .slice(0, Math.min(limit * 2, limit + 10))
     const products = await getProducts_batch(ids, true)
     return products.slice(0, limit)
   } catch (e) {

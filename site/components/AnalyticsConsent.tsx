@@ -49,7 +49,6 @@ export default function AnalyticsConsent({ gaId }: { gaId?: string }) {
               function gtag(){window.dataLayer.push(arguments);}
               window.gtag = gtag;
               gtag('js', new Date());
-              gtag('consent', 'default', { analytics_storage: 'granted' });
               gtag('config', '${gaId}');
             `}
           </Script>
