@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { getProductsFiltered, getProducts_batch } from "@/lib/mercadolibre"
+import { getProducts, getProductsFiltered, getProducts_batch } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
@@ -17,9 +17,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   }
 }
 
-const LIMIT     = 9
+const LIMIT     = 16
 const MAX_TOTAL = 300
-const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT) // 15
+const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT) // ~19
 
 export default async function SearchPage({ searchParams }: Props) {
   const query  = searchParams.q?.trim() ?? ""
@@ -31,10 +31,10 @@ export default async function SearchPage({ searchParams }: Props) {
 
   if (query) {
     try {
-      const result = await getProductsFiltered({ query, limit: LIMIT * 3, offset })
+      const result = await getProducts({ query, limit: 50, offset })
       total   = Math.min(result.total, MAX_TOTAL)
       if (result.products.length) {
-        const all = await getProducts_batch(result.products.map((p) => p.id), true)
+        const all = await getProducts_batch(result.products.map((p) => p.id), false)
         products = all.slice(0, LIMIT)
       }
     } catch (e) {
