@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { SLUG_CONFIG } from "@/config/site.config"
 import { getProductsFiltered, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
-import ProductCard from "@/components/ProductCard"
+import CategoryResults from "./CategoryResults"
 import styles from "./page.module.css"
 
 export const revalidate = 3600
@@ -27,9 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-const LIMIT     = 20
-const MAX_TOTAL = 300                          // cap de productos por categoría
-const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT) // 15 páginas
+const LIMIT     = 12
+const MAX_TOTAL = 300
+const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT)
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const cfg = SLUG_CONFIG[params.slug]
@@ -47,7 +47,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     const useHighlights = cfg.hlCategoryId && page === 1 && !mascotaFilter
 
     if (useHighlights) {
-      // Página 1 sin filtro: highlights garantizan precios. Total del search para paginar.
       const [hlProducts, searchResult] = await Promise.all([
         getHighlights(cfg.hlCategoryId!, LIMIT),
         getProductsFiltered({
@@ -60,8 +59,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       products = hlProducts
       total    = Math.min(searchResult.total, MAX_TOTAL)
     } else {
-      // Pide el doble de IDs para compensar productos sin precio activo
-      const fetchLimit = Math.min(LIMIT * 2, 50)
+      const fetchLimit = 50
       const result = await getProductsFiltered({
         query:     cfg.query,
         domainIds: cfg.domainId ? [cfg.domainId] : undefined,
@@ -71,7 +69,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       })
       total   = Math.min(result.total, MAX_TOTAL)
       if (result.products.length) {
-        const all = await getProducts_batch(result.products.map((p) => p.id), true)
+        const all = await getProducts_batch(result.products.map(p => p.id), true)
         products = all.slice(0, LIMIT)
       }
     }
@@ -84,14 +82,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const siblings = Object.entries(SLUG_CONFIG).filter(
     ([s]) => s !== params.slug && !["mascotas", "alimentacion"].includes(s)
   )
-
-  function pageHref(p: number) {
-    const qs = new URLSearchParams()
-    if (p > 1) qs.set("pagina", String(p))
-    if (mascotaFilter) qs.set("mascota", mascotaFilter)
-    const q = qs.toString()
-    return `/categoria/${params.slug}${q ? `?${q}` : ""}`
-  }
 
   return (
     <>
@@ -174,47 +164,19 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           </div>
 
           {products.length > 0 ? (
-            <div className={styles.productsGrid}>
-              {products.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
+            <CategoryResults
+              products={products}
+              page={page}
+              totalPages={totalPages}
+              slug={params.slug}
+              mascotaFilter={mascotaFilter ?? ""}
+            />
           ) : (
             <div className={styles.empty}>
               <span>🐾</span>
               <p>No encontramos productos en este momento.</p>
               <Link href="/" className="btn btn-ghost">Volver al inicio</Link>
             </div>
-          )}
-
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <nav className={styles.pagination} aria-label="Páginas">
-              {page > 1 && (
-                <Link href={pageHref(page - 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                  ← Anterior
-                </Link>
-              )}
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const start = Math.max(1, Math.min(page - 2, totalPages - 4))
-                const n = start + i
-                if (n > totalPages) return null
-                return (
-                  <Link
-                    key={n}
-                    href={pageHref(n)}
-                    className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ""}`}
-                  >
-                    {n}
-                  </Link>
-                )
-              })}
-              {page < totalPages && (
-                <Link href={pageHref(page + 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                  Siguiente →
-                </Link>
-              )}
-            </nav>
           )}
         </div>
       </div>

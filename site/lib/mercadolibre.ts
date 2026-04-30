@@ -211,6 +211,38 @@ async function mlFetch<T>(endpoint: string, revalidate = 3600, _retry = true): P
   return res.json() as Promise<T>
 }
 
+// ── CLIENTE PÚBLICO (sin auth — /sites/MLA/search y similares) ───────────────
+
+async function publicFetch<T>(url: string, revalidate = 3600): Promise<T> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      signal: controller.signal,
+      next:   { revalidate },
+      headers: {
+        Accept:          "application/json",
+        "User-Agent":    "Mozilla/5.0 (compatible; TiendaOsvaldo/1.0)",
+        "Accept-Language": "es-AR,es;q=0.9",
+      },
+    })
+  } catch (e) {
+    clearTimeout(timer)
+    throw new Error(
+      (e as Error).name === "AbortError"
+        ? `[ML] Timeout después de ${FETCH_TIMEOUT_MS}ms — ${url}`
+        : `[ML] Error de red — ${url}: ${(e as Error).message}`
+    )
+  }
+  clearTimeout(timer)
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`[ML] HTTP ${res.status} — ${url.split("?")[0]}\n${body.slice(0, 200)}`)
+  }
+  return res.json() as Promise<T>
+}
+
 // ── TIPOS PÚBLICOS ───────────────────────────────────────────────────────────
 
 export interface MLProductSummary {
@@ -248,6 +280,19 @@ export interface MLSearchResult {
 }
 
 // Tipos internos
+interface _MLItemSearchResult {
+  id:                  string
+  title:               string
+  price:               number
+  currency_id:         string
+  thumbnail:           string
+  condition:           "new" | "used"
+  catalog_product_id:  string | null
+  permalink:           string
+  accepts_mercadopago: boolean
+  shipping:            { free_shipping: boolean }
+}
+
 interface _MLProductDetail {
   id:                string
   name:              string
@@ -422,7 +467,6 @@ interface _MLSearchItem {
 }
 
 async function _getPriceForProduct(productId: string): Promise<_MLPriceItem> {
-  // Intento 1: buy box winner del catálogo
   const itemsResp = await mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600)
     .catch(() => null)
 
@@ -439,26 +483,6 @@ async function _getPriceForProduct(productId: string): Promise<_MLPriceItem> {
       free_shipping:       winner!.free_shipping        ?? false,
     }
   }
-
-  // Intento 2: buscar listing activo del producto en el catálogo
-  try {
-    const search = await mlFetch<{ results: _MLSearchItem[] }>(
-      `/sites/MLA/search?catalog_product_id=${productId}&sort=price_asc&limit=1`,
-      3600,
-    )
-    const item = search.results?.[0]
-    if (item) {
-      return {
-        item_id:             item.id,
-        price:               item.price,
-        currency_id:         item.currency_id,
-        condition:           item.condition,
-        warranty:            item.warranty,
-        accepts_mercadopago: item.accepts_mercadopago,
-        free_shipping:       item.shipping?.free_shipping ?? false,
-      }
-    }
-  } catch { /* endpoint no disponible con este token */ }
 
   return {
     item_id: "", price: 0, currency_id: "ARS",
@@ -500,13 +524,34 @@ function isAvailable(p: MLProductFull, requirePrice: boolean): boolean {
   return true
 }
 
+// Procesa items con concurrencia limitada para no saturar la API ni crashear el worker.
+async function _concurrentMap<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  concurrency: number,
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = new Array(items.length)
+  let nextIndex = 0
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const i = nextIndex++
+      try {
+        results[i] = { status: "fulfilled", value: await fn(items[i]) }
+      } catch (reason) {
+        results[i] = { status: "rejected", reason }
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker))
+  return results
+}
+
 export async function getProducts_batch(
   productIds:   string[],
   requirePrice = true,
 ): Promise<MLProductFull[]> {
-  const settled = await Promise.allSettled(
-    productIds.map((id) => getProduct(id))
-  )
+  // Máx 8 getProduct() en paralelo → 16 llamadas HTTP simultáneas a ML
+  const settled = await _concurrentMap(productIds, (id) => getProduct(id), 8)
   const results: MLProductFull[] = []
   for (const r of settled) {
     if (r.status === "fulfilled") {
@@ -518,51 +563,17 @@ export async function getProducts_batch(
   return results
 }
 
-// ── BÚSQUEDA CON PRECIOS (via highlights por categoría detectada) ─────────────
-
-const SEARCH_CATEGORY_MAP: { pattern: RegExp; categoryIds: string[] }[] = [
-  { pattern: /arnes|pechera/i,                                categoryIds: ["MLA1072", "MLA370459"] },
-  { pattern: /collar|correa|traill[ae]/i,                     categoryIds: ["MLA370459"] },
-  { pattern: /cama|cucha|colch[oó]n|guarida/i,                categoryIds: ["MLA11060"] },
-  { pattern: /alimento|comida|croqueta|kibble|snack|premio/i, categoryIds: ["MLA434760", "MLA1081"] },
-  { pattern: /juguete|pelota|mordedor/i,                      categoryIds: ["MLA1074"] },
-  { pattern: /arena|bandeja|arenero/i,                        categoryIds: ["MLA1071"] },
-  { pattern: /gato|felino|gatito|minino/i,                    categoryIds: ["MLA1081"] },
-  { pattern: /perro|canino|cachorro/i,                        categoryIds: ["MLA1072"] },
-]
-const DEFAULT_SEARCH_CATEGORIES = ["MLA1072", "MLA1081", "MLA1074"]
+// ── BÚSQUEDA POR TEXTO (multi-dominio mascotas) ──────────────────────────────
 
 export async function searchByHighlights(query: string, limit: number): Promise<MLProductFull[]> {
-  const categoryIds = new Set<string>()
-  for (const { pattern, categoryIds: ids } of SEARCH_CATEGORY_MAP) {
-    if (pattern.test(query)) ids.forEach(id => categoryIds.add(id))
+  try {
+    const result = await getProductsFiltered({ query, limit: Math.min(limit, 50), offset: 0 })
+    if (!result.products.length) return []
+    return getProducts_batch(result.products.map(p => p.id), true)
+  } catch (e) {
+    console.error("[ML] searchByHighlights falló:", (e as Error).message)
+    return []
   }
-  if (categoryIds.size === 0) DEFAULT_SEARCH_CATEGORIES.forEach(id => categoryIds.add(id))
-
-  const perCat = Math.ceil((limit * 3) / categoryIds.size)
-  const batches = await Promise.all(
-    Array.from(categoryIds).map(id => getHighlights(id, perCat).catch(() => [] as MLProductFull[]))
-  )
-
-  const seen = new Set<string>()
-  const all: MLProductFull[] = []
-  for (const batch of batches) {
-    for (const p of batch) {
-      if (!seen.has(p.id)) { seen.add(p.id); all.push(p) }
-    }
-  }
-
-  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2)
-
-  // AND: el nombre debe contener todas las palabras del query
-  let matched = all.filter(p => words.every(w => p.name.toLowerCase().includes(w)))
-  // Fallback a OR si AND no da suficientes resultados
-  if (matched.length < limit / 2) {
-    matched = all.filter(p => words.some(w => p.name.toLowerCase().includes(w)))
-  }
-  const rest = all.filter(p => !matched.includes(p))
-
-  return [...matched, ...rest].slice(0, limit)
 }
 
 // ── HIGHLIGHTS (best sellers por categoría) ──────────────────────────────────
@@ -577,7 +588,7 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
       .map((c) => c.id)
       .filter((id) => /^MLA\d+$/.test(id))
       .slice(0, Math.min(limit * 2, limit + 10))
-    const products = await getProducts_batch(ids, true)
+    const products = await getProducts_batch(ids, false)
     return products.slice(0, limit)
   } catch (e) {
     console.error("[ML] getHighlights falló:", (e as Error).message?.slice(0, 100))

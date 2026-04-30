@@ -20,6 +20,7 @@ export async function GET(request: Request) {
   authUrl.searchParams.set("redirect_uri",           redirectUri)
   authUrl.searchParams.set("code_challenge",         codeChallenge)
   authUrl.searchParams.set("code_challenge_method",  "S256")
+  authUrl.searchParams.set("scope",                  "read offline_access")
 
   const res = NextResponse.redirect(authUrl.toString())
   res.cookies.set("ml_code_verifier", codeVerifier, {
