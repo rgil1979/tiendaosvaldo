@@ -67,6 +67,16 @@ if (_cached) {
   console.log("[ML] Tokens cargados desde caché en disco")
 }
 
+export function reloadTokenFromCache(): void {
+  const fresh = _readCache()
+  if (fresh) {
+    _token        = fresh.token
+    _refreshToken = fresh.refreshToken
+    _expiresAt    = fresh.expiresAt
+    console.log("[ML] Token recargado en memoria desde caché en disco")
+  }
+}
+
 // Single-flight: evita que requests concurrentes disparen múltiples refreshes.
 let _refreshPromise: Promise<string> | null = null
 
@@ -401,33 +411,74 @@ export async function getProducts(options: {
 
 // ── DETALLE DE PRODUCTO ──────────────────────────────────────────────────────
 
-export async function getProduct(productId: string): Promise<MLProductFull> {
-  const [detail, priceResp] = await Promise.all([
-    mlFetch<_MLProductDetail>(`/products/${productId}`, 3600),
-    mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600)
-      .catch(() => ({ results: [] } as _MLItemsResponse)),
-  ])
+interface _MLSearchItem {
+  id:                  string
+  price:               number
+  currency_id:         string
+  condition:           "new" | "used"
+  warranty:            string | null
+  accepts_mercadopago: boolean
+  shipping:            { free_shipping: boolean }
+}
 
-  // Prioridad: results[0] → buy_box_winner → defaults vacíos
-  const winner = priceResp.buy_box_winner
-  const first  = priceResp.results?.[0]
-  const p: _MLPriceItem = first ?? {
-    item_id:             winner?.item_id             ?? "",
-    price:               winner?.price               ?? 0,
-    currency_id:         winner?.currency_id         ?? "ARS",
-    condition:           winner?.condition            ?? "new",
-    warranty:            winner?.warranty             ?? null,
-    accepts_mercadopago: winner?.accepts_mercadopago  ?? true,
-    free_shipping:       winner?.free_shipping        ?? false,
+async function _getPriceForProduct(productId: string): Promise<_MLPriceItem> {
+  // Intento 1: buy box winner del catálogo
+  const itemsResp = await mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600)
+    .catch(() => null)
+
+  const winner = itemsResp?.buy_box_winner
+  const first  = itemsResp?.results?.[0]
+  if (first || winner) {
+    return first ?? {
+      item_id:             winner!.item_id             ?? "",
+      price:               winner!.price               ?? 0,
+      currency_id:         winner!.currency_id         ?? "ARS",
+      condition:           winner!.condition            ?? "new",
+      warranty:            winner!.warranty             ?? null,
+      accepts_mercadopago: winner!.accepts_mercadopago  ?? true,
+      free_shipping:       winner!.free_shipping        ?? false,
+    }
   }
+
+  // Intento 2: buscar listing activo del producto en el catálogo
+  try {
+    const search = await mlFetch<{ results: _MLSearchItem[] }>(
+      `/sites/MLA/search?catalog_product_id=${productId}&sort=price_asc&limit=1`,
+      3600,
+    )
+    const item = search.results?.[0]
+    if (item) {
+      return {
+        item_id:             item.id,
+        price:               item.price,
+        currency_id:         item.currency_id,
+        condition:           item.condition,
+        warranty:            item.warranty,
+        accepts_mercadopago: item.accepts_mercadopago,
+        free_shipping:       item.shipping?.free_shipping ?? false,
+      }
+    }
+  } catch { /* endpoint no disponible con este token */ }
+
+  return {
+    item_id: "", price: 0, currency_id: "ARS",
+    condition: "new", warranty: null, accepts_mercadopago: true, free_shipping: false,
+  }
+}
+
+export async function getProduct(productId: string): Promise<MLProductFull> {
+  const [detail, p] = await Promise.all([
+    mlFetch<_MLProductDetail>(`/products/${productId}`, 3600),
+    _getPriceForProduct(productId),
+  ])
 
   return {
     id:                  productId,
     name:                detail.name,
-    pictures:            detail.pictures                       ?? [],
-    short_description:   detail.short_description?.content     ?? "",
+    pictures:            detail.pictures                    ?? [],
+    short_description:   detail.short_description?.content  ?? "",
     main_features:       (detail.main_features ?? []).map((f) => f.text),
-    attributes:          detail.attributes                     ?? [],
+    attributes:          detail.attributes                  ?? [],
     domain_id:           detail.domain_id,
     status:              detail.status,
     price:               p.price,

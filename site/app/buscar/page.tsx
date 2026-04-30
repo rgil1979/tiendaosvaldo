@@ -1,8 +1,8 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { getProducts, getProductsFiltered, getProducts_batch } from "@/lib/mercadolibre"
+import SearchResults from "./SearchResults"
 import type { MLProductFull } from "@/lib/mercadolibre"
-import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
 
 interface Props {
@@ -43,12 +43,6 @@ export default async function SearchPage({ searchParams }: Props) {
   }
 
   const totalPages = Math.ceil(total / LIMIT) || 1
-
-  function pageHref(p: number) {
-    const qs = new URLSearchParams({ q: query })
-    if (p > 1) qs.set("pagina", String(p))
-    return `/buscar?${qs}`
-  }
 
   return (
     <div className={styles.wrap}>
@@ -103,43 +97,12 @@ export default async function SearchPage({ searchParams }: Props) {
         )}
 
         {products.length > 0 && (
-          <>
-            <div className={styles.grid}>
-              {products.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-
-            {/* Paginación */}
-            {totalPages > 1 && (
-              <nav className={styles.pagination} aria-label="Páginas">
-                {page > 1 && (
-                  <Link href={pageHref(page - 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                    ← Anterior
-                  </Link>
-                )}
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const start = Math.max(1, Math.min(page - 2, totalPages - 4))
-                  const n = start + i
-                  if (n > totalPages) return null
-                  return (
-                    <Link
-                      key={n}
-                      href={pageHref(n)}
-                      className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ""}`}
-                    >
-                      {n}
-                    </Link>
-                  )
-                })}
-                {page < totalPages && (
-                  <Link href={pageHref(page + 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                    Siguiente →
-                  </Link>
-                )}
-              </nav>
-            )}
-          </>
+          <SearchResults
+            products={products}
+            page={page}
+            totalPages={totalPages}
+            query={query}
+          />
         )}
       </div>
     </div>

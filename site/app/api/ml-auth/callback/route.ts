@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { readFileSync, writeFileSync } from "fs"
 import { join } from "path"
 import { cookies } from "next/headers"
+import { reloadTokenFromCache } from "@/lib/mercadolibre"
 
 export async function GET(request: Request) {
   const url   = new URL(request.url)
@@ -63,6 +64,9 @@ export async function GET(request: Request) {
     JSON.stringify({ token: data.access_token, refreshToken: data.refresh_token, expiresAt }),
     "utf8",
   )
+
+  // Recargar token en memoria del proceso actual
+  reloadTokenFromCache()
 
   // Actualizar .env para persistir entre deploys
   try {
