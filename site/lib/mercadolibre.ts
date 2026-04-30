@@ -552,9 +552,15 @@ export async function searchByHighlights(query: string, limit: number): Promise<
     }
   }
 
-  const words    = query.toLowerCase().split(/\s+/).filter(w => w.length > 2)
-  const matched  = all.filter(p =>  words.some(w => p.name.toLowerCase().includes(w)))
-  const rest     = all.filter(p => !words.some(w => p.name.toLowerCase().includes(w)))
+  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+
+  // AND: el nombre debe contener todas las palabras del query
+  let matched = all.filter(p => words.every(w => p.name.toLowerCase().includes(w)))
+  // Fallback a OR si AND no da suficientes resultados
+  if (matched.length < limit / 2) {
+    matched = all.filter(p => words.some(w => p.name.toLowerCase().includes(w)))
+  }
+  const rest = all.filter(p => !matched.includes(p))
 
   return [...matched, ...rest].slice(0, limit)
 }
