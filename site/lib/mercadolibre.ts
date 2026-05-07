@@ -596,4 +596,154 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
   }
 }
 
+// ── PRODUCTOS VARIADOS POR CATEGORÍA (múltiples dominios) ──────────────────────
+
+/**
+ * Obtiene productos variados de una mascota (ej: perros)
+ * Combina múltiples categorías para devolver variedad
+ *
+ * Para perros: comida, juguetes, pretales, platos, camas, accesorios
+ * Para gatos: comida, juguetes, arena, etc.
+ */
+export async function getProductsVariety(
+  categoryIds: string[],
+  limit = 12
+): Promise<MLProductFull[]> {
+  try {
+    // Obtener productos de cada categoría en paralelo
+    const itemsPerCategory = Math.ceil(limit * 1.5 / categoryIds.length) // 1.5x para dedup
+
+    const responses = await Promise.all(
+      categoryIds.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    // Combinar y deduplicar por ID
+    const deduped = new Map<string, MLProductFull>()
+    for (const products of responses) {
+      for (const p of products) {
+        if (!deduped.has(p.id)) {
+          deduped.set(p.id, p)
+        }
+      }
+    }
+
+    // Retornar cantidad exacta
+    return Array.from(deduped.values()).slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getProductsVariety falló:", (e as Error).message)
+    return []
+  }
+}
+
+// ── PRODUCTOS VARIADOS PARA GATOS ────────────────────────────────────────────
+
+export async function getCatProductsVariety(limit = 12): Promise<MLProductFull[]> {
+  const catCategories = [
+    "MLA1081",   // Comida para gatos
+    "MLA434761", // Juguetes para gatos
+    "MLA1084",   // Arena para gatos
+    "MLA1085",   // Platos para gatos
+    "MLA434762", // Camas para gatos
+    "MLA434763", // Accesorios para gatos
+  ]
+
+  try {
+    const itemsPerCategory = Math.ceil(limit * 1.5 / catCategories.length)
+
+    const responses = await Promise.all(
+      catCategories.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    const deduped = new Map<string, MLProductFull>()
+    for (const products of responses) {
+      for (const p of products) {
+        if (!deduped.has(p.id)) {
+          deduped.set(p.id, p)
+        }
+      }
+    }
+
+    return Array.from(deduped.values()).slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getCatProductsVariety falló:", (e as Error).message)
+    return []
+  }
+}
+
+// ── PRODUCTOS VARIADOS PARA ACCESORIOS ───────────────────────────────────────
+
+export async function getAccessoriesVariety(limit = 12): Promise<MLProductFull[]> {
+  const accessoriesCategories = [
+    "MLA370459", // Correas/Pretales
+    "MLA1076",   // Platos/Comederos
+    "MLA434758", // Camas
+    "MLA434757", // Juguetes
+    "MLA1084",   // Transportines/Accesorios
+    "MLA434759", // Accesorios variados
+  ]
+
+  try {
+    const itemsPerCategory = Math.ceil(limit * 1.5 / accessoriesCategories.length)
+
+    const responses = await Promise.all(
+      accessoriesCategories.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    const deduped = new Map<string, MLProductFull>()
+    for (const products of responses) {
+      for (const p of products) {
+        if (!deduped.has(p.id)) {
+          deduped.set(p.id, p)
+        }
+      }
+    }
+
+    return Array.from(deduped.values()).slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getAccessoriesVariety falló:", (e as Error).message)
+    return []
+  }
+}
+
+// ── PRODUCTOS DESTACADOS PARA MASCOTAS (categoría general) ─────────────────────
+
+export async function getPetsHighlights(limit = 12): Promise<MLProductFull[]> {
+  const petCategories = [
+    "MLA434757", // Juguetes perros
+    "MLA434761", // Juguetes gatos
+    "MLA434758", // Camas perros
+    "MLA434762", // Camas gatos
+    "MLA370459", // Pretales/Correas
+    "MLA434759", // Accesorios perros
+    "MLA1084",   // Arena para gatos
+    "MLA434763", // Accesorios gatos
+  ]
+
+  try {
+    const itemsPerCategory = Math.ceil(limit * 1.5 / petCategories.length)
+    const responses = await Promise.all(
+      petCategories.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    const deduped = new Map<string, MLProductFull>()
+    for (const products of responses) {
+      for (const p of products) {
+        if (!deduped.has(p.id)) deduped.set(p.id, p)
+      }
+    }
+
+    return Array.from(deduped.values()).slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getPetsHighlights falló:", (e as Error).message?.slice(0, 100))
+    return []
+  }
+}
 

@@ -2,9 +2,13 @@ import { cache, Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { siteConfig } from "@/config/site.config"
-import { getHighlights } from "@/lib/mercadolibre"
+import { getHighlights, getProductsVariety, getCatProductsVariety, getAccessoriesVariety, getPetsHighlights } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
+import Carousel from "@/components/Carousel"
+import CarouselGatos from "@/components/CarouselGatos"
+import CarouselAccesorios from "@/components/CarouselAccesorios"
+import CarouselMascotas from "@/components/CarouselMascotas"
 import styles from "./page.module.css"
 
 export const revalidate = 3600
@@ -12,6 +16,10 @@ export const revalidate = 3600
 // cache() deduplica llamadas idénticas dentro del mismo render — evita pedir
 // dos veces el mismo endpoint y que los mismos productos aparezcan en dos secciones.
 const getHighlightsCached = cache(getHighlights)
+const getProductsVarietyCached = cache(getProductsVariety)
+const getCatProductsVarietyCached = cache(getCatProductsVariety)
+const getAccessoriesVarietyCached = cache(getAccessoriesVariety)
+const getPetsHighlightsCached = cache(getPetsHighlights)
 
 // ── SKELETON ─────────────────────────────────────────────────────────────────
 
@@ -28,15 +36,13 @@ function SectionSkeleton({ count }: { count: number }) {
 // ── SECCIONES ASYNC ───────────────────────────────────────────────────────────
 
 async function FeaturedSection() {
-  // Pedimos 6 de cada categoría: los primeros 2 de cada una van a Destacados,
-  // los restantes 4 van a PerrosSection / GatosSection sin repetición.
   const [dogFood, catFood] = await Promise.all([
-    getHighlightsCached("MLA434760", 6),
-    getHighlightsCached("MLA1081",   6),
+    getHighlightsCached("MLA434760", 8),
+    getHighlightsCached("MLA1081",   8),
   ])
-  // Intercala dog[0], cat[0], dog[1], cat[1] → 4 productos sin repetir con las secciones de abajo
+  // Intercala perro/gato → 8 productos (2 slides de 4)
   const products: MLProductFull[] = []
-  for (let i = 0; i < 2 && products.length < 4; i++) {
+  for (let i = 0; i < 4 && products.length < 8; i++) {
     if (dogFood[i]) products.push(dogFood[i])
     if (catFood[i]) products.push(catFood[i])
   }
@@ -49,72 +55,74 @@ async function FeaturedSection() {
           <h2 className={styles.sectionTitle}>🌟 Destacados para tu <span>mascota</span></h2>
           <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
         </div>
-        <div className={styles.grid4}>
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <Carousel products={products} itemsPerView={4} />
       </div>
     </div>
   )
 }
 
 async function PerrosSection() {
-  // Misma llamada cacheada que FeaturedSection — sin request extra al API.
-  // Empieza en índice 2 para no repetir los que ya mostró Destacados.
-  const all = await getHighlightsCached("MLA434760", 6)
-  const products = all.slice(2)
+  const dogCategories = [
+    "MLA434760", // Comida
+    "MLA434757", // Juguetes
+    "MLA370459", // Pretales
+    "MLA1076",   // Platos
+    "MLA434758", // Camas
+    "MLA434759", // Accesorios
+  ]
+
+  const products = await getProductsVarietyCached(dogCategories, 12)
   if (!products.length) return null
 
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
-        <Link href="/categoria/perros" className={styles.seeAll}>Ver más →</Link>
+        <Link href="/categoria/perros" className={styles.seeAll}>
+          Ver más →
+        </Link>
       </div>
-      <div className={styles.grid4}>
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
-      </div>
+      <Carousel products={products} itemsPerView={4} />
     </div>
   )
 }
 
 async function GatosSection() {
-  // Misma llamada cacheada que FeaturedSection — sin request extra al API.
-  // Empieza en índice 2 para no repetir los que ya mostró Destacados.
-  const all = await getHighlightsCached("MLA1081", 6)
-  const products = all.slice(2)
+  const products = await getCatProductsVarietyCached(12)
   if (!products.length) return null
 
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>🐈 Para <span>gatos</span></h2>
-        <Link href="/categoria/gatos" className={styles.seeAll}>Ver más →</Link>
+        <Link href="/categoria/gatos" className={styles.seeAll}>
+          Ver más →
+        </Link>
       </div>
-      <div className={styles.grid4}>
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
-        ))}
+      <CarouselGatos products={products} itemsPerView={4} />
+    </div>
+  )
+}
+
+async function PetsHighlightsSection() {
+  const products = await getPetsHighlightsCached(12)
+  if (!products.length) return null
+
+  return (
+    <div className={styles.productsBg}>
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>🐾 Lo mejor para tus <span>mascotas</span></h2>
+          <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
+        </div>
+        <CarouselMascotas products={products} itemsPerView={4} scrollStep={2} />
       </div>
     </div>
   )
 }
 
 async function AccesoriosSection() {
-  // MLA370459 = correas/paseo, MLA1076 = higiene/estética — ambas retornan productos con precio
-  const [paseo, higiene] = await Promise.all([
-    getHighlightsCached("MLA370459", 4),
-    getHighlightsCached("MLA1076",   4),
-  ])
-  const merged: typeof paseo = []
-  for (let i = 0; i < 4 && merged.length < 4; i++) {
-    if (paseo[i])                     merged.push(paseo[i])
-    if (merged.length < 4 && higiene[i]) merged.push(higiene[i])
-  }
-  const products = merged
+  const products = await getAccessoriesVarietyCached(12)
   if (!products.length) return null
 
   return (
@@ -124,16 +132,7 @@ async function AccesoriosSection() {
           <h2 className={styles.sectionTitle}>🎒 <span>Accesorios</span> y collares</h2>
           <Link href="/categoria/accesorios" className={styles.seeAll}>Ver todos →</Link>
         </div>
-        <div className={styles.grid4}>
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-        <div className={styles.productsMore}>
-          <Link href="/categoria/accesorios" className="btn btn-ghost">
-            Ver todos los accesorios
-          </Link>
-        </div>
+        <CarouselAccesorios products={products} itemsPerView={4} />
       </div>
     </div>
   )
@@ -215,6 +214,17 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* ── MASCOTAS DESTACADOS ── */}
+      <Suspense fallback={
+        <div className={styles.productsBg}>
+          <div className={styles.section}>
+            <SectionSkeleton count={4} />
+          </div>
+        </div>
+      }>
+        <PetsHighlightsSection />
+      </Suspense>
+
       {/* ── CATEGORÍAS ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -274,46 +284,6 @@ export default function HomePage() {
       }>
         <AccesoriosSection />
       </Suspense>
-
-      {/* ── BANNER OSVALDO ── */}
-      <div className={styles.banner}>
-        <div className={styles.bannerInner}>
-          <div>
-            <h2 className={styles.bannerTitle}>
-              ¿Por qué confiar<br />en la selección<br />de <span>Osvaldo?</span>
-            </h2>
-            <p className={styles.bannerDesc}>
-              No somos una tienda genérica. Osvaldo revisa cada categoría, filtramos
-              por reputación de vendedor y calificaciones reales de compradores.
-            </p>
-            <div className={styles.bannerPills}>
-              <span className={styles.bannerPill}>🐾 Solo rep. verde en ML</span>
-              <span className={styles.bannerPill}>⭐ 4+ estrellas</span>
-              <span className={styles.bannerPill}>🚚 Envío a todo el país</span>
-              <span className={styles.bannerPill}>🔄 Precios en tiempo real</span>
-            </div>
-            <Link href="/sobre-osvaldo" className="btn btn-fill">
-              Conocer a Osvaldo →
-            </Link>
-          </div>
-          <div className={styles.bannerRight}>
-            {[
-              { icon: "🛡️", title: "Comprás en Mercado Libre",      desc: "Con toda la protección al comprador de ML" },
-              { icon: "💳", title: "Pagos seguros",                  desc: "Tarjeta, efectivo y cuotas con Mercado Pago" },
-              { icon: "📦", title: "Envíos con Mercado Envíos",      desc: "Tracking en tiempo real a cualquier provincia" },
-              { icon: "🔄", title: "Devoluciones sin drama",         desc: "La política de devoluciones es la de Mercado Libre" },
-            ].map((item) => (
-              <div key={item.title} className={styles.bannerItem}>
-                <div className={styles.bannerIcon}>{item.icon}</div>
-                <div>
-                  <strong>{item.title}</strong>
-                  <span>{item.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
     </>
   )

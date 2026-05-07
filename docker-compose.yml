@@ -4,6 +4,10 @@ services:
     restart: unless-stopped
     working_dir: /app
     command: sh -c "npm install && npm run build && npm run start"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/tiendaosvaldo
     volumes:
       - /docker/tiendaosvaldo/site:/app
       - tiendaosvaldo_node_modules:/app/node_modules
@@ -18,5 +22,13 @@ services:
       - "traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.hsts.headers.stsPreload=true"
       - "traefik.http.services.tiendaosvaldo.loadbalancer.server.port=3000"
+
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - tiendaosvaldo_mongodb:/data/db
+
 volumes:
   tiendaosvaldo_node_modules:
+  tiendaosvaldo_mongodb:

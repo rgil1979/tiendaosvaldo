@@ -7,7 +7,7 @@
 .hero {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 72px var(--padding-x) 80px;
+  padding: 72px var(--padding-x) 40px;
   display: grid;
   grid-template-columns: 1fr 480px;
   gap: 48px;
@@ -238,7 +238,7 @@
 .section {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 64px var(--padding-x);
+  padding: 32px var(--padding-x) 64px;
 }
 
 .sectionHeader {
