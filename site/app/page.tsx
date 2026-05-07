@@ -37,12 +37,11 @@ function SectionSkeleton({ count }: { count: number }) {
 
 async function FeaturedSection() {
   const [dogFood, catFood] = await Promise.all([
-    getHighlightsCached("MLA434760", 8),
-    getHighlightsCached("MLA1081",   8),
+    getHighlightsCached("MLA434760", 4),
+    getHighlightsCached("MLA1081",   4),
   ])
-  // Intercala perro/gato → 8 productos (2 slides de 4)
   const products: MLProductFull[] = []
-  for (let i = 0; i < 4 && products.length < 8; i++) {
+  for (let i = 0; i < 2 && products.length < 4; i++) {
     if (dogFood[i]) products.push(dogFood[i])
     if (catFood[i]) products.push(catFood[i])
   }

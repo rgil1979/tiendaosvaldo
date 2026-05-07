@@ -63,7 +63,7 @@ export default function CarouselGatos({ products, itemsPerView = 4, scrollStep =
             title="Anterior"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="15 18l-6-6 6-6"></polyline>
+              <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
 
@@ -90,7 +90,7 @@ export default function CarouselGatos({ products, itemsPerView = 4, scrollStep =
             title="Siguiente"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="9 18l6-6-6-6"></polyline>
+              <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
         </div>
