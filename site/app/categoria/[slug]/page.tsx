@@ -4,7 +4,10 @@ import { notFound } from "next/navigation"
 import { SLUG_CONFIG } from "@/config/site.config"
 import { getProductsFiltered, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
+import { getAllCategoriesForTree, getCategoryBySlug } from "@/lib/categories"
+import type { CategoryNode } from "@/lib/categories"
 import CategoryResults from "./CategoryResults"
+import CategoryTree from "./CategoryTree"
 import styles from "./page.module.css"
 
 export const revalidate = 3600
@@ -20,10 +23,17 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cfg = SLUG_CONFIG[params.slug]
-  if (!cfg) return {}
+  if (cfg) {
+    return {
+      title:       `${cfg.label} — Tienda Osvaldo`,
+      description: `${cfg.label} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
+    }
+  }
+  const dbCat = await getCategoryBySlug(params.slug)
+  if (!dbCat) return {}
   return {
-    title:       `${cfg.label} — Tienda Osvaldo`,
-    description: `${cfg.label} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
+    title:       `${dbCat.name} — Tienda Osvaldo`,
+    description: `${dbCat.name} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
   }
 }
 
@@ -33,7 +43,14 @@ const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT)
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const cfg = SLUG_CONFIG[params.slug]
-  if (!cfg) notFound()
+
+  // Fetch en paralelo: árbol de categorías + categoría actual en DB
+  const [treeCategories, dbCat] = await Promise.all([
+    getAllCategoriesForTree(),
+    getCategoryBySlug(params.slug),
+  ])
+
+  if (!cfg && !dbCat) notFound()
 
   const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1", 10)), MAX_PAGES)
   const offset = (page - 1) * LIMIT
@@ -44,30 +61,45 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   let total   = 0
 
   try {
-    const useHighlights = cfg.hlCategoryId && page === 1 && !mascotaFilter
+    if (cfg) {
+      // Lógica existente con SLUG_CONFIG
+      const useHighlights = cfg.hlCategoryId && page === 1 && !mascotaFilter
 
-    if (useHighlights) {
-      const [hlProducts, searchResult] = await Promise.all([
-        getHighlights(cfg.hlCategoryId!, LIMIT),
-        getProductsFiltered({
+      if (useHighlights) {
+        const [hlProducts, searchResult] = await Promise.all([
+          getHighlights(cfg.hlCategoryId!, LIMIT),
+          getProductsFiltered({
+            query:     cfg.query,
+            domainIds: cfg.domainId ? [cfg.domainId] : undefined,
+            limit:     1,
+            offset:    0,
+          }),
+        ])
+        products = hlProducts
+        total    = Math.min(searchResult.total, MAX_TOTAL)
+      } else {
+        const fetchLimit = 50
+        const result = await getProductsFiltered({
           query:     cfg.query,
           domainIds: cfg.domainId ? [cfg.domainId] : undefined,
-          limit:     1,
-          offset:    0,
-        }),
-      ])
-      products = hlProducts
-      total    = Math.min(searchResult.total, MAX_TOTAL)
-    } else {
-      const fetchLimit = 50
+          mascota:   mascotaFilter ?? null,
+          limit:     fetchLimit,
+          offset,
+        })
+        total   = Math.min(result.total, MAX_TOTAL)
+        if (result.products.length) {
+          const all = await getProducts_batch(result.products.map(p => p.id), true)
+          products = all.slice(0, LIMIT)
+        }
+      }
+    } else if (dbCat) {
+      // Categoría de DB sin SLUG_CONFIG: buscar por nombre de categoría
       const result = await getProductsFiltered({
-        query:     cfg.query,
-        domainIds: cfg.domainId ? [cfg.domainId] : undefined,
-        mascota:   mascotaFilter ?? null,
-        limit:     fetchLimit,
+        query: dbCat.name,
+        limit: 50,
         offset,
       })
-      total   = Math.min(result.total, MAX_TOTAL)
+      total = Math.min(result.total, MAX_TOTAL)
       if (result.products.length) {
         const all = await getProducts_batch(result.products.map(p => p.id), true)
         products = all.slice(0, LIMIT)
@@ -78,6 +110,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   }
 
   const totalPages = Math.ceil(total / LIMIT) || 1
+
+  // Datos de presentación: label y emoji según fuente
+  const label = cfg?.label ?? dbCat?.name ?? ""
+  const emoji = cfg?.emoji ?? "🐾"
 
   const siblings = Object.entries(SLUG_CONFIG).filter(
     ([s]) => s !== params.slug && !["mascotas", "alimentacion"].includes(s)
@@ -90,7 +126,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <div className={styles.breadcrumbInner}>
           <Link href="/">Inicio</Link>
           <span>›</span>
-          <span>{cfg.label}</span>
+          <span>{label}</span>
         </div>
       </div>
 
@@ -98,9 +134,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       <div className={styles.catHeader}>
         <div className={styles.catHeaderInner}>
           <div className={styles.catHeaderLeft}>
-            <div className={styles.catIconBig}>{cfg.emoji}</div>
+            <div className={styles.catIconBig}>{emoji}</div>
             <div>
-              <h1 className={styles.catTitle}>{cfg.label}</h1>
+              <h1 className={styles.catTitle}>{label}</h1>
               {total > 0 && (
                 <p className={styles.catMeta}>
                   {total.toLocaleString("es-AR")} productos disponibles
@@ -123,6 +159,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
         {/* Sidebar */}
         <aside className={styles.sidebar}>
+          {/* Árbol jerárquico de categorías */}
+          <CategoryTree
+            key={params.slug}
+            categories={treeCategories}
+            currentSlug={params.slug}
+          />
+
+          {/* Filtro tipo de mascota */}
           <form method="GET" className={styles.sidebarForm}>
             <div className={styles.sidebarSection}>
               <div className={styles.sidebarTitle}>Tipo de mascota</div>
@@ -143,12 +187,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                 </label>
               ))}
             </div>
-            <button type="submit" className={`btn btn-fill btn-sm ${styles.applyBtn}`}>
-              Aplicar filtros
-            </button>
-            <Link href={`/categoria/${params.slug}`} className={styles.clearFilters}>
-              Limpiar filtros
-            </Link>
+            <div className={styles.sidebarActions}>
+              <button type="submit" className={`btn btn-fill btn-sm ${styles.applyBtn}`}>
+                Aplicar filtros
+              </button>
+              <Link href={`/categoria/${params.slug}`} className={styles.clearFilters}>
+                Limpiar filtros
+              </Link>
+            </div>
           </form>
         </aside>
 
@@ -156,7 +202,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <div className={styles.productsArea}>
           <div className={styles.toolbar}>
             <span className={styles.resultsCount}>
-              {total > 0 ? `${total.toLocaleString("es-AR")} productos` : cfg.label}
+              {total > 0 ? `${total.toLocaleString("es-AR")} productos` : label}
             </span>
             {totalPages > 1 && (
               <span className={styles.pageInfo}>Página {page} de {totalPages}</span>

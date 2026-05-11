@@ -84,6 +84,7 @@ export const navConfig = {
   main: [
     { label: "Perros", href: "/categoria/perros" },
     { label: "Gatos", href: "/categoria/gatos" },
+    { label: "Juguetes", href: "/categoria/juguetes" },
     { label: "Accesorios", href: "/categoria/accesorios" },
     { label: "Alimentación", href: "/categoria/alimentacion" },
   ],

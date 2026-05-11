@@ -9,9 +9,15 @@ interface CarouselProps {
   products: MLProductFull[]
   itemsPerView?: 4 | 3 | 2 | 1
   scrollStep?: number
+  alwaysShowItemsPerView?: boolean
 }
 
-export default function Carousel({ products, itemsPerView = 4, scrollStep = 2 }: CarouselProps) {
+export default function Carousel({
+  products,
+  itemsPerView = 4,
+  scrollStep = 2,
+  alwaysShowItemsPerView = false,
+}: CarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [autoPlay, setAutoPlay] = useState(true)
 
@@ -45,15 +51,25 @@ export default function Carousel({ products, itemsPerView = 4, scrollStep = 2 }:
   }
 
   const startIndex = currentIndex * scrollStep
-  const visibleProducts = products.slice(startIndex, startIndex + itemsPerView)
+  const visibleProductsBase = products.slice(startIndex, startIndex + itemsPerView)
+  const visibleProducts = alwaysShowItemsPerView && visibleProductsBase.length < itemsPerView
+    ? [
+        ...visibleProductsBase,
+        ...products.slice(0, itemsPerView - visibleProductsBase.length),
+      ]
+    : visibleProductsBase
 
   return (
     <div className={styles.carouselContainer}>
       {/* Productos visibles */}
       <div className={styles.carouselContent}>
-        <div className={`${styles.grid} ${styles[`grid${itemsPerView}`]}`}>
-          {visibleProducts.map((p) => (
-            <ProductCard key={p.id} product={p} />
+        <div
+          className={`${styles.grid} ${styles[`grid${itemsPerView}`]} ${
+            alwaysShowItemsPerView ? styles.fixedView : ""
+          }`}
+        >
+          {visibleProducts.map((p, i) => (
+            <ProductCard key={`${p.id}-${i}`} product={p} />
           ))}
         </div>
       </div>

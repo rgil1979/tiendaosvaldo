@@ -733,14 +733,42 @@ export async function getPetsHighlights(limit = 12): Promise<MLProductFull[]> {
       )
     )
 
-    const deduped = new Map<string, MLProductFull>()
-    for (const products of responses) {
-      for (const p of products) {
-        if (!deduped.has(p.id)) deduped.set(p.id, p)
+    // Priorizar variedad no-alimento para que el bloque "mascotas" no quede sesgado.
+    const foodRegex = /\b(alimento|comida|balanceado|snack|snacks|lata|pienso|croqueta|nutricion)\b/i
+    const buckets = responses.map((products) => products.filter((p) => !foodRegex.test(p.name ?? "")))
+
+    const selected: MLProductFull[] = []
+    const seen = new Set<string>()
+
+    let keepLooping = true
+    while (keepLooping && selected.length < limit) {
+      keepLooping = false
+      for (const bucket of buckets) {
+        const next = bucket.shift()
+        if (!next) continue
+        if (!seen.has(next.id)) {
+          selected.push(next)
+          seen.add(next.id)
+        }
+        keepLooping = true
+        if (selected.length >= limit) break
       }
     }
 
-    return Array.from(deduped.values()).slice(0, limit)
+    // Fallback: completar con cualquier producto destacado si faltan items.
+    if (selected.length < limit) {
+      for (const products of responses) {
+        for (const p of products) {
+          if (seen.has(p.id)) continue
+          selected.push(p)
+          seen.add(p.id)
+          if (selected.length >= limit) break
+        }
+        if (selected.length >= limit) break
+      }
+    }
+
+    return selected.slice(0, limit)
   } catch (e) {
     console.error("[ML] getPetsHighlights falló:", (e as Error).message?.slice(0, 100))
     return []

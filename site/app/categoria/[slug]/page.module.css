@@ -136,6 +136,11 @@
 
 .sidebarForm {}
 
+.sidebarActions {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--sand);
+}
+
 .sidebarSection {
   padding: 20px 24px;
   border-bottom: 1px solid var(--sand);
@@ -186,7 +191,6 @@
 .applyBtn {
   width: 100%;
   justify-content: center;
-  margin-top: 16px;
 }
 
 .clearFilters {

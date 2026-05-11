@@ -51,6 +51,16 @@ export async function getCategoryByMlId(mlId: string): Promise<CategoryNode | nu
   return cat ? toNode(cat) : null
 }
 
+// Todos los niveles 1 y 2 para el árbol lateral
+export async function getAllCategoriesForTree(): Promise<CategoryNode[]> {
+  await dbConnect()
+  const cats = await Category
+    .find({ active: true, level: { $in: [1, 2] } })
+    .sort({ level: 1, totalItems: -1 })
+    .lean()
+  return cats.map(toNode)
+}
+
 // Breadcrumb: devuelve los ancestros en orden raíz → nodo
 export async function getCategoryBreadcrumb(mlId: string): Promise<CategoryNode[]> {
   await dbConnect()

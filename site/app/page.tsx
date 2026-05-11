@@ -36,26 +36,21 @@ function SectionSkeleton({ count }: { count: number }) {
 // ── SECCIONES ASYNC ───────────────────────────────────────────────────────────
 
 async function FeaturedSection() {
-  const [dogFood, catFood] = await Promise.all([
-    getHighlightsCached("MLA434760", 4),
-    getHighlightsCached("MLA1081",   4),
-  ])
-  const products: MLProductFull[] = []
-  for (let i = 0; i < 2 && products.length < 4; i++) {
-    if (dogFood[i]) products.push(dogFood[i])
-    if (catFood[i]) products.push(catFood[i])
-  }
+  const products = (await getPetsHighlightsCached(12)).slice(0, 12)
   if (!products.length) return null
 
   return (
-    <div className={styles.productsBg}>
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>🌟 Destacados para tu <span>mascota</span></h2>
-          <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
-        </div>
-        <Carousel products={products} itemsPerView={4} />
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>🌟 Destacados para tus <span>mascotas</span></h2>
+        <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
       </div>
+      <Carousel
+        products={products}
+        itemsPerView={4}
+        scrollStep={2}
+        alwaysShowItemsPerView
+      />
     </div>
   )
 }
@@ -70,24 +65,31 @@ async function PerrosSection() {
     "MLA434759", // Accesorios
   ]
 
-  const products = await getProductsVarietyCached(dogCategories, 12)
+  const products = (await getProductsVarietyCached(dogCategories, 12)).slice(0, 12)
   if (!products.length) return null
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
-        <Link href="/categoria/perros" className={styles.seeAll}>
-          Ver más →
-        </Link>
+    <div className={styles.productsBg}>
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
+          <Link href="/categoria/perros" className={styles.seeAll}>
+            Ver más →
+          </Link>
+        </div>
+        <Carousel
+          products={products}
+          itemsPerView={4}
+          scrollStep={2}
+          alwaysShowItemsPerView
+        />
       </div>
-      <Carousel products={products} itemsPerView={4} />
     </div>
   )
 }
 
 async function GatosSection() {
-  const products = await getCatProductsVarietyCached(12)
+  const products = (await getCatProductsVarietyCached(12)).slice(0, 12)
   if (!products.length) return null
 
   return (
@@ -98,7 +100,12 @@ async function GatosSection() {
           Ver más →
         </Link>
       </div>
-      <CarouselGatos products={products} itemsPerView={4} />
+      <CarouselGatos
+        products={products}
+        itemsPerView={4}
+        scrollStep={2}
+        alwaysShowItemsPerView
+      />
     </div>
   )
 }
@@ -121,7 +128,7 @@ async function PetsHighlightsSection() {
 }
 
 async function AccesoriosSection() {
-  const products = await getAccessoriesVarietyCached(12)
+  const products = (await getAccessoriesVarietyCached(12)).slice(0, 12)
   if (!products.length) return null
 
   return (
@@ -131,7 +138,12 @@ async function AccesoriosSection() {
           <h2 className={styles.sectionTitle}>🎒 <span>Accesorios</span> y collares</h2>
           <Link href="/categoria/accesorios" className={styles.seeAll}>Ver todos →</Link>
         </div>
-        <CarouselAccesorios products={products} itemsPerView={4} />
+        <CarouselAccesorios
+          products={products}
+          itemsPerView={4}
+          scrollStep={2}
+          alwaysShowItemsPerView
+        />
       </div>
     </div>
   )
@@ -213,17 +225,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── MASCOTAS DESTACADOS ── */}
-      <Suspense fallback={
-        <div className={styles.productsBg}>
-          <div className={styles.section}>
-            <SectionSkeleton count={4} />
-          </div>
-        </div>
-      }>
-        <PetsHighlightsSection />
-      </Suspense>
-
       {/* ── CATEGORÍAS ── */}
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -244,12 +245,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── DESTACADOS ── */}
+      {/* ── MASCOTAS DESTACADOS ── */}
       <Suspense fallback={
         <div className={styles.productsBg}>
           <div className={styles.section}>
             <SectionSkeleton count={4} />
           </div>
+        </div>
+      }>
+        <PetsHighlightsSection />
+      </Suspense>
+
+      {/* ── DESTACADOS ── */}
+      <Suspense fallback={
+        <div className={styles.section}>
+          <SectionSkeleton count={4} />
         </div>
       }>
         <FeaturedSection />

@@ -93,6 +93,9 @@
 /* Hero right — Card Osvaldo */
 .heroRight {
   position: relative;
+  justify-self: end;
+  align-self: start;
+  margin-top: -20px;
 }
 
 .floatingTagTop,
@@ -556,6 +559,9 @@
   .heroRight {
     display: block;
     max-width: 480px;
+    justify-self: start;
+    align-self: auto;
+    margin-top: 0;
   }
 
   .osvaldoCard {

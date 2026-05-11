@@ -40,6 +40,38 @@
   grid-template-columns: repeat(1, 1fr);
 }
 
+.fixedView.grid4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.fixedView.grid3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.fixedView.grid2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.fixedView.grid1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.fixedView.grid4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.fixedView.grid3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.fixedView.grid2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.fixedView.grid1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
 .controls {
   display: flex;
   align-items: center;
@@ -117,7 +149,7 @@
 }
 
 @media (max-width: 1024px) {
-  .grid4 {
+  .grid4:not(.fixedView) {
     grid-template-columns: repeat(3, 1fr);
   }
 }
@@ -126,6 +158,10 @@
   .grid4,
   .grid3 {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid4.fixedView {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .controls {
@@ -148,6 +184,10 @@
   .grid3,
   .grid2 {
     grid-template-columns: repeat(1, 1fr);
+  }
+
+  .grid4.fixedView {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .dots {
