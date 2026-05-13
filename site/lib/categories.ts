@@ -51,6 +51,49 @@ export async function getCategoryByMlId(mlId: string): Promise<CategoryNode | nu
   return cat ? toNode(cat) : null
 }
 
+// Categorías irrelevantes para un pet shop — se excluyen del árbol lateral
+const EXCLUDED_CATEGORY_NAMES = new Set([
+  "autos y camiones nuevos",
+  "autos y camiones",
+  "jabones",
+  "insectos",
+  "cortauñas",
+  "cortaúñas",
+  "autos y camionetas nuevos",
+  "autos y camionetas",
+  "motos",
+  "colectivos",
+  "ahuyentadores ultrasónicos",
+  "ahuyentadores ultrasonicos",
+  "moños",
+  "planes de ahorro",
+  "botas y zapatos",
+  "autos chocados y averiados",
+  "semirremolque",
+  "semirremolques",
+  "semiremolques",
+  "semiremolque",
+  "otros",
+  "pastas dentales",
+  "maquinaria agrícola",
+  "maquinaria agricola",
+  "motorhome",
+  "motorhomes",
+  "autos de colección",
+  "autos de coleccion",
+  "cinturones de seguridad",
+  "pilotos",
+  "maquinaria vial",
+  "pañales",
+  "camiones",
+  "otros vehículos",
+  "otros vehiculos",
+  "abrigos",
+  "caballos",
+  "náutica",
+  "nautica",
+])
+
 // Todos los niveles 1 y 2 para el árbol lateral
 export async function getAllCategoriesForTree(): Promise<CategoryNode[]> {
   await dbConnect()
@@ -58,7 +101,9 @@ export async function getAllCategoriesForTree(): Promise<CategoryNode[]> {
     .find({ active: true, level: { $in: [1, 2] } })
     .sort({ level: 1, totalItems: -1 })
     .lean()
-  return cats.map(toNode)
+  return cats
+    .map(toNode)
+    .filter((c) => !EXCLUDED_CATEGORY_NAMES.has(c.name.toLowerCase().trim()))
 }
 
 // Breadcrumb: devuelve los ancestros en orden raíz → nodo

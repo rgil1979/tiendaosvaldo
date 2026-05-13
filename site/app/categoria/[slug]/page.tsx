@@ -166,36 +166,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             currentSlug={params.slug}
           />
 
-          {/* Filtro tipo de mascota */}
-          <form method="GET" className={styles.sidebarForm}>
-            <div className={styles.sidebarSection}>
-              <div className={styles.sidebarTitle}>Tipo de mascota</div>
-              {[
-                { value: "",      label: "Todos" },
-                { value: "perro", label: "🐕 Perros" },
-                { value: "gato",  label: "🐈 Gatos"  },
-              ].map((opt) => (
-                <label key={opt.value} className={styles.filterOption}>
-                  <input
-                    type="radio"
-                    name="mascota"
-                    value={opt.value}
-                    defaultChecked={(searchParams.mascota ?? "") === opt.value}
-                    className={styles.radio}
-                  />
-                  <span className={styles.filterLabel}>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-            <div className={styles.sidebarActions}>
-              <button type="submit" className={`btn btn-fill btn-sm ${styles.applyBtn}`}>
-                Aplicar filtros
-              </button>
-              <Link href={`/categoria/${params.slug}`} className={styles.clearFilters}>
-                Limpiar filtros
-              </Link>
-            </div>
-          </form>
         </aside>
 
         {/* Productos */}
