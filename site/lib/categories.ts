@@ -92,6 +92,8 @@ const EXCLUDED_CATEGORY_NAMES = new Set([
   "caballos",
   "náutica",
   "nautica",
+  "cepillos y peines",
+  "conejos",
 ])
 
 // Todos los niveles 1 y 2 para el árbol lateral
