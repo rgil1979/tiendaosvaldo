@@ -211,38 +211,6 @@ async function mlFetch<T>(endpoint: string, revalidate = 3600, _retry = true): P
   return res.json() as Promise<T>
 }
 
-// ── CLIENTE PÚBLICO (sin auth — /sites/MLA/search y similares) ───────────────
-
-async function publicFetch<T>(url: string, revalidate = 3600): Promise<T> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
-  let res: Response
-  try {
-    res = await fetch(url, {
-      signal: controller.signal,
-      next:   { revalidate },
-      headers: {
-        Accept:          "application/json",
-        "User-Agent":    "Mozilla/5.0 (compatible; TiendaOsvaldo/1.0)",
-        "Accept-Language": "es-AR,es;q=0.9",
-      },
-    })
-  } catch (e) {
-    clearTimeout(timer)
-    throw new Error(
-      (e as Error).name === "AbortError"
-        ? `[ML] Timeout después de ${FETCH_TIMEOUT_MS}ms — ${url}`
-        : `[ML] Error de red — ${url}: ${(e as Error).message}`
-    )
-  }
-  clearTimeout(timer)
-  if (!res.ok) {
-    const body = await res.text().catch(() => "")
-    throw new Error(`[ML] HTTP ${res.status} — ${url.split("?")[0]}\n${body.slice(0, 200)}`)
-  }
-  return res.json() as Promise<T>
-}
-
 // ── TIPOS PÚBLICOS ───────────────────────────────────────────────────────────
 
 export interface MLProductSummary {
@@ -277,20 +245,6 @@ export interface MLSearchResult {
   products: MLProductSummary[]
   total:    number
   hasMore:  boolean
-}
-
-// Tipos internos
-interface _MLItemSearchResult {
-  id:                  string
-  title:               string
-  price:               number
-  currency_id:         string
-  thumbnail:           string
-  condition:           "new" | "used"
-  catalog_product_id:  string | null
-  permalink:           string
-  accepts_mercadopago: boolean
-  shipping:            { free_shipping: boolean }
 }
 
 interface _MLProductDetail {
@@ -456,16 +410,6 @@ export async function getProducts(options: {
 
 // ── DETALLE DE PRODUCTO ──────────────────────────────────────────────────────
 
-interface _MLSearchItem {
-  id:                  string
-  price:               number
-  currency_id:         string
-  condition:           "new" | "used"
-  warranty:            string | null
-  accepts_mercadopago: boolean
-  shipping:            { free_shipping: boolean }
-}
-
 async function _getPriceForProduct(productId: string): Promise<_MLPriceItem> {
   const itemsResp = await mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600)
     .catch(() => null)
@@ -593,6 +537,75 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
   } catch (e) {
     console.error("[ML] getHighlights falló:", (e as Error).message?.slice(0, 100))
     return []
+  }
+}
+
+// ── BÚSQUEDA DE ITEMS POR CATEGORÍA ML ──────────────────────────────────────
+
+interface _MLItemSearchItem {
+  id:                  string
+  catalog_product_id:  string | null
+  title:               string
+  price:               number
+  currency_id:         string
+  condition:           "new" | "used"
+  thumbnail:           string
+  accepts_mercadopago: boolean
+  shipping:            { free_shipping: boolean }
+  warranty:            string | null
+  permalink:           string
+}
+
+export async function getItemsByCategory(
+  categoryId: string,
+  limit = 16,
+  offset = 0,
+): Promise<{ products: MLProductFull[]; total: number }> {
+  try {
+    const params = new URLSearchParams({
+      category: categoryId,
+      limit:    "50",
+      offset:   String(offset),
+    })
+    console.log("[ML] getItemsByCategory →", `/sites/MLA/search?${params}`)
+    const data = await mlFetch<{
+      paging:  { total: number } | undefined
+      results: _MLItemSearchItem[] | undefined
+    }>(`/sites/MLA/search?${params}`, 3600)
+    console.log("[ML] getItemsByCategory ← total:", data.paging?.total, "results:", data.results?.length)
+
+    const affiliateId = (process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const products: MLProductFull[] = (data.results ?? [])
+      .slice(0, limit)
+      .map((item) => {
+        const productId = item.catalog_product_id ?? item.id
+        const affiliateUrl = item.catalog_product_id
+          ? `https://www.mercadolibre.com.ar/p/${item.catalog_product_id}?partner_id=cbpar_${affiliateId}`
+          : `${item.permalink}?partner_id=cbpar_${affiliateId}`
+        return {
+          id:                  productId,
+          name:                item.title,
+          pictures:            [{ id: "0", url: (item.thumbnail ?? "").replace(/-[A-Z]\.jpg(\?.*)?$/, "-O.jpg") }],
+          short_description:   "",
+          main_features:       [],
+          attributes:          [],
+          domain_id:           "",
+          status:              "active",
+          price:               item.price ?? 0,
+          item_id:             item.id,
+          currency_id:         item.currency_id ?? "ARS",
+          condition:           item.condition ?? "new",
+          warranty:            item.warranty ?? null,
+          accepts_mercadopago: item.accepts_mercadopago ?? false,
+          free_shipping:       item.shipping?.free_shipping ?? false,
+          affiliateUrl,
+        }
+      })
+
+    return { products, total: data.paging?.total ?? 0 }
+  } catch (e) {
+    console.error("[ML] getItemsByCategory falló completo:", e)
+    return { products: [], total: 0 }
   }
 }
 

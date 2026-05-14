@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Script from "next/script"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import styles from "./AnalyticsConsent.module.css"
 
 const CONSENT_STORAGE_KEY = "tiendaosvaldo_cookie_consent"
@@ -10,18 +10,18 @@ const CONSENT_STORAGE_KEY = "tiendaosvaldo_cookie_consent"
 type ConsentState = "accepted" | "rejected" | "pending"
 
 export default function AnalyticsConsent({ gaId }: { gaId?: string }) {
-  const [consent, setConsent] = useState<ConsentState>("pending")
-
-  useEffect(() => {
-    const savedConsent = window.localStorage.getItem(CONSENT_STORAGE_KEY)
-
-    if (savedConsent === "accepted" || savedConsent === "rejected") {
-      setConsent(savedConsent)
-      return
+  const [consent, setConsent] = useState<ConsentState>(() => {
+    if (typeof window === "undefined") {
+      return "pending"
     }
 
-    setConsent("pending")
-  }, [])
+    const savedConsent = window.localStorage.getItem(CONSENT_STORAGE_KEY)
+    if (savedConsent === "accepted" || savedConsent === "rejected") {
+      return savedConsent
+    }
+
+    return "pending"
+  })
 
   function handleConsent(nextConsent: Exclude<ConsentState, "pending">) {
     window.localStorage.setItem(CONSENT_STORAGE_KEY, nextConsent)

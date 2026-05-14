@@ -2,9 +2,7 @@ import { cache, Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { siteConfig } from "@/config/site.config"
-import { getHighlights, getProductsVariety, getCatProductsVariety, getAccessoriesVariety, getPetsHighlights } from "@/lib/mercadolibre"
-import type { MLProductFull } from "@/lib/mercadolibre"
-import ProductCard from "@/components/ProductCard"
+import { getProductsVariety, getCatProductsVariety, getAccessoriesVariety, getPetsHighlights } from "@/lib/mercadolibre"
 import Carousel from "@/components/Carousel"
 import CarouselGatos from "@/components/CarouselGatos"
 import CarouselAccesorios from "@/components/CarouselAccesorios"
@@ -15,7 +13,6 @@ export const revalidate = 3600
 
 // cache() deduplica llamadas idénticas dentro del mismo render — evita pedir
 // dos veces el mismo endpoint y que los mismos productos aparezcan en dos secciones.
-const getHighlightsCached = cache(getHighlights)
 const getProductsVarietyCached = cache(getProductsVariety)
 const getCatProductsVarietyCached = cache(getCatProductsVariety)
 const getAccessoriesVarietyCached = cache(getAccessoriesVariety)

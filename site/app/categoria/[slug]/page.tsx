@@ -2,10 +2,9 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SLUG_CONFIG } from "@/config/site.config"
-import { getProductsFiltered, getProducts_batch, getHighlights } from "@/lib/mercadolibre"
+import { getProductsFiltered, getProducts_batch, getHighlights, getItemsByCategory } from "@/lib/mercadolibre"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import { getAllCategoriesForTree, getCategoryBySlug } from "@/lib/categories"
-import type { CategoryNode } from "@/lib/categories"
 import CategoryResults from "./CategoryResults"
 import CategoryTree from "./CategoryTree"
 import styles from "./page.module.css"
@@ -37,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-const LIMIT     = 12
+const LIMIT     = 16
 const MAX_TOTAL = 300
 const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT)
 
@@ -66,44 +65,50 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       const useHighlights = cfg.hlCategoryId && page === 1 && !mascotaFilter
 
       if (useHighlights) {
-        const [hlProducts, searchResult] = await Promise.all([
+        const [hlProducts, supplementResult] = await Promise.all([
           getHighlights(cfg.hlCategoryId!, LIMIT),
           getProductsFiltered({
             query:     cfg.query,
             domainIds: cfg.domainId ? [cfg.domainId] : undefined,
-            limit:     1,
+            limit:     50,
             offset:    0,
           }),
         ])
-        products = hlProducts
-        total    = Math.min(searchResult.total, MAX_TOTAL)
+        total = Math.min(supplementResult.total, MAX_TOTAL)
+        if (hlProducts.length >= LIMIT) {
+          products = hlProducts
+        } else {
+          const hlIds = new Set(hlProducts.map(p => p.id))
+          const supplementIds = supplementResult.products
+            .map(p => p.id)
+            .filter(id => !hlIds.has(id))
+            .slice(0, LIMIT - hlProducts.length)
+          const extra = supplementIds.length
+            ? await getProducts_batch(supplementIds, false)
+            : []
+          products = [...hlProducts, ...extra].slice(0, LIMIT)
+        }
       } else {
-        const fetchLimit = 50
         const result = await getProductsFiltered({
           query:     cfg.query,
           domainIds: cfg.domainId ? [cfg.domainId] : undefined,
           mascota:   mascotaFilter ?? null,
-          limit:     fetchLimit,
+          limit:     50,
           offset,
         })
         total   = Math.min(result.total, MAX_TOTAL)
         if (result.products.length) {
-          const all = await getProducts_batch(result.products.map(p => p.id), true)
+          const all = await getProducts_batch(result.products.map(p => p.id), false)
           products = all.slice(0, LIMIT)
         }
       }
     } else if (dbCat) {
-      // Categoría de DB sin SLUG_CONFIG: buscar por nombre de categoría
-      const result = await getProductsFiltered({
-        query: dbCat.name,
-        limit: 50,
-        offset,
-      })
-      total = Math.min(result.total, MAX_TOTAL)
-      if (result.products.length) {
-        const all = await getProducts_batch(result.products.map(p => p.id), true)
-        products = all.slice(0, LIMIT)
-      }
+      // Subcategoría de DB: búsqueda de items por categoría ML
+      console.log("[PAGE] dbCat branch — mlId:", dbCat.mlId, "slug:", dbCat.slug)
+      const result = await getItemsByCategory(dbCat.mlId, LIMIT, offset)
+      console.log("[PAGE] getItemsByCategory result — products:", result.products.length, "total:", result.total)
+      products = result.products
+      total    = Math.min(result.total, MAX_TOTAL)
     }
   } catch {
     // Vacío silencioso

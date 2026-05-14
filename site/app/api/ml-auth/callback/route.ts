@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Credenciales ML no configuradas" }, { status: 500 })
   }
 
-  const cookieStore   = cookies()
+  const cookieStore   = await cookies()
   const codeVerifier  = cookieStore.get("ml_code_verifier")?.value
   if (!codeVerifier) {
     return NextResponse.json({ error: "code_verifier no encontrado — iniciá el flujo desde /api/ml-auth" }, { status: 400 })

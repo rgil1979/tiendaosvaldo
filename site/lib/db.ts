@@ -4,7 +4,6 @@ const MONGODB_URI = process.env.MONGODB_URI ?? 'mongodb://localhost:27017/tienda
 
 // Singleton para Next.js: sobrevive hot reloads en desarrollo
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoConn: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined
 }
 
