@@ -1,3 +1,12 @@
+# ============================================================
+# restore-page.ps1 — Tienda Osvaldo
+# Reescribe page.tsx completo con Product + BreadcrumbList
+# Ejecutar desde: D:\Github\tiendaosvaldo\site
+# ============================================================
+
+$pageFile = "./app/producto/[id]/page.tsx"
+
+$newContent = @'
 import { cache } from "react"
 import { Metadata } from "next"
 import Image from "next/image"
@@ -246,3 +255,10 @@ export default async function ProductPage({ params }: Props) {
     </>
   )
 }
+'@
+
+Set-Content -LiteralPath $pageFile -Value $newContent -NoNewline
+Write-Host "✅ page.tsx restaurado y actualizado correctamente" -ForegroundColor Green
+Write-Host ""
+Write-Host "Verificá en: view-source:http://localhost:3000/producto/MLA21806797" -ForegroundColor White
+Write-Host "Buscá 'BreadcrumbList' y 'schema.org' en el código fuente." -ForegroundColor Gray
