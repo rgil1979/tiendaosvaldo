@@ -3,13 +3,13 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import type { MLProductSummary } from "@/lib/mercadolibre"
+import type { MLProductFull } from "@/lib/mercadolibre"
 import { formatPrice } from "@/lib/ml-utils"
 import { trackEvent } from "@/lib/analytics"
 import styles from "./ProductCard.module.css"
 
 interface Props {
-  product: MLProductSummary
+  product: MLProductFull
   badge?:  string
 }
 

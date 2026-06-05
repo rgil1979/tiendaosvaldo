@@ -242,7 +242,7 @@ export interface MLProductFull {
 
 
 export interface MLSearchResult {
-  products: MLProductSummary[]
+  products: MLProductFull[]
   total:    number
   hasMore:  boolean
 }
@@ -353,7 +353,7 @@ export async function getProductsFiltered(
     )
   )
 
-  const deduped = new Map<string, MLProductSummary>()
+  const deduped = new Map<string, MLProductFull>()
   let totalMax = 0
   for (const res of responses) {
     // Max en vez de suma: evita multiplicar el total por la cantidad de dominios
@@ -382,10 +382,8 @@ export async function getProducts(options: {
   const { query, domainId, limit = 20, offset = 0 } = options
 
   const params = new URLSearchParams({
-    status:  "active",
-    site_id: "MLA",
-    limit:   String(Math.min(limit, 50)),
-    offset:  String(offset),
+    limit:  String(Math.min(limit, 50)),
+    offset: String(offset),
   })
   if (query)            params.set("q",         query)
   if (domainId?.trim()) params.set("domain_id", domainId)
@@ -393,10 +391,35 @@ export async function getProducts(options: {
   try {
     const data = await mlFetch<{
       paging:  { total: number; limit: number; offset: number }
-      results: MLProductSummary[]
-    }>(`/products/search?${params}`, 3600)
+      results: _MLItemSearchItem[]
+    }>(`/sites/MLA/search?${params}`, 3600)
 
-    const results = data.results ?? []
+    const affiliateId = (process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const results: MLProductFull[] = (data.results ?? []).map((item) => {
+      const productId    = item.catalog_product_id ?? item.id
+      const affiliateUrl = item.catalog_product_id
+        ? `https://www.mercadolibre.com.ar/p/${item.catalog_product_id}?partner_id=cbpar_${affiliateId}`
+        : `${item.permalink}?partner_id=cbpar_${affiliateId}`
+      return {
+        id:                  productId,
+        name:                item.title,
+        pictures:            [{ id: "0", url: (item.thumbnail ?? "").replace(/-[A-Z]\.jpg(\?.*)?$/, "-O.jpg") }],
+        short_description:   "",
+        main_features:       [],
+        attributes:          [],
+        domain_id:           "",
+        status:              "active",
+        price:               item.price ?? 0,
+        item_id:             item.id,
+        currency_id:         item.currency_id ?? "ARS",
+        condition:           item.condition   ?? "new",
+        warranty:            item.warranty    ?? null,
+        accepts_mercadopago: item.accepts_mercadopago   ?? false,
+        free_shipping:       item.shipping?.free_shipping ?? false,
+        affiliateUrl,
+      }
+    })
+
     return {
       products: results,
       total:    data.paging.total,
@@ -512,8 +535,7 @@ export async function getProducts_batch(
 export async function searchByHighlights(query: string, limit: number): Promise<MLProductFull[]> {
   try {
     const result = await getProductsFiltered({ query, limit: Math.min(limit, 50), offset: 0 })
-    if (!result.products.length) return []
-    return getProducts_batch(result.products.map(p => p.id), true)
+    return result.products.slice(0, limit)
   } catch (e) {
     console.error("[ML] searchByHighlights falló:", (e as Error).message)
     return []

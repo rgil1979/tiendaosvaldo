@@ -59,7 +59,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const offset = (page - 1) * LIMIT
 
   const { products, total } = await getProductsFiltered({
-    domainIds: cfg ? [cfg.domainId] : undefined,
+    domainIds: (cfg?.domainId) ? [cfg.domainId] : undefined,
     query:     cfg ? cfg.query : dbCat?.name,
     mascota:   mascotaFilter as "perro" | "gato" | "ambas" | null,
     limit:     LIMIT,
