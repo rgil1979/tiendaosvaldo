@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import { getProduct } from "@/lib/mercadolibre"
 import { formatPrice } from "@/lib/ml-utils"
 import { siteConfig } from "@/config/site.config"
+import BuyButton from "@/components/BuyButton/BuyButton"
 import styles from "./page.module.css"
 
 // Server-rendered on demand con ISR de 1 hora
@@ -14,30 +15,33 @@ export const revalidate = 3600
 // cache() deduplica: generateMetadata y la página comparten el mismo fetch dentro del mismo request
 const getProductCached = cache(getProduct)
 
-interface Props { params: { id: string } }
+interface Props { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const p = await getProductCached(params.id)
+    const { id } = await params
+    const p = await getProductCached(id)
     return {
       title:       p.name,
       description: p.short_description?.slice(0, 155) ||
         `${p.name} — disponible en Mercado Libre`,
+      robots:      { index: true, follow: true },
       openGraph: {
         title:  p.name,
         images: p.pictures[0] ? [{ url: p.pictures[0].url }] : [],
       },
     }
   } catch {
-    return {}
+    return { robots: { index: false, follow: false } }
   }
 }
 
 export default async function ProductPage({ params }: Props) {
+  const { id } = await params
   let product: Awaited<ReturnType<typeof getProduct>> | null = null
 
   try {
-    product = await getProductCached(params.id)
+    product = await getProductCached(id)
   } catch {
     notFound()
   }
@@ -165,14 +169,14 @@ export default async function ProductPage({ params }: Props) {
 
           {/* CTA principal */}
           <div className={styles.ctaBlock}>
-            <a
+            <BuyButton
               href={product.affiliateUrl}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+              productId={product.id}
+              productName={product.name}
               className={styles.btnML}
             >
               Comprar en Mercado Libre →
-            </a>
+            </BuyButton>
           </div>
           <p className={styles.mlDisclaimer}>
             Al hacer clic serás redirigido a Mercado Libre donde se completa la compra.{" "}

@@ -3,12 +3,13 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import type { MLProductFull } from "@/lib/mercadolibre"
+import type { MLProductSummary } from "@/lib/mercadolibre"
 import { formatPrice } from "@/lib/ml-utils"
+import { trackEvent } from "@/lib/analytics"
 import styles from "./ProductCard.module.css"
 
 interface Props {
-  product: MLProductFull
+  product: MLProductSummary
   badge?:  string
 }
 
@@ -73,6 +74,13 @@ export default function ProductCard({ product, badge }: Props) {
             rel="noopener noreferrer sponsored"
             className={styles.btn}
             aria-label={`Ver ${product.name} en Mercado Libre`}
+            onClick={() =>
+              trackEvent("click_buy_ml", {
+                item_id: product.id,
+                item_name: product.name,
+                event_category: "engagement",
+              })
+            }
           >
             Ver en ML →
           </a>

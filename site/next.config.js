@@ -39,13 +39,19 @@ const nextConfig = {
       },
     ]
   },
-  // Redirects www → sin www
+  // Redirects www → sin www + rutas renombradas
   async redirects() {
     return [
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.tiendaosvaldo.com.ar" }],
         destination: "https://tiendaosvaldo.com.ar/:path*",
+        permanent: true,
+      },
+      // /productos/[id] → /producto/[id] (ruta renombrada, Google la indexó en plural)
+      {
+        source: "/productos/:id",
+        destination: "/producto/:id",
         permanent: true,
       },
     ]

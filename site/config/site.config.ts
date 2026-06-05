@@ -84,10 +84,9 @@ export const navConfig = {
   main: [
     { label: "Perros", href: "/categoria/perros" },
     { label: "Gatos", href: "/categoria/gatos" },
-    { label: "Roedores", href: "/roedores" },
-    { label: "Reptiles", href: "/reptiles-y-anfibios" },
-    { label: "Peces", href: "/peces" },
-    { label: "Aves", href: "/aves" },
+    { label: "Accesorios", href: "/categoria/accesorios" },
+    { label: "Juguetes", href: "/categoria/juguetes" },
+    { label: "Alimentación", href: "/categoria/alimentacion" },
   ],
   cta: {
     label: "Sobre Osvaldo 🐶",

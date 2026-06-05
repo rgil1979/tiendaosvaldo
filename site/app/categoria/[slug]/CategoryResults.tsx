@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
-import type { MLProductFull } from "@/lib/mercadolibre"
+import type { MLProductSummary } from "@/lib/mercadolibre"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
 import loadingStyles from "@/app/buscar/loading.module.css"
 
 interface Props {
-  products:      MLProductFull[]
+  products:      MLProductSummary[]
   page:          number
   totalPages:    number
   slug:          string

@@ -6,14 +6,16 @@ import type { MLProductFull } from "@/lib/mercadolibre"
 import styles from "./page.module.css"
 
 interface Props {
-  searchParams: { q?: string; pagina?: string }
+  searchParams: Promise<{ q?: string; pagina?: string }>
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const q = searchParams.q?.trim() ?? ""
+  const sp = await searchParams
+  const q  = sp.q?.trim() ?? ""
   return {
     title:       q ? `"${q}" — Tienda Osvaldo` : "Buscar — Tienda Osvaldo",
     description: q ? `Productos destacados para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
+    robots:      { index: false, follow: false },
   }
 }
 
@@ -21,8 +23,9 @@ const LIMIT     = 16
 const MAX_FETCH = 96
 
 export default async function SearchPage({ searchParams }: Props) {
-  const query = searchParams.q?.trim() ?? ""
-  const page  = Math.max(1, parseInt(searchParams.pagina ?? "1", 10))
+  const sp    = await searchParams
+  const query = sp.q?.trim() ?? ""
+  const page  = Math.max(1, parseInt(sp.pagina ?? "1", 10))
 
   let allProducts: MLProductFull[] = []
 
