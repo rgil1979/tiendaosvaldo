@@ -1,0 +1,179 @@
+{
+  "name": "Reporte Semanal Analytics → Notion",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-0001-0000-0000-000000000001",
+      "name": "Cada Lunes 9AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 400],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0000-0000-000000000002",
+      "name": "Google Analytics",
+      "type": "n8n-nodes-base.googleAnalytics",
+      "typeVersion": 2,
+      "position": [460, 400],
+      "parameters": {
+        "propertyId": "REEMPLAZAR_PROPERTY_ID",
+        "dateRange": "last7Days",
+        "metrics": [
+          { "name": "sessions" },
+          { "name": "screenPageViews" },
+          { "name": "totalUsers" },
+          { "name": "newUsers" }
+        ],
+        "dimensions": [],
+        "options": {}
+      },
+      "credentials": {
+        "googleAnalyticsOAuth2": {
+          "id": "CONFIGURAR_CREDENCIAL_GA",
+          "name": "Google Analytics OAuth2"
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0000-0000-000000000003",
+      "name": "Search Console",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [720, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://searchconsole.googleapis.com/webmasters/v3/sites/{{ encodeURIComponent('REEMPLAZAR_URL_SITIO') }}/searchAnalytics/query",
+        "authentication": "oAuth2",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "rawBody",
+        "body": "={{ JSON.stringify({ startDate: $now.minus({days: 7}).toFormat('yyyy-MM-dd'), endDate: $now.minus({days: 1}).toFormat('yyyy-MM-dd') }) }}",
+        "options": {}
+      },
+      "credentials": {
+        "oAuth2Api": {
+          "id": "CONFIGURAR_CREDENCIAL_SC",
+          "name": "Google OAuth2 (Search Console)"
+        }
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0000-0000-000000000004",
+      "name": "Formatear Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [980, 400],
+      "parameters": {
+        "jsCode": "const gaItem = $('Google Analytics').first().json;\nconst scItem = $('Search Console').first().json;\n\n// GA4 — n8n puede retornar los datos como propiedades planas o dentro de rows[]\nconst sessions  = gaItem.sessions  ?? gaItem.rows?.[0]?.metricValues?.[0]?.value ?? '0';\nconst pageviews = gaItem.screenPageViews ?? gaItem.rows?.[0]?.metricValues?.[1]?.value ?? '0';\nconst users     = gaItem.totalUsers ?? gaItem.rows?.[0]?.metricValues?.[2]?.value ?? '0';\nconst newUsers  = gaItem.newUsers   ?? gaItem.rows?.[0]?.metricValues?.[3]?.value ?? '0';\n\n// Search Console\nconst scRows = scItem.rows || [];\nconst clicks      = scRows[0]?.clicks      ?? 'N/D';\nconst impressions = scRows[0]?.impressions ?? 'N/D';\nconst ctr         = scRows[0]?.ctr      != null ? (scRows[0].ctr * 100).toFixed(2) + '%' : 'N/D';\nconst position    = scRows[0]?.position != null ? scRows[0].position.toFixed(1)          : 'N/D';\n\n// Fechas del período\nconst now       = new Date();\nconst fmt       = d => d.toISOString().split('T')[0];\nconst weekStart = new Date(now - 7 * 86400000);\nconst weekEnd   = new Date(now - 1 * 86400000);\n\nconst fmtNum = n => typeof n === 'number' ? n.toLocaleString('es-AR') : parseInt(n || 0).toLocaleString('es-AR');\n\nreturn [{\n  json: {\n    title:       `Reporte Semanal — ${fmt(weekStart)} al ${fmt(weekEnd)}`,\n    period:      `${fmt(weekStart)} → ${fmt(weekEnd)}`,\n    sessions:    fmtNum(sessions),\n    pageviews:   fmtNum(pageviews),\n    users:       fmtNum(users),\n    newUsers:    fmtNum(newUsers),\n    clicks:      typeof clicks === 'number'      ? fmtNum(clicks)      : clicks,\n    impressions: typeof impressions === 'number' ? fmtNum(impressions) : impressions,\n    ctr,\n    position\n  }\n}];"
+      }
+    },
+    {
+      "id": "a1b2c3d4-0001-0000-0000-000000000005",
+      "name": "Crear Página en Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [1240, 400],
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": {
+          "__rl": true,
+          "value": "REEMPLAZAR_DATABASE_ID",
+          "mode": "id"
+        },
+        "title": "={{ $json.title }}",
+        "propertiesUi": {
+          "propertyValues": []
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "heading_2",
+              "textContent": "📊 Google Analytics — Últimos 7 días"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ '👥 Usuarios totales: ' + $json.users + '   |   🆕 Usuarios nuevos: ' + $json.newUsers }}"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ '🔄 Sesiones: ' + $json.sessions + '   |   📄 Páginas vistas: ' + $json.pageviews }}"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "🔍 Google Search Console — Últimos 7 días"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ '🖱️ Clics: ' + $json.clicks + '   |   👁️ Impresiones: ' + $json.impressions }}"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ '📈 CTR: ' + $json.ctr + '   |   🏆 Posición promedio: ' + $json.position }}"
+            },
+            {
+              "type": "divider"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ '📅 Período: ' + $json.period }}"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "notionApi": {
+          "id": "CONFIGURAR_CREDENCIAL_NOTION",
+          "name": "Notion API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cada Lunes 9AM": {
+      "main": [
+        [{ "node": "Google Analytics", "type": "main", "index": 0 }]
+      ]
+    },
+    "Google Analytics": {
+      "main": [
+        [{ "node": "Search Console", "type": "main", "index": 0 }]
+      ]
+    },
+    "Search Console": {
+      "main": [
+        [{ "node": "Formatear Datos", "type": "main", "index": 0 }]
+      ]
+    },
+    "Formatear Datos": {
+      "main": [
+        [{ "node": "Crear Página en Notion", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

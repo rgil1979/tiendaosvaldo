@@ -18,5 +18,6 @@ services:
       - "traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.hsts.headers.stsPreload=true"
       - "traefik.http.services.tiendaosvaldo.loadbalancer.server.port=3000"
+
 volumes:
   tiendaosvaldo_node_modules:

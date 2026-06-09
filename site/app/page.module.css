@@ -7,7 +7,7 @@
 .hero {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 72px var(--padding-x) 80px;
+  padding: 72px var(--padding-x) 40px;
   display: grid;
   grid-template-columns: 1fr 480px;
   gap: 48px;
@@ -93,6 +93,9 @@
 /* Hero right — Card Osvaldo */
 .heroRight {
   position: relative;
+  justify-self: end;
+  align-self: start;
+  margin-top: -20px;
 }
 
 .floatingTagTop,
@@ -238,7 +241,7 @@
 .section {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 64px var(--padding-x);
+  padding: 32px var(--padding-x) 64px;
 }
 
 .sectionHeader {
@@ -556,6 +559,9 @@
   .heroRight {
     display: block;
     max-width: 480px;
+    justify-self: start;
+    align-self: auto;
+    margin-top: 0;
   }
 
   .osvaldoCard {

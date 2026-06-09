@@ -48,15 +48,6 @@ export default function Navbar() {
               {item.label}
             </Link>
           ))}
-          <Link
-            href={navConfig.cta.href}
-            onClick={closeMenu}
-            className={`${styles.navLink} ${styles.navGhost} ${
-              pathname === navConfig.cta.href ? styles.active : ""
-            }`}
-          >
-            {navConfig.cta.label}
-          </Link>
         </nav>
 
         {/* Barra de búsqueda — oculta en mobile, visible en desktop */}

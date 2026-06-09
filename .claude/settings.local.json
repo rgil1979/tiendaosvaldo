@@ -3,7 +3,33 @@
     "allow": [
       "Bash(npx tsc:*)",
       "Bash(npm run *)",
-      "WebFetch(domain:www.mercadolibre.com.ar)"
+      "WebFetch(domain:www.mercadolibre.com.ar)",
+      "Bash(grep -Hm1 ^description: 'D:\\\\Github\\\\strava-prototype/.claude/skills/*/SKILL.md')",
+      "Bash(Test-Path \"D:\\\\Github\\\\strava-prototype\\\\.env\")",
+      "Bash(node server.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/)",
+      "Bash(curl -s http://localhost:3001/api/activities)",
+      "Bash(taskkill /PID 21720 /F)",
+      "Bash(curl -s http://localhost:3001/api/activities/18668674623)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('name:', d.get\\('name','–'\\), '| splits:', len\\(d.get\\('splits_metric',[]\\)\\), '| segs:', len\\(d.get\\('segment_efforts',[]\\)\\), '| best:', len\\(d.get\\('best_efforts',[]\\)\\)\\)\")",
+      "Bash(taskkill //F //PID 19164)",
+      "Bash(curl -s \"http://localhost:3001/api/activities\")",
+      "Bash(python3 -c \"import sys,json; acts=json.load\\(sys.stdin\\); print\\(f'{len\\(acts\\)} actividades'\\); [print\\(' -', a['name'], a['start_date_local'][:10]\\) for a in acts]\")",
+      "Bash(mkdir -p \"D:\\\\Github\\\\whatsapp-prototype\")",
+      "Bash(node send.js)",
+      "Bash(node -e ' *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git log *)",
+      "Bash(xargs -I{} git show {}:site/app/layout.tsx)",
+      "PowerShell(git show b311dac --name-status | Where-Object { $_ -match \"producto\" -or $_ -match \"Commit\" })",
+      "PowerShell(head -20)",
+      "Bash(python3 -c \"import sys, json; d=json.load\\(sys.stdin\\); print\\('next:', d['dependencies'].get\\('next','?'\\)\\)\")",
+      "Bash(curl -s \"https://api.mercadolibre.com/categories/MLA1071\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({'id':d['id'],'name':d['name'],'total':d['total_items_in_this_category'],'children':d['children_categories']}, indent=2\\)\\)\")",
+      "Bash(curl -s https://api.mercadolibre.com/categories/__TRACKED_VAR__)",
+      "PowerShell(cd \"d:\\\\Github\\\\tiendaosvaldo\\\\site\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"categories\" })",
+      "PowerShell(cd \"d:\\\\Github\\\\tiendaosvaldo\\\\site\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match \"categories|db\\\\.ts|Category|seed\" })"
     ]
   }
 }

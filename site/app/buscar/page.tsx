@@ -1,54 +1,47 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { getProductsFiltered, getProducts_batch } from "@/lib/mercadolibre"
+import { searchByHighlights } from "@/lib/mercadolibre"
+import SearchResults from "./SearchResults"
 import type { MLProductFull } from "@/lib/mercadolibre"
-import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
 
 interface Props {
-  searchParams: { q?: string; pagina?: string }
+  searchParams: Promise<{ q?: string; pagina?: string }>
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const q = searchParams.q?.trim() ?? ""
+  const sp = await searchParams
+  const q  = sp.q?.trim() ?? ""
   return {
-    title:       q ? `"${q}" — Resultados — Tienda Osvaldo` : "Buscar — Tienda Osvaldo",
-    description: q ? `Resultados de búsqueda para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
+    title:       q ? `"${q}" — Tienda Osvaldo` : "Buscar — Tienda Osvaldo",
+    description: q ? `Productos destacados para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
+    robots:      { index: false, follow: false },
   }
 }
 
-const LIMIT     = 9
-const MAX_TOTAL = 300
-const MAX_PAGES = Math.ceil(MAX_TOTAL / LIMIT) // 15
+const LIMIT     = 16
+const MAX_FETCH = 96
 
 export default async function SearchPage({ searchParams }: Props) {
-  const query  = searchParams.q?.trim() ?? ""
-  const page   = Math.min(Math.max(1, parseInt(searchParams.pagina ?? "1", 10)), MAX_PAGES)
-  const offset = (page - 1) * LIMIT
+  const sp    = await searchParams
+  const query = sp.q?.trim() ?? ""
+  const page  = Math.max(1, parseInt(sp.pagina ?? "1", 10))
 
-  let products: MLProductFull[] = []
-  let total = 0
+  let allProducts: MLProductFull[] = []
 
   if (query) {
     try {
-      const result = await getProductsFiltered({ query, limit: LIMIT * 3, offset })
-      total   = Math.min(result.total, MAX_TOTAL)
-      if (result.products.length) {
-        const all = await getProducts_batch(result.products.map((p) => p.id), true)
-        products = all.slice(0, LIMIT)
-      }
+      allProducts = await searchByHighlights(query, MAX_FETCH)
     } catch (e) {
       console.error("[buscar] Error al buscar productos:", (e as Error).message)
     }
   }
 
-  const totalPages = Math.ceil(total / LIMIT) || 1
-
-  function pageHref(p: number) {
-    const qs = new URLSearchParams({ q: query })
-    if (p > 1) qs.set("pagina", String(p))
-    return `/buscar?${qs}`
-  }
+  const total      = allProducts.length
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT))
+  const safePage   = Math.min(page, totalPages)
+  const offset     = (safePage - 1) * LIMIT
+  const products   = allProducts.slice(offset, offset + LIMIT)
 
   return (
     <div className={styles.wrap}>
@@ -72,7 +65,7 @@ export default async function SearchPage({ searchParams }: Props) {
           {query && (
             <p className={styles.searchMeta}>
               {total > 0
-                ? <>{total.toLocaleString("es-AR")} resultados para <strong>&ldquo;{query}&rdquo;</strong></>
+                ? <>Productos destacados para <strong>&ldquo;{query}&rdquo;</strong></>
                 : <>Sin resultados para <strong>&ldquo;{query}&rdquo;</strong></>}
             </p>
           )}
@@ -103,43 +96,12 @@ export default async function SearchPage({ searchParams }: Props) {
         )}
 
         {products.length > 0 && (
-          <>
-            <div className={styles.grid}>
-              {products.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-
-            {/* Paginación */}
-            {totalPages > 1 && (
-              <nav className={styles.pagination} aria-label="Páginas">
-                {page > 1 && (
-                  <Link href={pageHref(page - 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                    ← Anterior
-                  </Link>
-                )}
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const start = Math.max(1, Math.min(page - 2, totalPages - 4))
-                  const n = start + i
-                  if (n > totalPages) return null
-                  return (
-                    <Link
-                      key={n}
-                      href={pageHref(n)}
-                      className={`${styles.pageBtn} ${n === page ? styles.pageBtnActive : ""}`}
-                    >
-                      {n}
-                    </Link>
-                  )
-                })}
-                {page < totalPages && (
-                  <Link href={pageHref(page + 1)} className={`${styles.pageBtn} ${styles.pageBtnArrow}`}>
-                    Siguiente →
-                  </Link>
-                )}
-              </nav>
-            )}
-          </>
+          <SearchResults
+            products={products}
+            page={safePage}
+            totalPages={totalPages}
+            query={query}
+          />
         )}
       </div>
     </div>

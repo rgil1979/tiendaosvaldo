@@ -39,7 +39,7 @@ export default function SobreOsvaldoPage() {
           <div className={styles.step}>
             <div className={styles.stepNum}>2</div>
             <div>
-              <strong className={styles.stepTitle}>Clic en "Ver en Mercado Libre"</strong>
+              <strong className={styles.stepTitle}>Clic en &quot;Ver en Mercado Libre&quot;</strong>
               <p className={styles.stepDesc}>Te llevamos directo al vendedor original en ML. Nada se procesa acá.</p>
             </div>
           </div>

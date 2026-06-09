@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import { formatPrice } from "@/lib/ml-utils"
+import { trackEvent } from "@/lib/analytics"
 import styles from "./ProductCard.module.css"
 
 interface Props {
@@ -13,21 +13,22 @@ interface Props {
 }
 
 export default function ProductCard({ product, badge }: Props) {
-  const mainImage = product.pictures[0]?.url ?? ""
+  const mainImage = product.pictures?.[0]?.url ?? ""
   const [imgErr, setImgErr]   = useState(false)
 
   return (
     <div className={styles.card}>
       {/* Imagen */}
-      <Link href={`/producto/${product.id}`} className={styles.imgWrap} tabIndex={-1}>
+      <a href={product.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.imgWrap} tabIndex={-1}>
         {!imgErr && mainImage ? (
           <Image
             src={mainImage}
             alt={product.name}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            width={400}
+            height={400}
             className={styles.img}
             onError={() => setImgErr(true)}
+            style={{ objectFit: "cover", width: "100%", height: "100%" }}
           />
         ) : (
           <div className={styles.imgFallback}>🐾</div>
@@ -41,7 +42,7 @@ export default function ProductCard({ product, badge }: Props) {
             Envío gratis
           </span>
         )}
-      </Link>
+      </a>
 
       {/* Body */}
       <div className={styles.body}>
@@ -54,9 +55,9 @@ export default function ProductCard({ product, badge }: Props) {
           )}
         </div>
 
-        <Link href={`/producto/${product.id}`} className={styles.titleLink}>
+        <a href={product.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.titleLink}>
           <h3 className={styles.title}>{product.name}</h3>
-        </Link>
+        </a>
 
         <div className={styles.footer}>
           <div className={styles.priceWrap}>
@@ -73,6 +74,13 @@ export default function ProductCard({ product, badge }: Props) {
             rel="noopener noreferrer sponsored"
             className={styles.btn}
             aria-label={`Ver ${product.name} en Mercado Libre`}
+            onClick={() =>
+              trackEvent("click_buy_ml", {
+                item_id: product.id,
+                item_name: product.name,
+                event_category: "engagement",
+              })
+            }
           >
             Ver en ML →
           </a>

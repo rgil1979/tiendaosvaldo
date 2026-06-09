@@ -5,39 +5,80 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getProduct } from "@/lib/mercadolibre"
 import { formatPrice } from "@/lib/ml-utils"
-import { siteConfig } from "@/config/site.config"
+import { siteConfig, SLUG_CONFIG } from "@/config/site.config"
+import BuyButton from "@/components/BuyButton/BuyButton"
 import styles from "./page.module.css"
 
-// Server-rendered on demand con ISR de 1 hora
 export const revalidate = 3600
 
-// cache() deduplica: generateMetadata y la página comparten el mismo fetch dentro del mismo request
 const getProductCached = cache(getProduct)
 
-interface Props { params: { id: string } }
+interface Props { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const p = await getProductCached(params.id)
+    const { id } = await params
+    const p = await getProductCached(id)
+
+    const productSchema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: p.name,
+      description: p.short_description ?? p.name,
+      image: p.pictures.map((pic: { url: string }) => pic.url),
+      offers: {
+        "@type": "Offer",
+        url: `${siteConfig.url}/producto/${id}`,
+        priceCurrency: "ARS",
+        price: p.price,
+        availability: "https://schema.org/InStock",
+        itemCondition: p.condition === "new"
+          ? "https://schema.org/NewCondition"
+          : "https://schema.org/UsedCondition",
+        seller: { "@type": "Organization", name: siteConfig.name },
+      },
+    }
+
+    const categorySlug = Object.entries(SLUG_CONFIG).find(
+      ([, cfg]) => cfg.domainId === p.domain_id
+    )?.[0] ?? "mascotas"
+
+    const categoryLabel = SLUG_CONFIG[categorySlug]?.label ?? "Mascotas"
+
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Inicio", item: siteConfig.url },
+        { "@type": "ListItem", position: 2, name: categoryLabel, item: `${siteConfig.url}/categoria/${categorySlug}` },
+        { "@type": "ListItem", position: 3, name: p.name, item: `${siteConfig.url}/producto/${id}` },
+      ],
+    }
+
     return {
       title:       p.name,
-      description: p.short_description?.slice(0, 155) ||
-        `${p.name} — disponible en Mercado Libre`,
+      description: p.short_description?.slice(0, 155) || `${p.name} - disponible en Mercado Libre`,
+      robots:      { index: true, follow: true },
       openGraph: {
         title:  p.name,
         images: p.pictures[0] ? [{ url: p.pictures[0].url }] : [],
       },
+      other: {
+        "script:ld+json":            JSON.stringify(productSchema),
+        "script:ld+json:breadcrumb": JSON.stringify(breadcrumbSchema),
+      },
     }
   } catch {
-    return {}
+    return { robots: { index: false, follow: false } }
   }
 }
 
 export default async function ProductPage({ params }: Props) {
+  const { id } = await params
   let product: Awaited<ReturnType<typeof getProduct>> | null = null
 
   try {
-    product = await getProductCached(params.id)
+    product = await getProductCached(id)
   } catch {
     notFound()
   }
@@ -46,7 +87,6 @@ export default async function ProductPage({ params }: Props) {
 
   const mainImage = product.pictures[0]?.url ?? ""
 
-  // Atributos a mostrar en la tabla (filtra los que tienen valor)
   const relevantAttrs = product.attributes
     .filter((a) => a.value_name && !["GTIN", "SELLER_SKU"].includes(a.id))
     .slice(0, 10)
@@ -57,11 +97,11 @@ export default async function ProductPage({ params }: Props) {
       <div className={styles.breadcrumb}>
         <div className={styles.breadcrumbInner}>
           <Link href="/">Inicio</Link>
-          <span>›</span>
+          <span>&rsaquo;</span>
           <Link href="/categoria/mascotas">Mascotas</Link>
-          <span>›</span>
+          <span>&rsaquo;</span>
           <span className={styles.breadcrumbCurrent}>
-            {product.name.length > 50 ? `${product.name.slice(0, 50)}…` : product.name}
+            {product.name.length > 50 ? `${product.name.slice(0, 50)}...` : product.name}
           </span>
         </div>
       </div>
@@ -69,7 +109,7 @@ export default async function ProductPage({ params }: Props) {
       {/* Layout producto */}
       <div className={styles.productPage}>
 
-        {/* Galería */}
+        {/* Galeria */}
         <div className={styles.gallery}>
           <div className={styles.galleryMain}>
             {mainImage ? (
@@ -108,9 +148,9 @@ export default async function ProductPage({ params }: Props) {
               <Image src={siteConfig.logo} alt="Osvaldo" fill className={styles.osvaldoNoteAvatarImg} />
             </div>
             <div>
-              <strong className={styles.osvaldoNoteTitle}>✓ Osvaldo lo recomienda</strong>
+              <strong className={styles.osvaldoNoteTitle}>✔ Osvaldo lo recomienda</strong>
               <p className={styles.osvaldoNoteText}>
-                Producto disponible con toda la protección al comprador de Mercado Libre.
+                Producto disponible con toda la proteccion al comprador de Mercado Libre.
               </p>
             </div>
           </div>
@@ -125,7 +165,7 @@ export default async function ProductPage({ params }: Props) {
               {product.condition === "new" ? "✅ Nuevo" : "🔄 Usado"}
             </span>
             {product.free_shipping && (
-              <span className={styles.tagShipping}>🚚 Envío gratis</span>
+              <span className={styles.tagShipping}>🚚 Envio gratis</span>
             )}
             {product.accepts_mercadopago && (
               <span className={styles.tagMP}>💳 Mercado Pago</span>
@@ -143,7 +183,7 @@ export default async function ProductPage({ params }: Props) {
             </div>
           )}
 
-          {/* Garantía */}
+          {/* Garantia */}
           {product.warranty && (
             <div className={styles.warrantyRow}>🛡️ {product.warranty}</div>
           )}
@@ -151,11 +191,11 @@ export default async function ProductPage({ params }: Props) {
           {/* Features principales */}
           {product.main_features.length > 0 && (
             <div className={styles.mainFeatures}>
-              <h2 className={styles.featuresTitle}>Características principales</h2>
+              <h2 className={styles.featuresTitle}>Caracteristicas principales</h2>
               <ul className={styles.featuresList}>
                 {product.main_features.map((feat, i) => (
                   <li key={i} className={styles.featureItem}>
-                    <span className={styles.featureCheck}>✓</span>
+                    <span className={styles.featureCheck}>✔</span>
                     {feat}
                   </li>
                 ))}
@@ -165,24 +205,24 @@ export default async function ProductPage({ params }: Props) {
 
           {/* CTA principal */}
           <div className={styles.ctaBlock}>
-            <a
+            <BuyButton
               href={product.affiliateUrl}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+              productId={product.id}
+              productName={product.name}
               className={styles.btnML}
             >
               Comprar en Mercado Libre →
-            </a>
+            </BuyButton>
           </div>
           <p className={styles.mlDisclaimer}>
-            Al hacer clic serás redirigido a Mercado Libre donde se completa la compra.{" "}
-            <Link href="/sobre-osvaldo#como-funciona">¿Cómo funciona?</Link>
+            Al hacer clic seras redirigido a Mercado Libre donde se completa la compra.{" "}
+            <Link href="/sobre-osvaldo#como-funciona">¿Como funciona?</Link>
           </p>
 
-          {/* Descripción */}
+          {/* Descripcion */}
           {product.short_description && (
             <div className={styles.description}>
-              <h2 className={styles.descTitle}>Descripción</h2>
+              <h2 className={styles.descTitle}>Descripcion</h2>
               <p className={styles.descText}>{product.short_description}</p>
             </div>
           )}
@@ -190,7 +230,7 @@ export default async function ProductPage({ params }: Props) {
           {/* Tabla de atributos */}
           {relevantAttrs.length > 0 && (
             <div className={styles.attrs}>
-              <h2 className={styles.attrsTitle}>Ficha técnica</h2>
+              <h2 className={styles.attrsTitle}>Ficha tecnica</h2>
               <div className={styles.attrsGrid}>
                 {relevantAttrs.map((attr) => (
                   <div key={attr.id} className={styles.attrRow}>

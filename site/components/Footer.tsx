@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { navConfig, siteConfig } from "@/config/site.config"
+import { productosCurados } from "@/data/productos-curados"
 import styles from "./Footer.module.css"
 
 export default function Footer() {
@@ -25,7 +26,7 @@ export default function Footer() {
             </span>
           </Link>
           <p className={styles.desc}>
-            El pet shop aprobado por Osvaldo, un perro mestizo adoptado con muy buen gusto. Todos los productos se compran directamente en Mercado Libre.
+            {"Osvaldo tiene 8 años, criterio propio y " + productosCurados.length + " productos aprobados. Todo disponible en Mercado Libre."}
           </p>
         </div>
 

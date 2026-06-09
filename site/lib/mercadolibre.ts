@@ -67,57 +67,92 @@ if (_cached) {
   console.log("[ML] Tokens cargados desde caché en disco")
 }
 
+export function reloadTokenFromCache(): void {
+  const fresh = _readCache()
+  if (fresh) {
+    _token        = fresh.token
+    _refreshToken = fresh.refreshToken
+    _expiresAt    = fresh.expiresAt
+    console.log("[ML] Token recargado en memoria desde caché en disco")
+  }
+}
+
 // Single-flight: evita que requests concurrentes disparen múltiples refreshes.
 let _refreshPromise: Promise<string> | null = null
 
 async function _doRefresh(): Promise<string> {
   const { ML_APP_ID, ML_CLIENT_SECRET } = process.env
 
-  if (!ML_APP_ID || !ML_CLIENT_SECRET || !_refreshToken) {
+  if (!ML_APP_ID || !ML_CLIENT_SECRET) {
     console.error("[ML] No se puede refrescar el token — credenciales incompletas")
-    return _token // devuelve lo que hay; mlFetch manejará el 401
+    return _token
   }
 
-  const oauthController = new AbortController()
-  const oauthTimer = setTimeout(() => oauthController.abort(), 10_000)
+  const oauthPost = async (body: URLSearchParams): Promise<Response> => {
+    const ctrl = new AbortController()
+    const t = setTimeout(() => ctrl.abort(), 10_000)
+    try {
+      const res = await fetch("https://api.mercadolibre.com/oauth/token", {
+        method:  "POST",
+        signal:  ctrl.signal,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+        cache: "no-store",
+      })
+      return res
+    } finally {
+      clearTimeout(t)
+    }
+  }
 
-  let res: Response
-  try {
-    res = await fetch("https://api.mercadolibre.com/oauth/token", {
-      method:  "POST",
-      signal:  oauthController.signal,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
+  // Intentar refresh_token primero (si hay uno disponible)
+  if (_refreshToken) {
+    try {
+      const res = await oauthPost(new URLSearchParams({
         grant_type:    "refresh_token",
         client_id:     ML_APP_ID,
         client_secret: ML_CLIENT_SECRET,
         refresh_token: _refreshToken,
-      }),
-      cache: "no-store",
-    })
+      }))
+
+      if (res.ok) {
+        const data = await res.json()
+        _token        = data.access_token
+        _refreshToken = data.refresh_token ?? _refreshToken
+        _expiresAt    = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
+        _writeCache(_token, _refreshToken, _expiresAt)
+        console.log(`[ML] Token refrescado — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
+        return _token
+      }
+      console.warn(`[ML] Refresh token inválido (HTTP ${res.status}) — usando client_credentials`)
+    } catch (e) {
+      const label = (e as Error).name === "AbortError" ? "Timeout 10s" : (e as Error).message
+      console.warn(`[ML] OAuth refresh falló: ${label} — usando client_credentials`)
+    }
+  }
+
+  // Fallback: client_credentials (no requiere refresh_token válido)
+  try {
+    const res = await oauthPost(new URLSearchParams({
+      grant_type:    "client_credentials",
+      client_id:     ML_APP_ID,
+      client_secret: ML_CLIENT_SECRET,
+    }))
+
+    if (res.ok) {
+      const data = await res.json()
+      _token     = data.access_token
+      _expiresAt = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
+      _writeCache(_token, _refreshToken, _expiresAt)
+      console.log(`[ML] Token obtenido via client_credentials — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
+      return _token
+    }
+    console.error(`[ML] client_credentials falló: HTTP ${res.status}`)
   } catch (e) {
-    clearTimeout(oauthTimer)
     const label = (e as Error).name === "AbortError" ? "Timeout 10s" : (e as Error).message
-    console.error(`[ML] OAuth fetch falló: ${label}`)
-    return _token
-  }
-  clearTimeout(oauthTimer)
-
-  if (!res.ok) {
-    console.error(`[ML] Refresh falló: HTTP ${res.status} — el token actual puede estar expirado`)
-    return _token
+    console.error(`[ML] OAuth client_credentials falló: ${label}`)
   }
 
-  const data = await res.json()
-
-  _token        = data.access_token
-  _refreshToken = data.refresh_token ?? _refreshToken
-  _expiresAt    = Date.now() + Math.max((data.expires_in ?? 21600) - 300, 0) * 1000
-
-  // Persistir en disco para sobrevivir reinicios del proceso.
-  _writeCache(_token, _refreshToken, _expiresAt)
-
-  console.log(`[ML] Token refrescado — expira en ${Math.round((data.expires_in ?? 21600) / 60)} min`)
   return _token
 }
 
@@ -207,12 +242,11 @@ export interface MLProductFull {
 
 
 export interface MLSearchResult {
-  products: MLProductSummary[]
+  products: MLProductFull[]
   total:    number
   hasMore:  boolean
 }
 
-// Tipos internos
 interface _MLProductDetail {
   id:                string
   name:              string
@@ -270,6 +304,7 @@ const MASCOTAS_DOMAINS = [
   "MLA-CAT_AND_DOG_FOODS",
   "MLA-CAT_AND_DOG_BEDS",
   "MLA-PET_COLLARS",
+  "MLA-PET_HARNESSES",
   "MLA-CATS_LITTER",
   "MLA-PET_CARRIERS_AND_CARRYING_BAGS",
   "MLA-PET_FOOD_STORAGE_CONTAINERS",
@@ -318,7 +353,7 @@ export async function getProductsFiltered(
     )
   )
 
-  const deduped = new Map<string, MLProductSummary>()
+  const deduped = new Map<string, MLProductFull>()
   let totalMax = 0
   for (const res of responses) {
     // Max en vez de suma: evita multiplicar el total por la cantidad de dominios
@@ -347,10 +382,8 @@ export async function getProducts(options: {
   const { query, domainId, limit = 20, offset = 0 } = options
 
   const params = new URLSearchParams({
-    status:  "active",
-    site_id: "MLA",
-    limit:   String(Math.min(limit, 50)),
-    offset:  String(offset),
+    limit:  String(Math.min(limit, 50)),
+    offset: String(offset),
   })
   if (query)            params.set("q",         query)
   if (domainId?.trim()) params.set("domain_id", domainId)
@@ -358,10 +391,35 @@ export async function getProducts(options: {
   try {
     const data = await mlFetch<{
       paging:  { total: number; limit: number; offset: number }
-      results: MLProductSummary[]
-    }>(`/products/search?${params}`, 3600)
+      results: _MLItemSearchItem[]
+    }>(`/sites/MLA/search?${params}`, 3600)
 
-    const results = data.results ?? []
+    const affiliateId = (process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const results: MLProductFull[] = (data.results ?? []).map((item) => {
+      const productId    = item.catalog_product_id ?? item.id
+      const affiliateUrl = item.catalog_product_id
+        ? `https://www.mercadolibre.com.ar/p/${item.catalog_product_id}?partner_id=cbpar_${affiliateId}`
+        : `${item.permalink}?partner_id=cbpar_${affiliateId}`
+      return {
+        id:                  productId,
+        name:                item.title,
+        pictures:            [{ id: "0", url: (item.thumbnail ?? "").replace(/-[A-Z]\.jpg(\?.*)?$/, "-O.jpg") }],
+        short_description:   "",
+        main_features:       [],
+        attributes:          [],
+        domain_id:           "",
+        status:              "active",
+        price:               item.price ?? 0,
+        item_id:             item.id,
+        currency_id:         item.currency_id ?? "ARS",
+        condition:           item.condition   ?? "new",
+        warranty:            item.warranty    ?? null,
+        accepts_mercadopago: item.accepts_mercadopago   ?? false,
+        free_shipping:       item.shipping?.free_shipping ?? false,
+        affiliateUrl,
+      }
+    })
+
     return {
       products: results,
       total:    data.paging.total,
@@ -375,33 +433,43 @@ export async function getProducts(options: {
 
 // ── DETALLE DE PRODUCTO ──────────────────────────────────────────────────────
 
-export async function getProduct(productId: string): Promise<MLProductFull> {
-  const [detail, priceResp] = await Promise.all([
-    mlFetch<_MLProductDetail>(`/products/${productId}`, 3600),
-    mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600)
-      .catch(() => ({ results: [] } as _MLItemsResponse)),
-  ])
+async function _getPriceForProduct(productId: string): Promise<_MLPriceItem> {
+  const itemsResp = await mlFetch<_MLItemsResponse>(`/products/${productId}/items`, 3600)
+    .catch(() => null)
 
-  // Prioridad: results[0] → buy_box_winner → defaults vacíos
-  const winner = priceResp.buy_box_winner
-  const first  = priceResp.results?.[0]
-  const p: _MLPriceItem = first ?? {
-    item_id:             winner?.item_id             ?? "",
-    price:               winner?.price               ?? 0,
-    currency_id:         winner?.currency_id         ?? "ARS",
-    condition:           winner?.condition            ?? "new",
-    warranty:            winner?.warranty             ?? null,
-    accepts_mercadopago: winner?.accepts_mercadopago  ?? true,
-    free_shipping:       winner?.free_shipping        ?? false,
+  const winner = itemsResp?.buy_box_winner
+  const first  = itemsResp?.results?.[0]
+  if (first || winner) {
+    return first ?? {
+      item_id:             winner!.item_id             ?? "",
+      price:               winner!.price               ?? 0,
+      currency_id:         winner!.currency_id         ?? "ARS",
+      condition:           winner!.condition            ?? "new",
+      warranty:            winner!.warranty             ?? null,
+      accepts_mercadopago: winner!.accepts_mercadopago  ?? true,
+      free_shipping:       winner!.free_shipping        ?? false,
+    }
   }
+
+  return {
+    item_id: "", price: 0, currency_id: "ARS",
+    condition: "new", warranty: null, accepts_mercadopago: true, free_shipping: false,
+  }
+}
+
+export async function getProduct(productId: string): Promise<MLProductFull> {
+  const [detail, p] = await Promise.all([
+    mlFetch<_MLProductDetail>(`/products/${productId}`, 3600),
+    _getPriceForProduct(productId),
+  ])
 
   return {
     id:                  productId,
     name:                detail.name,
-    pictures:            detail.pictures                       ?? [],
-    short_description:   detail.short_description?.content     ?? "",
+    pictures:            detail.pictures                    ?? [],
+    short_description:   detail.short_description?.content  ?? "",
     main_features:       (detail.main_features ?? []).map((f) => f.text),
-    attributes:          detail.attributes                     ?? [],
+    attributes:          detail.attributes                  ?? [],
     domain_id:           detail.domain_id,
     status:              detail.status,
     price:               p.price,
@@ -423,13 +491,34 @@ function isAvailable(p: MLProductFull, requirePrice: boolean): boolean {
   return true
 }
 
+// Procesa items con concurrencia limitada para no saturar la API ni crashear el worker.
+async function _concurrentMap<T, R>(
+  items: T[],
+  fn: (item: T) => Promise<R>,
+  concurrency: number,
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = new Array(items.length)
+  let nextIndex = 0
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const i = nextIndex++
+      try {
+        results[i] = { status: "fulfilled", value: await fn(items[i]) }
+      } catch (reason) {
+        results[i] = { status: "rejected", reason }
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker))
+  return results
+}
+
 export async function getProducts_batch(
   productIds:   string[],
   requirePrice = true,
 ): Promise<MLProductFull[]> {
-  const settled = await Promise.allSettled(
-    productIds.map((id) => getProduct(id))
-  )
+  // Máx 8 getProduct() en paralelo → 16 llamadas HTTP simultáneas a ML
+  const settled = await _concurrentMap(productIds, (id) => getProduct(id), 8)
   const results: MLProductFull[] = []
   for (const r of settled) {
     if (r.status === "fulfilled") {
@@ -441,6 +530,18 @@ export async function getProducts_batch(
   return results
 }
 
+// ── BÚSQUEDA POR TEXTO (multi-dominio mascotas) ──────────────────────────────
+
+export async function searchByHighlights(query: string, limit: number): Promise<MLProductFull[]> {
+  try {
+    const result = await getProductsFiltered({ query, limit: Math.min(limit, 50), offset: 0 })
+    return result.products.slice(0, limit)
+  } catch (e) {
+    console.error("[ML] searchByHighlights falló:", (e as Error).message)
+    return []
+  }
+}
+
 // ── HIGHLIGHTS (best sellers por categoría) ──────────────────────────────────
 
 export async function getHighlights(categoryId: string, limit = 20): Promise<MLProductFull[]> {
@@ -449,11 +550,262 @@ export async function getHighlights(categoryId: string, limit = 20): Promise<MLP
       `/highlights/MLA/category/${categoryId}`,
       3600
     )
-    const ids = (data.content ?? []).slice(0, Math.min(limit * 2, limit + 10)).map((c) => c.id)
-    const products = await getProducts_batch(ids, true)
+    const ids = (data.content ?? [])
+      .map((c) => c.id)
+      .filter((id) => /^MLA\d+$/.test(id))
+      .slice(0, Math.min(limit * 2, limit + 10))
+    const products = await getProducts_batch(ids, false)
     return products.slice(0, limit)
   } catch (e) {
     console.error("[ML] getHighlights falló:", (e as Error).message?.slice(0, 100))
+    return []
+  }
+}
+
+// ── BÚSQUEDA DE ITEMS POR CATEGORÍA ML ──────────────────────────────────────
+
+interface _MLItemSearchItem {
+  id:                  string
+  catalog_product_id:  string | null
+  title:               string
+  price:               number
+  currency_id:         string
+  condition:           "new" | "used"
+  thumbnail:           string
+  accepts_mercadopago: boolean
+  shipping:            { free_shipping: boolean }
+  warranty:            string | null
+  permalink:           string
+}
+
+export async function getItemsByCategory(
+  categoryId: string,
+  limit = 16,
+  offset = 0,
+): Promise<{ products: MLProductFull[]; total: number }> {
+  try {
+    const params = new URLSearchParams({
+      category: categoryId,
+      limit:    "50",
+      offset:   String(offset),
+    })
+    console.log("[ML] getItemsByCategory →", `/sites/MLA/search?${params}`)
+    const data = await mlFetch<{
+      paging:  { total: number } | undefined
+      results: _MLItemSearchItem[] | undefined
+    }>(`/sites/MLA/search?${params}`, 3600)
+    console.log("[ML] getItemsByCategory ← total:", data.paging?.total, "results:", data.results?.length)
+
+    const affiliateId = (process.env.ML_AFFILIATE_ID ?? "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const products: MLProductFull[] = (data.results ?? [])
+      .slice(0, limit)
+      .map((item) => {
+        const productId = item.catalog_product_id ?? item.id
+        const affiliateUrl = item.catalog_product_id
+          ? `https://www.mercadolibre.com.ar/p/${item.catalog_product_id}?partner_id=cbpar_${affiliateId}`
+          : `${item.permalink}?partner_id=cbpar_${affiliateId}`
+        return {
+          id:                  productId,
+          name:                item.title,
+          pictures:            [{ id: "0", url: (item.thumbnail ?? "").replace(/-[A-Z]\.jpg(\?.*)?$/, "-O.jpg") }],
+          short_description:   "",
+          main_features:       [],
+          attributes:          [],
+          domain_id:           "",
+          status:              "active",
+          price:               item.price ?? 0,
+          item_id:             item.id,
+          currency_id:         item.currency_id ?? "ARS",
+          condition:           item.condition ?? "new",
+          warranty:            item.warranty ?? null,
+          accepts_mercadopago: item.accepts_mercadopago ?? false,
+          free_shipping:       item.shipping?.free_shipping ?? false,
+          affiliateUrl,
+        }
+      })
+
+    return { products, total: data.paging?.total ?? 0 }
+  } catch (e) {
+    console.error("[ML] getItemsByCategory falló completo:", e)
+    return { products: [], total: 0 }
+  }
+}
+
+// ── PRODUCTOS VARIADOS POR CATEGORÍA (múltiples dominios) ──────────────────────
+
+/**
+ * Obtiene productos variados de una mascota (ej: perros)
+ * Combina múltiples categorías para devolver variedad
+ *
+ * Para perros: comida, juguetes, pretales, platos, camas, accesorios
+ * Para gatos: comida, juguetes, arena, etc.
+ */
+export async function getProductsVariety(
+  categoryIds: string[],
+  limit = 12
+): Promise<MLProductFull[]> {
+  try {
+    // Obtener productos de cada categoría en paralelo
+    const itemsPerCategory = Math.ceil(limit * 1.5 / categoryIds.length) // 1.5x para dedup
+
+    const responses = await Promise.all(
+      categoryIds.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    // Combinar y deduplicar por ID
+    const deduped = new Map<string, MLProductFull>()
+    for (const products of responses) {
+      for (const p of products) {
+        if (!deduped.has(p.id)) {
+          deduped.set(p.id, p)
+        }
+      }
+    }
+
+    // Retornar cantidad exacta
+    return Array.from(deduped.values()).slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getProductsVariety falló:", (e as Error).message)
+    return []
+  }
+}
+
+// ── PRODUCTOS VARIADOS PARA GATOS ────────────────────────────────────────────
+
+export async function getCatProductsVariety(limit = 12): Promise<MLProductFull[]> {
+  const catCategories = [
+    "MLA1081",   // Comida para gatos
+    "MLA434761", // Juguetes para gatos
+    "MLA1084",   // Arena para gatos
+    "MLA1085",   // Platos para gatos
+    "MLA434762", // Camas para gatos
+    "MLA434763", // Accesorios para gatos
+  ]
+
+  try {
+    const itemsPerCategory = Math.ceil(limit * 1.5 / catCategories.length)
+
+    const responses = await Promise.all(
+      catCategories.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    const deduped = new Map<string, MLProductFull>()
+    for (const products of responses) {
+      for (const p of products) {
+        if (!deduped.has(p.id)) {
+          deduped.set(p.id, p)
+        }
+      }
+    }
+
+    return Array.from(deduped.values()).slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getCatProductsVariety falló:", (e as Error).message)
+    return []
+  }
+}
+
+// ── PRODUCTOS VARIADOS PARA ACCESORIOS ───────────────────────────────────────
+
+export async function getAccessoriesVariety(limit = 12): Promise<MLProductFull[]> {
+  const accessoriesCategories = [
+    "MLA370459", // Correas/Pretales
+    "MLA1076",   // Platos/Comederos
+    "MLA434758", // Camas
+    "MLA434757", // Juguetes
+    "MLA1084",   // Transportines/Accesorios
+    "MLA434759", // Accesorios variados
+  ]
+
+  try {
+    const itemsPerCategory = Math.ceil(limit * 1.5 / accessoriesCategories.length)
+
+    const responses = await Promise.all(
+      accessoriesCategories.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    const deduped = new Map<string, MLProductFull>()
+    for (const products of responses) {
+      for (const p of products) {
+        if (!deduped.has(p.id)) {
+          deduped.set(p.id, p)
+        }
+      }
+    }
+
+    return Array.from(deduped.values()).slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getAccessoriesVariety falló:", (e as Error).message)
+    return []
+  }
+}
+
+// ── PRODUCTOS DESTACADOS PARA MASCOTAS (categoría general) ─────────────────────
+
+export async function getPetsHighlights(limit = 12): Promise<MLProductFull[]> {
+  const petCategories = [
+    "MLA434757", // Juguetes perros
+    "MLA434761", // Juguetes gatos
+    "MLA434758", // Camas perros
+    "MLA434762", // Camas gatos
+    "MLA370459", // Pretales/Correas
+    "MLA434759", // Accesorios perros
+    "MLA1084",   // Arena para gatos
+    "MLA434763", // Accesorios gatos
+  ]
+
+  try {
+    const itemsPerCategory = Math.ceil(limit * 1.5 / petCategories.length)
+    const responses = await Promise.all(
+      petCategories.map((catId) =>
+        getHighlights(catId, itemsPerCategory).catch(() => [] as MLProductFull[])
+      )
+    )
+
+    // Priorizar variedad no-alimento para que el bloque "mascotas" no quede sesgado.
+    const foodRegex = /\b(alimento|comida|balanceado|snack|snacks|lata|pienso|croqueta|nutricion)\b/i
+    const buckets = responses.map((products) => products.filter((p) => !foodRegex.test(p.name ?? "")))
+
+    const selected: MLProductFull[] = []
+    const seen = new Set<string>()
+
+    let keepLooping = true
+    while (keepLooping && selected.length < limit) {
+      keepLooping = false
+      for (const bucket of buckets) {
+        const next = bucket.shift()
+        if (!next) continue
+        if (!seen.has(next.id)) {
+          selected.push(next)
+          seen.add(next.id)
+        }
+        keepLooping = true
+        if (selected.length >= limit) break
+      }
+    }
+
+    // Fallback: completar con cualquier producto destacado si faltan items.
+    if (selected.length < limit) {
+      for (const products of responses) {
+        for (const p of products) {
+          if (seen.has(p.id)) continue
+          selected.push(p)
+          seen.add(p.id)
+          if (selected.length >= limit) break
+        }
+        if (selected.length >= limit) break
+      }
+    }
+
+    return selected.slice(0, limit)
+  } catch (e) {
+    console.error("[ML] getPetsHighlights falló:", (e as Error).message?.slice(0, 100))
     return []
   }
 }
