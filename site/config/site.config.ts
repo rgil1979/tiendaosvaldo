@@ -87,6 +87,7 @@ export const navConfig = {
     { label: "Accesorios", href: "/categoria/accesorios" },
     { label: "Juguetes", href: "/categoria/juguetes" },
     { label: "Alimentación", href: "/categoria/alimentacion" },
+    { label: "Guías", href: "/guias" },
   ],
   cta: {
     label: "Sobre Osvaldo 🐶",
@@ -99,6 +100,7 @@ export const navConfig = {
       { label: "Accesorios", href: "/categoria/accesorios" },
       { label: "Alimentación", href: "/categoria/alimentacion" },
       { label: "Juguetes", href: "/categoria/juguetes" },
+      { label: "Guías", href: "/guias" },
     ],
     tienda: [
       { label: "Sobre Osvaldo", href: "/sobre-osvaldo" },

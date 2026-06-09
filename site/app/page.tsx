@@ -1,152 +1,9 @@
-import { cache, Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { siteConfig } from "@/config/site.config"
-import { getProductsVariety, getCatProductsVariety, getAccessoriesVariety, getPetsHighlights } from "@/lib/mercadolibre"
-import Carousel from "@/components/Carousel"
-import CarouselGatos from "@/components/CarouselGatos"
-import CarouselAccesorios from "@/components/CarouselAccesorios"
-import CarouselMascotas from "@/components/CarouselMascotas"
+import { productosCurados } from "@/data/productos-curados"
+import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
-
-export const revalidate = 3600
-
-// cache() deduplica llamadas idénticas dentro del mismo render — evita pedir
-// dos veces el mismo endpoint y que los mismos productos aparezcan en dos secciones.
-const getProductsVarietyCached = cache(getProductsVariety)
-const getCatProductsVarietyCached = cache(getCatProductsVariety)
-const getAccessoriesVarietyCached = cache(getAccessoriesVariety)
-const getPetsHighlightsCached = cache(getPetsHighlights)
-
-// ── SKELETON ─────────────────────────────────────────────────────────────────
-
-function SectionSkeleton({ count }: { count: number }) {
-  return (
-    <div className={styles.grid4}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className={styles.skeleton} />
-      ))}
-    </div>
-  )
-}
-
-// ── SECCIONES ASYNC ───────────────────────────────────────────────────────────
-
-async function FeaturedSection() {
-  const products = (await getPetsHighlightsCached(12)).slice(0, 12)
-  if (!products.length) return null
-
-  return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>🌟 Destacados para tus <span>mascotas</span></h2>
-        <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
-      </div>
-      <Carousel
-        products={products}
-        itemsPerView={4}
-        scrollStep={2}
-        alwaysShowItemsPerView
-      />
-    </div>
-  )
-}
-
-async function PerrosSection() {
-  const dogCategories = [
-    "MLA434760", // Comida
-    "MLA434757", // Juguetes
-    "MLA370459", // Pretales
-    "MLA1076",   // Platos
-    "MLA434758", // Camas
-    "MLA434759", // Accesorios
-  ]
-
-  const products = (await getProductsVarietyCached(dogCategories, 12)).slice(0, 12)
-  if (!products.length) return null
-
-  return (
-    <div className={styles.productsBg}>
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
-          <Link href="/categoria/perros" className={styles.seeAll}>
-            Ver más →
-          </Link>
-        </div>
-        <Carousel
-          products={products}
-          itemsPerView={4}
-          scrollStep={2}
-          alwaysShowItemsPerView
-        />
-      </div>
-    </div>
-  )
-}
-
-async function GatosSection() {
-  const products = (await getCatProductsVarietyCached(12)).slice(0, 12)
-  if (!products.length) return null
-
-  return (
-    <div className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>🐈 Para <span>gatos</span></h2>
-        <Link href="/categoria/gatos" className={styles.seeAll}>
-          Ver más →
-        </Link>
-      </div>
-      <CarouselGatos
-        products={products}
-        itemsPerView={4}
-        scrollStep={2}
-        alwaysShowItemsPerView
-      />
-    </div>
-  )
-}
-
-async function PetsHighlightsSection() {
-  const products = await getPetsHighlightsCached(12)
-  if (!products.length) return null
-
-  return (
-    <div className={styles.productsBg}>
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>🐾 Lo mejor para tus <span>mascotas</span></h2>
-          <Link href="/categoria/mascotas" className={styles.seeAll}>Ver todos →</Link>
-        </div>
-        <CarouselMascotas products={products} itemsPerView={4} scrollStep={2} />
-      </div>
-    </div>
-  )
-}
-
-async function AccesoriosSection() {
-  const products = (await getAccessoriesVarietyCached(12)).slice(0, 12)
-  if (!products.length) return null
-
-  return (
-    <div className={styles.productsBg}>
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>🎒 <span>Accesorios</span> y collares</h2>
-          <Link href="/categoria/accesorios" className={styles.seeAll}>Ver todos →</Link>
-        </div>
-        <CarouselAccesorios
-          products={products}
-          itemsPerView={4}
-          scrollStep={2}
-          alwaysShowItemsPerView
-        />
-      </div>
-    </div>
-  )
-}
-
-// ── HOME ──────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const categories = [
@@ -156,6 +13,19 @@ export default function HomePage() {
     { name: "Camas",          href: "/categoria/camas",           emoji: "🛏️" },
     { name: "Arena gato",     href: "/categoria/arena-gato",      emoji: "🧂" },
   ]
+
+  const perros = productosCurados.filter(p =>
+    ["collares", "camas", "juguetes", "accesorios"].includes(p.categoria) &&
+    p.mascota === "perro"
+  ).slice(0, 8)
+
+  const gatos = productosCurados.filter(p =>
+    ["collares", "camas", "juguetes", "accesorios"].includes(p.categoria) &&
+    p.mascota === "gato"
+  ).slice(0, 8)
+
+  const accesorios = productosCurados.filter(p => p.categoria === "accesorios")
+  const totalProductos = productosCurados.length
 
   return (
     <>
@@ -211,8 +81,8 @@ export default function HomePage() {
                 Si no me copa, no lo publicamos.
               </div>
               <div className={styles.statSingle}>
-                <span className={styles.statNum}>500+</span>
-                <span className={styles.statLabel}>productos aprobados</span>
+                <span className={styles.statNum}>{totalProductos}</span>
+                <span className={styles.statLabel}>productos aprobados por Osvaldo</span>
               </div>
               <Link href="/sobre-osvaldo#como-funciona" className="btn btn-fill">
                 🛍 Cómo funciona →
@@ -242,55 +112,99 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── MASCOTAS DESTACADOS ── */}
-      <Suspense fallback={
-        <div className={styles.productsBg}>
-          <div className={styles.section}>
-            <SectionSkeleton count={4} />
+      {/* ── PERROS ── */}
+      <div className={styles.productsBg}>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>🐕 Para <span>perros</span></h2>
+            <Link href="/categoria/perros" className={styles.seeAll}>Ver más →</Link>
+          </div>
+          <div className={styles.grid4}>
+            {perros.map((p) => (
+              <ProductCard key={p.id} product={{
+                id: p.id,
+                name: p.titulo,
+                pictures: [{ id: "0", url: p.imagen }],
+                affiliateUrl: p.linkAfiliado,
+                price: 0,
+                condition: "new" as const,
+                free_shipping: false,
+                accepts_mercadopago: false,
+                currency_id: "ARS",
+                short_description: "",
+                main_features: [],
+                attributes: [],
+                domain_id: "",
+                status: "active",
+                item_id: p.id,
+                warranty: null,
+              }} />
+            ))}
           </div>
         </div>
-      }>
-        <PetsHighlightsSection />
-      </Suspense>
-
-      {/* ── DESTACADOS ── */}
-      <Suspense fallback={
-        <div className={styles.section}>
-          <SectionSkeleton count={4} />
-        </div>
-      }>
-        <FeaturedSection />
-      </Suspense>
-
-      {/* ── PERROS ── */}
-      <Suspense fallback={
-        <div className={styles.section}>
-          <SectionSkeleton count={4} />
-        </div>
-      }>
-        <PerrosSection />
-      </Suspense>
+      </div>
 
       {/* ── GATOS ── */}
-      <Suspense fallback={
-        <div className={styles.section}>
-          <SectionSkeleton count={4} />
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>🐈 Para <span>gatos</span></h2>
+          <Link href="/categoria/gatos" className={styles.seeAll}>Ver más →</Link>
         </div>
-      }>
-        <GatosSection />
-      </Suspense>
+        <div className={styles.grid4}>
+          {gatos.map((p) => (
+            <ProductCard key={p.id} product={{
+              id: p.id,
+              name: p.titulo,
+              pictures: [{ id: "0", url: p.imagen }],
+              affiliateUrl: p.linkAfiliado,
+              price: 0,
+              condition: "new" as const,
+              free_shipping: false,
+              accepts_mercadopago: false,
+              currency_id: "ARS",
+              short_description: "",
+              main_features: [],
+              attributes: [],
+              domain_id: "",
+              status: "active",
+              item_id: p.id,
+              warranty: null,
+            }} />
+          ))}
+        </div>
+      </div>
 
       {/* ── ACCESORIOS ── */}
-      <Suspense fallback={
-        <div className={styles.productsBg}>
-          <div className={styles.section}>
-            <SectionSkeleton count={4} />
+      <div className={styles.productsBg}>
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>🎒 <span>Accesorios</span></h2>
+            <Link href="/categoria/accesorios" className={styles.seeAll}>Ver más →</Link>
+          </div>
+          <div className={styles.grid4}>
+            {accesorios.map((p) => (
+              <ProductCard key={p.id} product={{
+                id: p.id,
+                name: p.titulo,
+                pictures: [{ id: "0", url: p.imagen }],
+                affiliateUrl: p.linkAfiliado,
+                price: 0,
+                condition: "new" as const,
+                free_shipping: false,
+                accepts_mercadopago: false,
+                currency_id: "ARS",
+                short_description: "",
+                main_features: [],
+                attributes: [],
+                domain_id: "",
+                status: "active",
+                item_id: p.id,
+                warranty: null,
+              }} />
+            ))}
           </div>
         </div>
-      }>
-        <AccesoriosSection />
-      </Suspense>
-
+      </div>
     </>
   )
 }

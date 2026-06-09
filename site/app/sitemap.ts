@@ -21,5 +21,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified:    now,
   }))
 
-  return [...staticPages, ...categoryPages]
+  const guiasSlugs = [
+    "mejor-alimento-perro-adulto-raza-grande-argentina-2026",
+  ]
+
+  const guiasPages = [
+    { url: `${baseUrl}/guias`, priority: 0.8, changeFrequency: "weekly" as const, lastModified: now },
+    ...guiasSlugs.map((slug) => ({
+      url: `${baseUrl}/guias/${slug}`,
+      priority: 0.8,
+      changeFrequency: "monthly" as const,
+      lastModified: now,
+    })),
+  ]
+
+  return [...staticPages, ...categoryPages, ...guiasPages]
 }

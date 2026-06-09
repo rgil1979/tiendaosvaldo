@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
-import type { MLProductFull } from "@/lib/mercadolibre"
+import type { ProductoCurado } from "@/data/productos-curados"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
 import loadingStyles from "@/app/buscar/loading.module.css"
 
 interface Props {
-  products:      MLProductFull[]
+  products:      ProductoCurado[]
   page:          number
   totalPages:    number
   slug:          string
@@ -45,7 +45,27 @@ export default function CategoryResults({ products, page, totalPages, slug, masc
       ) : (
         <div className={styles.productsGrid}>
           {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard
+              key={p.id}
+              product={{
+                id: p.id,
+                name: p.titulo,
+                pictures: [{ id: "0", url: p.imagen }],
+                affiliateUrl: p.linkAfiliado,
+                price: 0,
+                condition: "new" as const,
+                free_shipping: false,
+                accepts_mercadopago: false,
+                currency_id: "ARS",
+                short_description: "",
+                main_features: [],
+                attributes: [],
+                domain_id: "",
+                status: "active",
+                item_id: p.id,
+                warranty: null,
+              }}
+            />
           ))}
         </div>
       )}

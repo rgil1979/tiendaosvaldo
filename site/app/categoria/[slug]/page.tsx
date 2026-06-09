@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SLUG_CONFIG } from "@/config/site.config"
-import { getProductsFiltered } from "@/lib/mercadolibre"
+import { getProductosByCategoria, productosCurados } from "@/data/productos-curados"
 import { getAllCategoriesForTree, getCategoryBySlug } from "@/lib/categories"
 import CategoryResults from "./CategoryResults"
 import CategoryTree from "./CategoryTree"
@@ -11,8 +11,7 @@ import styles from "./page.module.css"
 export const revalidate = 3600
 
 interface Props {
-  params:       Promise<{ slug: string }>
-  searchParams: Promise<{ pagina?: string; mascota?: string }>
+  params: Promise<{ slug: string }>
 }
 
 export function generateStaticParams() {
@@ -38,13 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-const LIMIT      = 16
-const MAX_TOTAL  = 300
-const MAX_PAGES  = Math.ceil(MAX_TOTAL / LIMIT)
-
-export default async function CategoryPage({ params, searchParams }: Props) {
+export default async function CategoryPage({ params }: Props) {
   const { slug } = await params
-  const qp = await searchParams
   const cfg = SLUG_CONFIG[slug]
 
   const [treeCategories, dbCat] = await Promise.all([
@@ -52,21 +46,24 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     getCategoryBySlug(slug),
   ])
 
-  if (!cfg && !dbCat) notFound()
+  let products = getProductosByCategoria(slug)
 
-  const mascotaFilter = qp?.mascota ?? ""
-  const page = Math.min(Math.max(1, parseInt(qp.pagina ?? "1", 10)), MAX_PAGES)
-  const offset = (page - 1) * LIMIT
+  if (slug === "perros") {
+    products = productosCurados.filter(p => p.mascota === "perro")
+  } else if (slug === "gatos") {
+    products = productosCurados.filter(p => p.mascota === "gato")
+  } else if (slug === "mascotas" || slug === "accesorios" || slug === "juguetes") {
+    if (products.length === 0) {
+      products = productosCurados
+    }
+  }
 
-  const { products, total } = await getProductsFiltered({
-    domainIds: (cfg?.domainId) ? [cfg.domainId] : undefined,
-    query:     cfg ? cfg.query : dbCat?.name,
-    mascota:   mascotaFilter as "perro" | "gato" | "ambas" | null,
-    limit:     LIMIT,
-    offset,
-  })
+  const total = products.length
+  const totalPages = 1
+  const page = 1
 
-  const totalPages = Math.ceil(total / LIMIT) || 1
+  if (!cfg && !dbCat && products.length === 0) notFound()
+
   const label = cfg?.label ?? dbCat?.name ?? ""
   const emoji = cfg?.emoji ?? "🐾"
 
@@ -127,9 +124,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             <span className={styles.resultsCount}>
               {total > 0 ? `${total.toLocaleString("es-AR")} productos` : label}
             </span>
-            {totalPages > 1 && (
-              <span className={styles.pageInfo}>Página {page} de {totalPages}</span>
-            )}
           </div>
 
           {products.length > 0 ? (
@@ -138,7 +132,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               page={page}
               totalPages={totalPages}
               slug={slug}
-              mascotaFilter={mascotaFilter ?? ""}
+              mascotaFilter=""
             />
           ) : (
             <div className={styles.empty}>
