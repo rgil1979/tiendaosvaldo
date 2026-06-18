@@ -41,7 +41,7 @@ export const siteConfig = {
     defaultTitle: "Tienda Osvaldo — El pet shop aprobado por Osvaldo",
     titleTemplate: "%s — Tienda Osvaldo",
     defaultDescription: "Encontrá los mejores accesorios, alimentos y juguetes para perros y gatos. Aprobado por Osvaldo, disponible en Mercado Libre.",
-    ogImage: "/og-image.jpg",
+    ogImage: "/img/og-image.jpg",
   },
 } as const
 
@@ -114,3 +114,8 @@ export const navConfig = {
     ],
   },
 } as const
+
+export const ogBase = {
+  siteName: siteConfig.name,
+  images:   [{ url: '/img/og-image.jpg', width: 1200, height: 630 }],
+}

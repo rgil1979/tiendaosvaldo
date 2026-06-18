@@ -1,7 +1,7 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { SLUG_CONFIG } from "@/config/site.config"
+import { SLUG_CONFIG, ogBase } from "@/config/site.config"
 import { getProductosByCategoria, productosCurados } from "@/data/productos-curados"
 import { getAllCategoriesForTree, getCategoryBySlug } from "@/lib/categories"
 import CategoryResults from "./CategoryResults"
@@ -21,11 +21,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const cfg = SLUG_CONFIG[slug]
+
   if (cfg) {
     return {
       title:       cfg.label,
       description: `${cfg.label} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
-      openGraph:   { title: `${cfg.label} — Tienda Osvaldo` },
+      openGraph:   { ...ogBase, title: `${cfg.label} — Tienda Osvaldo` },
       robots:      { index: true, follow: true },
     }
   }
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title:       dbCat.name,
     description: `${dbCat.name} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
-    openGraph:   { title: `${dbCat.name} — Tienda Osvaldo` },
+    openGraph:   { ...ogBase, title: `${dbCat.name} — Tienda Osvaldo` },
     robots:      { index: true, follow: true },
   }
 }

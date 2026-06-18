@@ -1,11 +1,12 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import { ogBase } from "@/config/site.config"
 import styles from "./page.module.css"
 
 export const metadata: Metadata = {
-  title: "Guías para mascotas",
+  title:       "Guías para mascotas",
   description: "Guías y comparativas para elegir los mejores productos para tu perro o gato. Aprobadas por Osvaldo.",
-  openGraph: { title: "Guías para mascotas — Tienda Osvaldo" },
+  openGraph: { ...ogBase, title: "Guías para mascotas — Tienda Osvaldo" },
 }
 
 const guias = [

@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import { ogBase } from "@/config/site.config"
 import { productosCurados } from "@/data/productos-curados"
 import ProductCard from "@/components/ProductCard"
 
@@ -15,7 +16,7 @@ const GUIAS: Record<string, {
   productosRelacionados: string[]
 }> = {
   "mejor-alimento-perro-adulto-raza-grande-argentina-2026": {
-    titulo: "Mejor alimento para perro adulto raza grande Argentina 2026",
+    titulo: "Mejor alimento perro adulto raza grande Argentina 2026",
     descripcion: "Comparativa real de las mejores marcas disponibles en Argentina: Royal Canin, Pro Plan, Eukanuba y más.",
     productosRelacionados: ["col-p-001", "cam-p-001", "jug-p-001"],
     contenido: `
@@ -94,10 +95,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const guia = GUIAS[slug]
   if (!guia) return { robots: { index: false, follow: false } }
   return {
-    title:     guia.titulo,
+    title:       guia.titulo,
     description: guia.descripcion,
-    openGraph: { title: `${guia.titulo} — Tienda Osvaldo` },
-    robots:    { index: true, follow: true },
+    openGraph: { ...ogBase, title: `${guia.titulo} — Tienda Osvaldo` },
+    robots: { index: true, follow: true },
   }
 }
 
