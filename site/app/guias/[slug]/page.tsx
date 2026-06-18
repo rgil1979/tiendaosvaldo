@@ -94,9 +94,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const guia = GUIAS[slug]
   if (!guia) return { robots: { index: false, follow: false } }
   return {
-    title: `${guia.titulo} — Tienda Osvaldo`,
+    title:     guia.titulo,
     description: guia.descripcion,
-    robots: { index: true, follow: true },
+    openGraph: { title: `${guia.titulo} — Tienda Osvaldo` },
+    robots:    { index: true, follow: true },
   }
 }
 

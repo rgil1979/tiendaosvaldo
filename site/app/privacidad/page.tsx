@@ -4,8 +4,9 @@ import LegalLayout from "@/components/LegalLayout"
 import styles from "../legal.module.css"
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad",
+  title:     "Política de Privacidad",
   description: "Política de privacidad de Tienda Osvaldo.",
+  openGraph: { title: "Política de Privacidad — Tienda Osvaldo" },
 }
 
 export default function PrivacidadPage() {

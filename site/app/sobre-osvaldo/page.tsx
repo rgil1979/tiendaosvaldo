@@ -5,8 +5,9 @@ import { siteConfig } from "@/config/site.config"
 import styles from "./page.module.css"
 
 export const metadata: Metadata = {
-  title: "Sobre Osvaldo",
+  title:     "Sobre Osvaldo",
   description: "La historia detrás de Tienda Osvaldo: cómo funciona y por qué confiamos en el criterio de un perro mestizo.",
+  openGraph: { title: "Sobre Osvaldo — Tienda Osvaldo" },
 }
 
 export default function SobreOsvaldoPage() {

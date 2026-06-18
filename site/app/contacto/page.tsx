@@ -6,8 +6,9 @@ import ContactForm from "./ContactForm"
 import styles from "../legal.module.css"
 
 export const metadata: Metadata = {
-  title:       "Contacto — Tienda Osvaldo",
+  title:       "Contacto",
   description: "¿Tenés una pregunta o sugerencia? Escribinos. Respondemos en 24 a 48 horas hábiles.",
+  openGraph:   { title: "Contacto — Tienda Osvaldo" },
 }
 
 export default function ContactoPage() {

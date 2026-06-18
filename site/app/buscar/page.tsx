@@ -13,8 +13,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const sp = await searchParams
   const q  = sp.q?.trim() ?? ""
   return {
-    title:       q ? `"${q}" — Tienda Osvaldo` : "Buscar — Tienda Osvaldo",
+    title:       q ? `Buscar: "${q}"` : "Buscar",
     description: q ? `Productos destacados para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
+    openGraph:   { title: q ? `Buscar: "${q}" — Tienda Osvaldo` : "Buscar — Tienda Osvaldo" },
     robots:      { index: false, follow: false },
   }
 }

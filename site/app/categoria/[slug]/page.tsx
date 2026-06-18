@@ -23,16 +23,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cfg = SLUG_CONFIG[slug]
   if (cfg) {
     return {
-      title:       `${cfg.label} — Tienda Osvaldo`,
+      title:       cfg.label,
       description: `${cfg.label} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
+      openGraph:   { title: `${cfg.label} — Tienda Osvaldo` },
       robots:      { index: true, follow: true },
     }
   }
   const dbCat = await getCategoryBySlug(slug)
   if (!dbCat) return { robots: { index: false, follow: false } }
   return {
-    title:       `${dbCat.name} — Tienda Osvaldo`,
+    title:       dbCat.name,
     description: `${dbCat.name} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
+    openGraph:   { title: `${dbCat.name} — Tienda Osvaldo` },
     robots:      { index: true, follow: true },
   }
 }

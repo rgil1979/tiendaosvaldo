@@ -5,8 +5,9 @@ import LegalLayout from "@/components/LegalLayout"
 import styles from "../legal.module.css"
 
 export const metadata: Metadata = {
-  title: "Términos de Uso",
+  title:     "Términos de Uso",
   description: "Términos de uso de Tienda Osvaldo.",
+  openGraph: { title: "Términos de Uso — Tienda Osvaldo" },
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
