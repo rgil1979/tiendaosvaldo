@@ -75,15 +75,21 @@
   gap: 10px;
 }
 
-.colLinks a {
+.colLinks a,
+.colLinks button {
   font-size: 13px;
   color: rgba(255,255,255,.5);
   text-decoration: none;
   font-weight: 500;
   transition: var(--transition);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
-.colLinks a:hover {
+.colLinks a:hover,
+.colLinks button:hover {
   color: rgba(255,255,255,.9);
 }
 
