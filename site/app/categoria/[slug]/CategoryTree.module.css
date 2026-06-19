@@ -143,3 +143,48 @@
   background: var(--orange-soft);
   color: var(--orange);
 }
+
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  padding: 20px 24px 14px;
+  border-top: 1px solid var(--sand);
+  border-bottom: 1px solid var(--sand);
+  margin-top: 4px;
+}
+
+.filterClear {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--orange);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.filterRow {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  padding: 0 8px 0 24px;
+}
+
+.treeCountActive {
+  background: var(--orange);
+  color: var(--white);
+}

@@ -4,8 +4,7 @@ import { notFound } from "next/navigation"
 import { SLUG_CONFIG, ogBase } from "@/config/site.config"
 import { getProductosByCategoria, productosCurados } from "@/data/productos-curados"
 import { getAllCategoriesForTree, getCategoryBySlug } from "@/lib/categories"
-import CategoryResults from "./CategoryResults"
-import CategoryTree from "./CategoryTree"
+import CategoryPageClient from "./CategoryPageClient"
 import styles from "./page.module.css"
 
 export const revalidate = 3600
@@ -62,8 +61,6 @@ export default async function CategoryPage({ params }: Props) {
   }
 
   const total = products.length
-  const totalPages = 1
-  const page = 1
 
   if (!cfg && !dbCat && products.length === 0) notFound()
 
@@ -76,7 +73,6 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <>
-      {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
         <div className={styles.breadcrumbInner}>
           <Link href="/">Inicio</Link>
@@ -85,7 +81,6 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Header */}
       <div className={styles.catHeader}>
         <div className={styles.catHeaderInner}>
           <div className={styles.catHeaderLeft}>
@@ -109,43 +104,11 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Layout */}
-      <div className={styles.pageBody}>
-
-        {/* Sidebar */}
-        <aside className={styles.sidebar}>
-          <CategoryTree
-            key={slug}
-            categories={treeCategories}
-            currentSlug={slug}
-          />
-        </aside>
-
-        {/* Productos */}
-        <div className={styles.productsArea}>
-          <div className={styles.toolbar}>
-            <span className={styles.resultsCount}>
-              {total > 0 ? `${total.toLocaleString("es-AR")} productos` : label}
-            </span>
-          </div>
-
-          {products.length > 0 ? (
-            <CategoryResults
-              products={products}
-              page={page}
-              totalPages={totalPages}
-              slug={slug}
-              mascotaFilter=""
-            />
-          ) : (
-            <div className={styles.empty}>
-              <span>🐾</span>
-              <p>No encontramos productos en este momento.</p>
-              <Link href="/" className="btn btn-ghost">Volver al inicio</Link>
-            </div>
-          )}
-        </div>
-      </div>
+      <CategoryPageClient
+        products={products}
+        treeCategories={treeCategories}
+        currentSlug={slug}
+      />
     </>
   )
 }
