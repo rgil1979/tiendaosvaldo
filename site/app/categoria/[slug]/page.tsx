@@ -67,8 +67,12 @@ export default async function CategoryPage({ params }: Props) {
   const label = cfg?.label ?? dbCat?.name ?? ""
   const emoji = cfg?.emoji ?? "🐾"
 
+  const currentMascota = cfg?.mascota
   const siblings = Object.entries(SLUG_CONFIG).filter(
-    ([s]) => s !== slug && !["mascotas", "alimentacion"].includes(s)
+    ([s, info]) =>
+      s !== slug &&
+      !["mascotas", "alimentacion"].includes(s) &&
+      !(currentMascota && info.mascota && info.mascota !== currentMascota)
   )
 
   return (

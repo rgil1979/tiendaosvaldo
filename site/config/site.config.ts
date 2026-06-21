@@ -60,17 +60,18 @@ export const SLUG_CONFIG: Record<string, {
   domainId:      string
   query:         string   // siempre requerido — filtra correctamente por tipo de mascota
   hlCategoryId?: string   // solo categorías donde highlights son homogéneos (sin mezcla)
+  mascota?:      "perro" | "gato"
 }> = {
   // domainId + query garantizan resultados filtrados (domain solo da 0 sin q)
-  "alimento-perro": { label: "Alimento para perros", emoji: "🍖", domainId: "MLA-CAT_AND_DOG_FOODS", query: "perro",               hlCategoryId: "MLA434760" },
-  "alimento-gato":  { label: "Alimento para gatos",  emoji: "🐟", domainId: "MLA-CAT_AND_DOG_FOODS", query: "gato",                hlCategoryId: "MLA1081"   },
+  "alimento-perro": { label: "Alimento para perros", emoji: "🍖", domainId: "MLA-CAT_AND_DOG_FOODS", query: "perro",               hlCategoryId: "MLA434760", mascota: "perro" },
+  "alimento-gato":  { label: "Alimento para gatos",  emoji: "🐟", domainId: "MLA-CAT_AND_DOG_FOODS", query: "gato",                hlCategoryId: "MLA1081",   mascota: "gato"  },
   "collares":       { label: "Collares y correas",   emoji: "🦮", domainId: "MLA-PET_COLLARS",        query: "collar"                                       },
   "camas":          { label: "Camas y cuchas",        emoji: "🛏️", domainId: "MLA-CAT_AND_DOG_BEDS",   query: "cama",               hlCategoryId: "MLA11060"  },
-  "arena-gato":     { label: "Arena para gatos",     emoji: "🧂", domainId: "MLA-CATS_LITTER",        query: "arena gato",                                    },
+  "arena-gato":     { label: "Arena para gatos",     emoji: "🧂", domainId: "MLA-CATS_LITTER",        query: "arena gato",                                    mascota: "gato"  },
   "mascotas":       { label: "Mascotas",              emoji: "🐾", domainId: "",                       query: "mascota",            hlCategoryId: "MLA1071"   },
   // perros/gatos: sin domainId → multi-dominio → muestra alimentos, camas, collares, etc. filtrados por especie
-  "perros":         { label: "Perros",                emoji: "🐕", domainId: "",                       query: "perro"                                          },
-  "gatos":          { label: "Gatos",                 emoji: "🐈", domainId: "",                       query: "gato"                                           },
+  "perros":         { label: "Perros",                emoji: "🐕", domainId: "",                       query: "perro",                                          mascota: "perro" },
+  "gatos":          { label: "Gatos",                 emoji: "🐈", domainId: "",                       query: "gato",                                           mascota: "gato"  },
   "accesorios":     { label: "Accesorios",            emoji: "🎒", domainId: "",                       query: "accesorio mascota"                                      },
   "alimentacion":   { label: "Alimentación",          emoji: "🍖", domainId: "MLA-CAT_AND_DOG_FOODS",  query: "alimento",           hlCategoryId: "MLA434760" },
   "juguetes":       { label: "Juguetes",              emoji: "🧸", domainId: "",                       query: "juguete mascota",    hlCategoryId: "MLA1074"   },

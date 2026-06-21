@@ -88,6 +88,53 @@ Todas las marcas de esta guía están disponibles en Mercado Libre con envío a 
 *Esta guía está basada en las fichas técnicas oficiales de cada marca y no reemplaza la consulta con un médico veterinario. Los precios varían constantemente — siempre verificá el precio actual en Mercado Libre antes de comprar. Última actualización: junio 2026.*
     `,
   },
+  "arena-gatos-aglutinante-vs-silice-argentina-2026": {
+    titulo: "Arena para gatos: aglutinante o sílice",
+    descripcion: "Comparamos arena aglutinante y de sílice para gatos: cuál absorbe mejor, cuál rinde más por peso y cuál conviene según tu presupuesto y cuántos gatos tenés.",
+    productosRelacionados: ["are-g-001", "are-g-002", "are-g-003", "are-g-004", "are-g-005"],
+    contenido: `
+## Por qué esta decisión te va a perseguir todos los días
+
+Osvaldo cambió de arena cuatro veces antes de quedarse con una combinación fija. No porque las anteriores fueran malas, sino porque nadie le explicó que aglutinante y sílice resuelven problemas distintos — eligió por precio la primera vez y terminó limpiando el arenero dos veces por día igual.
+
+## Aglutinante vs sílice: qué es cada una
+
+**Arena aglutinante (bentonita):** al contacto con la orina forma una bola compacta que se levanta entera con la pala. Es la más vendida en Argentina — marcas como Rubicat, CanCat, Sanicat, Cat Love y Zootec se consiguen en Mercado Libre sin problema. El residuo sólido sale, el resto de la arena queda limpia y se repone solo lo que falta.
+
+**Arena de sílice (cristales):** no forma bolas, absorbe la orina dentro del cristal y cambia de color cuando está saturado. No se "junta" como la aglutinante: se reemplaza toda la carga cuando los cristales ya no absorben, generalmente cada 3-4 semanas para un gato.
+
+## Comparación directa
+
+- **Limpieza diaria:** aglutinante exige sacar la bola todos los días; sílice solo exige sacar sólidos, el líquido lo absorbe el cristal sin intervención.
+- **Polvo:** la aglutinante de bentonita genera más polvo al verterla y al pisarla; la sílice es prácticamente libre de polvo — relevante si vos o tu gato tienen sensibilidad respiratoria.
+- **Olor:** la sílice tiende a controlar mejor el olor de orina porque lo absorbe en el cristal; la aglutinante depende más de la frecuencia de limpieza.
+- **Peso y rastro:** la aglutinante es más pesada por litro y se pega más a las patas; la sílice es más liviana pero el cristal se puede esparcir igual.
+- **Costo por mes:** la aglutinante suele ser más barata por kilo pero rinde menos tiempo; la sílice cuesta más por bolsa pero dura más semanas con un solo gato — el costo mensual real depende de cuántos gatos tenés, no del precio de góndola.
+- **Multi-gato:** con dos o más gatos la sílice se satura mucho más rápido y deja de ser conveniente en costo — ahí la aglutinante gana.
+
+## ¿Cuál conviene según tu situación?
+
+- **Tenés un solo gato y odiás la rutina de limpieza diaria:** la sílice es la opción técnica más cómoda por el menor mantenimiento diario.
+- **Tenés dos o más gatos:** aglutinante. La sílice se gasta demasiado rápido y termina saliendo más cara.
+- **Vos o alguien en tu casa tiene alergias o problemas respiratorios:** sílice, por el polvo.
+- **Estás ajustado de presupuesto y podés limpiar todos los días:** aglutinante, la opción más económica por mes en hogares de un gato con limpieza constante.
+- **Tu gato es mayor o tiene antecedentes urinarios:** ninguna arena reemplaza el control veterinario, pero la aglutinante te permite notar más rápido si hay sangre o cambios en el tamaño de la bola — la sílice oculta eso.
+
+## Errores comunes
+
+No mezcles aglutinante y sílice en el mismo arenero — la combinación arruina las dos: la sílice no absorbe bien con bentonita encima, y la bentonita no aglutina bien sobre cristales. Tampoco cambies de tipo de arena de un día para el otro: a los gatos no les gusta la textura nueva y algunos directamente dejan de usar el arenero — la transición se hace mezclando gradualmente durante una semana.
+
+## Veredicto de Osvaldo
+
+✅ Tenés un gato y te importa el olor más que el precio: la sílice es la mejor opción técnica, aunque hoy en Tienda Osvaldo el catálogo arranca con aglutinante — la sumamos pronto.
+✅ Dos o más gatos, o presupuesto ajustado: aglutinante, sin vueltas.
+❌ Lo que no conviene nunca: comprar la más barata sin mirar de qué está hecha — hay aglutinantes de mala calidad que no compactan bien y terminan costando más porque las usás el doble de rápido.
+
+## Dónde comprar en Argentina
+
+Las opciones de aglutinante de esta guía están disponibles en Mercado Libre con envío a todo el país. Los precios cambian seguido — confirmá el valor actual antes de comprar.
+    `,
+  },
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

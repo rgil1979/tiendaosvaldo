@@ -16,6 +16,12 @@ const guias = [
     descripcion: "Comparativa real de las mejores marcas disponibles en Argentina: Royal Canin, Pro Plan, Eukanuba y más.",
     emoji: "🐕",
   },
+  {
+    slug: "arena-gatos-aglutinante-vs-silice-argentina-2026",
+    titulo: "Arena para gatos: aglutinante o sílice",
+    descripcion: "Comparamos arena aglutinante y de sílice para gatos: cuál absorbe mejor, cuál rinde más por peso y cuál conviene según tu presupuesto y cuántos gatos tenés.",
+    emoji: "🐈",
+  },
 ]
 
 export default function GuiasPage() {
