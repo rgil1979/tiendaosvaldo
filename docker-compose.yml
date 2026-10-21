@@ -3,7 +3,8 @@ services:
     image: node:20-alpine
     restart: unless-stopped
     working_dir: /app
-    command: sh -c "npm install && npm run build && npm run start"
+    # El build lo hace deploy/deploy.sh antes de reiniciar; acá solo se arranca.
+    command: sh -c "npm install --no-audit --no-fund && npm run start"
     volumes:
       - /docker/tiendaosvaldo/site:/app
       - tiendaosvaldo_node_modules:/app/node_modules
