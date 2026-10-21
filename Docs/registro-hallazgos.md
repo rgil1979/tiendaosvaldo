@@ -11,11 +11,59 @@
 3. **Desde mediados de agosto las fichas perdieron cerca del 40 % de sus impresiones**, en dos escalones que coinciden con los spam updates de Google de agosto y septiembre. La falta de links internos quedó descartada como causa principal. Hipótesis principal: Google las trata como afiliación de bajo valor. (T36)
 4. **Los datos estructurados de las fichas no funcionan**: Google no detecta ningún dato de producto. (T36)
 5. **El sitemap está incompleto**: 19 URLs, sin la guía de arena, que es la página mejor posicionada. (T35)
-6. **Las categorías de alimento están vacías** aunque hay demanda: la ficha con más impresiones es un alimento. Hay oferta para llenarlas: 137 alimentos de catálogo tienen vendedores, varios con más de 30. (T08, H14)
+6. **Las categorías de alimento ya tienen productos**: 10 alimentos de catálogo con 13 o más vendedores, publicados el 21/10 (T08, H14). La guía de alimento para raza grande todavía muestra un arnés, un moisés y un juguete, y su texto recomienda marcas que el catálogo no tiene (T09, H16).
 7. **Analytics cuenta menos de lo real**: solo registra a quien acepta las cookies. (T34)
 8. **Todo lo que usa la API de Mercado Libre depende de un solo token.** Se volvió a autorizar el 21/10 (T37). La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
 
 Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
+
+---
+
+## 2026-10-21 · Guía de alimento para raza grande (T09)
+
+Tareas: T09, T08.
+
+**Fuentes**
+- Código: `site/app/guias/[slug]/page.tsx` (texto de la guía y `productosRelacionados`) y `site/data/productos-curados.ts`.
+- Search Console, rendimiento de 3 meses (19/7–18/10), tabla de páginas.
+- `alimentos-ml.json` (búsqueda del 21/10, H14), copia en la carpeta del proyecto.
+- Fichas oficiales argentinas, leídas el 21/10: [Royal Canin Maxi Adult](https://www.royalcanin.com/ar/dogs/products/retail-products/maxi-adult-3007), [Pro Plan Adulto Razas Grandes](https://www.purina.com.ar/proplan/perros/adulto/razas-grandes) y [Excellent Adulto Razas Medianas y Grandes](https://www.purina.com.ar/excellent/perros/adulto-pollo). La de Eukanuba Argentina no se pudo leer.
+
+### H16 · Cambiar las tarjetas no alcanza: la guía y el catálogo no coinciden
+
+**Dato.**
+- La guía analiza tres alimentos: Royal Canin Maxi Adult, Pro Plan Large Breed Adult y Eukanuba Large Breed Adult. Debajo, como "Productos aprobados por Osvaldo", muestra un arnés (`col-p-001`), un moisés (`cam-p-001`) y un juguete (`jug-p-001`).
+- De esos tres, el catálogo solo tiene Eukanuba Razas Grandes 15 kg (`ali-p-003`, MLA13363713, 36 vendedores). Royal Canin Maxi Adult y Pro Plan Razas Grandes Adulto no aparecieron en las 23 búsquedas de H14. Eso no prueba que no estén en el catálogo de Mercado Libre: cada búsqueda trae 15 resultados.
+- Excellent Adulto Razas Medianas y Grandes (`ali-p-001`), según Purina Argentina: los primeros ingredientes son harina de subproductos de pollo, maíz, trigo y arroz; proteína mínima 24 %. La guía dice que hay que buscar "proteína animal como primer ingrediente (pollo, res, cordero — no 'harina de subproductos')".
+- Nutrique Large Puppy (`ali-p-005`) es para cachorros. La guía es para adultos.
+- Lo que dice la guía, contra las fichas oficiales:
+  - Royal Canin Maxi Adult: primer ingrediente maíz, segundo harina de subproductos de pollo; proteína mínima 24 %; perros de 26 a 44 kg. **Correcto.**
+  - Pro Plan Adulto Razas Grandes: carne de pollo, arroz y harina de subproductos de pollo ("fuente natural de glucosamina"); proteína mínima 26 %; omega 3 y 6. No menciona EPA. **"Incluye glucosamina y EPA" es inexacto en lo de EPA.**
+  - Eukanuba Adulto Razas Grandes: "pollo como primer ingrediente". **Sin verificar** para la fórmula argentina.
+  - "Porcentaje de proteína: mínimo 22 % para adultos" no es un estándar. Los tres alimentos verificados declaran entre 24 % y 26 %.
+  - "Exceso de calcio acelera el crecimiento y daña las articulaciones" vale para cachorros de raza grande, no para adultos.
+- El texto cuenta experiencia propia: "Osvaldo lo aprendió de la manera difícil: un par de marcas genéricas y mucho tiempo en el veterinario. Hoy come solo lo que pasa el corte", y cada marca tiene un "Veredicto de Osvaldo". La guía de arena, a su vez, dice que "Osvaldo cambió de arena cuatro veces".
+- La guía dice "Última actualización: junio 2026".
+- Search Console, 3 meses: 20 impresiones, posición 7,65, 0 clics.
+- *Actualización (búsqueda en el servidor, 21/10 16:06; 3 búsquedas, 41 productos, 19 con vendedores):* Pro Plan Adulto Large Breed 15 kg (MLA22146528) tiene 23 vendedores, con tienda oficial. Hay un duplicado, "Pro Plan Adulto Large 15kg" (MLA21778290), con 4. De Royal Canin Maxi Adult aparecieron la bolsa de 3 kg (MLA43755362, 7 vendedores) y la de 13,6 kg (MLA33116170, 1 vendedor). Ninguna de 15 kg tiene vendedores.
+- *Respuestas de Rodrigo (21/10 16:19):* Osvaldo es un perro de tamaño mediano, y la anécdota de las marcas genéricas y el veterinario no es real. En la foto de la publicación de Eukanuba Razas Grandes, el primer ingrediente es carne de pollo.
+
+**Interpretación.**
+- Cambiar las tres tarjetas por alimentos cierra la tarea tal como está escrita. Pero si una de las tarjetas es Excellent, la guía muestra como "aprobado" un alimento que no cumple el criterio que ella misma da. Nutrique Puppy tampoco corresponde en una guía de adultos.
+- *Opinión:* lo coherente es que las tarjetas sean las tres marcas que la guía analiza.
+- *Opinión, después de la búsqueda:* Royal Canin queda sin tarjeta. La bolsa grande tiene un solo vendedor, el mismo riesgo que la ficha de Purina (H13). La de 3 kg tiene menos de 10 vendedores y es una bolsa chica para un perro grande. Además, la propia guía pone a Royal Canin tercera. Las tarjetas quedan en Pro Plan y Eukanuba.
+- Las dos anécdotas no pueden ser ciertas a la vez si Osvaldo es una sola mascota: o es un perro grande o usa arena para gatos. Una experiencia inventada en una guía con links de afiliado es un problema con el lector, y además encaja con el riesgo de "afiliación de bajo valor" de H5 (*especulación*: Google no explica cómo lo evalúa).
+- Con 20 impresiones en 3 meses, este arreglo no va a traer tráfico. Lo que resuelve es que la guía no contradiga lo que promete, que es el objetivo de la Fase 1.
+
+**Pendiente.**
+- Rodrigo: decidir qué productos van en la guía; confirmar si Osvaldo es un perro de raza grande y si la anécdota del veterinario es real; mirar en la bolsa o en las fotos de la publicación si el primer ingrediente de Eukanuba Razas Grandes es pollo.
+- Si van las tres marcas: buscar en el servidor los IDs de catálogo de Royal Canin Maxi Adult y Pro Plan Razas Grandes Adulto con vendedores (el script de H14 acepta búsquedas propias) y crear sus `meli.la`.
+
+**Decisiones (21/10).**
+- Tarjetas de la guía: Pro Plan Adulto Razas Grandes 15 kg (nuevo `ali-p-007`, MLA22146528, `meli.la/1c5uq7d`) y Eukanuba Razas Grandes 15 kg (`ali-p-003`). Royal Canin queda en el texto, sin tarjeta. Pro Plan también aparece en `/categoria/alimento-perro` y `/categoria/alimentacion`: el catálogo pasa a tener 11 alimentos.
+- Se sacó la anécdota del veterinario y "Veredicto de Osvaldo" pasó a "Veredicto". El título de las tarjetas de todas las guías pasó de "Productos aprobados por Osvaldo" a "Los productos de esta guía".
+- También se sacaron dos afirmaciones sin fuente: "las marcas más vendidas en Argentina" y "la opción más conocida y más vendida" (Royal Canin).
+- Queda la guía de arena, que dice que Osvaldo cambió de arena cuatro veces y tiene un "Veredicto de Osvaldo" (T41).
 
 ---
 
