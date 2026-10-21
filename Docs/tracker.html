@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracker · Tienda Osvaldo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Tokens tomados de site/styles/globals.css */
+:root{
+  --cream:#FBF6EE; --white:#FFFFFF; --orange:#E8622A; --orange-soft:#FFF0E8; --orange-ink:#A8441A;
+  --brown:#3D1F0D; --brown-mid:#7A4528; --sand:#F0DEC8; --sand-dark:#DEC4A4;
+  --green-soft:#EDF5EF; --green-ink:#2F6B40; --red-soft:#FCEBEB; --red-ink:#B42F2E; --muted:#7A5A4A;
+  --r:16px; --rl:24px; --rxl:32px;
+  --font-display:'Syne',system-ui,sans-serif; --font-body:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --max-width:1200px; --padding-x:48px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--cream);color:var(--brown);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font-family:var(--font-body);cursor:pointer}
+h1,h2,h3{font-family:var(--font-display);font-weight:800;line-height:1.1;letter-spacing:-.5px}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none !important}
+
+.header{background:var(--white);border-bottom:1px solid var(--sand);padding:0 var(--padding-x);position:sticky;top:0;z-index:20}
+.header-in{max-width:var(--max-width);margin:0 auto;min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:6px 0}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-mark{width:56px;height:56px;border-radius:10px;overflow:hidden;flex-shrink:0;background:var(--sand)}
+.logo-mark img{width:100%;height:100%;object-fit:cover;display:block}
+.logo-name{font-family:var(--font-display);font-size:18px;font-weight:800}
+.logo-name em{color:var(--orange);font-style:normal}
+.logo-tag{display:inline-block;margin-left:8px;padding:3px 10px;border-radius:50px;background:var(--orange-soft);color:var(--orange-ink);font-family:var(--font-body);font-size:12px;font-weight:700;vertical-align:middle}
+.header-actions{display:flex;align-items:center;gap:10px}
+.status-line{font-size:13px;color:var(--muted);font-weight:600;text-align:right}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:50px;font-weight:700;font-size:14px;padding:11px 20px;border:1.5px solid var(--sand-dark);background:transparent;color:var(--brown);white-space:nowrap;min-height:44px}
+.btn:hover{border-color:var(--brown);background:var(--white)}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.wrap{max-width:var(--max-width);margin:0 auto;padding:40px var(--padding-x) 64px;display:flex;flex-direction:column;gap:28px}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:stretch}
+.hero-main{background:var(--white);border:1.5px solid var(--sand);border-radius:var(--rxl);padding:32px;display:flex;flex-direction:column;gap:18px}
+.kicker{font-size:13px;font-weight:700;color:var(--orange-ink);letter-spacing:.02em}
+.hero h1{font-size:clamp(30px,4vw,44px)}
+.meta{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.meta code{background:var(--cream);border-radius:6px;padding:1px 6px;font-size:13px}
+.meta strong{color:var(--brown)}
+.progress{display:flex;flex-direction:column;gap:8px}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.progress-pct{font-family:var(--font-display);font-size:40px;font-weight:800;line-height:1}
+.progress-lbl{font-size:14px;color:var(--muted);font-weight:600}
+.bar{height:14px;border-radius:50px;background:var(--sand);overflow:hidden}
+.bar>span{display:block;height:100%;background:var(--orange);border-radius:50px;transition:width .4s ease}
+.bar.sm{height:8px}
+.counts{display:flex;flex-wrap:wrap;gap:8px}
+.owners{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;color:var(--muted)}
+.owners strong{color:var(--brown)}
+
+.next{background:var(--brown);color:var(--cream);border-radius:var(--rxl);padding:28px;display:flex;flex-direction:column;gap:14px}
+.next h2{font-size:22px;color:var(--white)}
+.next ol{list-style:none;display:flex;flex-direction:column;gap:10px}
+.next li a{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:var(--r);background:rgba(251,246,238,.08);text-decoration:none;color:var(--cream)}
+.next li a:hover{background:rgba(251,246,238,.16)}
+.next .nid{flex-shrink:0;font-weight:700;color:#F4A57F}
+.next .nown{display:block;font-size:12px;color:#E6D3BD;margin-top:2px}
+.next .none{font-size:14px;color:#E6D3BD}
+
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:50px;padding:5px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-pendiente{background:var(--sand);color:var(--brown)}
+.s-curso{background:var(--orange-soft);color:var(--orange-ink)}
+.s-hecho{background:var(--green-soft);color:var(--green-ink)}
+.s-bloqueado{background:var(--red-soft);color:var(--red-ink)}
+.s-otro{background:var(--white);color:var(--muted);border:1px solid var(--sand-dark)}
+
+.filters{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;background:var(--white);border:1.5px solid var(--sand);border-radius:var(--rl);padding:14px 16px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.seg-lbl{font-size:13px;font-weight:700;color:var(--muted);margin-right:4px}
+.chip{border:1.5px solid var(--sand);background:var(--white);color:var(--brown);border-radius:50px;padding:7px 14px;font-size:13px;font-weight:600;min-height:38px}
+.chip:hover{border-color:var(--sand-dark)}
+.chip[aria-pressed="true"]{background:var(--brown);border-color:var(--brown);color:var(--cream)}
+.chip .n{opacity:.7;margin-left:4px;font-weight:700}
+.search{flex:1 1 220px;display:flex;align-items:center;gap:8px;border:1.5px solid var(--sand);border-radius:50px;padding:0 14px;min-height:42px;background:var(--white)}
+.search:focus-within{border-color:var(--orange)}
+.search input{border:0;outline:0;flex:1;min-width:0;font:inherit;font-size:14px;color:var(--brown);background:transparent}
+.search input::placeholder{color:var(--muted)}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;min-height:42px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--orange)}
+
+#phases{display:flex;flex-direction:column;gap:20px}
+.phase{background:var(--white);border:1.5px solid var(--sand);border-radius:var(--rl);overflow:hidden}
+.phase-head{padding:22px 24px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px;align-items:flex-end;border-bottom:1.5px solid var(--sand)}
+.phase-head h2{font-size:24px}
+.phase-goal{font-size:15px;color:var(--muted);margin-top:6px;max-width:70ch}
+.phase-goal strong{color:var(--brown)}
+.phase-prog{min-width:200px;display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:var(--muted)}
+.rows{list-style:none}
+.row{display:grid;grid-template-columns:64px minmax(0,1fr) 150px 110px 120px;gap:8px 16px;align-items:start;padding:16px 24px;border-top:1px solid #F5EADC}
+.rows .row:first-child{border-top:0}
+.row-head{padding-top:10px;padding-bottom:10px;background:#FDF9F3;font-size:12px;font-weight:700;color:var(--muted)}
+.row.is-done .r-title{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--sand-dark)}
+.row.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,40%{background:var(--orange-soft)}100%{background:transparent}}
+.r-id{font-weight:700;font-size:13px;color:var(--orange-ink);padding-top:2px}
+.r-title{font-weight:600;font-size:15px;line-height:1.4}
+.r-notes{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.5}
+.r-notes code,.r-title code{background:var(--cream);border-radius:6px;padding:1px 6px;font-size:12.5px;color:var(--brown)}
+.r-notes a,.r-title a{color:var(--orange-ink);font-weight:600}
+.r-meta{display:contents}
+.r-owner{font-size:13px;font-weight:600;padding-top:2px}
+.r-prio{font-size:13px;font-weight:600;padding-top:2px;display:flex;align-items:center;gap:6px}
+.r-prio::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sand-dark)}
+.p-alta{color:var(--orange-ink)} .p-alta::before{background:var(--orange)}
+.p-media{color:var(--brown-mid)} .p-media::before{background:var(--brown-mid)}
+.p-baja{color:var(--muted)}
+.r-lbl{display:none;font-size:11px;font-weight:700;color:var(--muted);margin-right:4px}
+.empty{background:var(--white);border:1.5px dashed var(--sand-dark);border-radius:var(--rl);padding:28px;text-align:center;color:var(--muted)}
+.err{background:var(--red-soft);border:1.5px solid #F2C4C3;color:var(--red-ink);border-radius:var(--rl);padding:20px 24px;font-size:15px}
+.foot{max-width:var(--max-width);margin:0 auto;padding:0 var(--padding-x) 48px;font-size:13px;color:var(--muted)}
+.foot code{background:var(--white);border:1px solid var(--sand);border-radius:6px;padding:1px 6px}
+
+@media (max-width:1024px){:root{--padding-x:32px}}
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .row{grid-template-columns:52px minmax(0,1fr);gap:8px 12px}
+  .row .r-meta{grid-column:2;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+  .r-owner,.r-prio{padding-top:0}
+  .r-lbl{display:inline}
+  .row-head{display:none}
+}
+@media (max-width:768px){:root{--padding-x:20px}.hero-main,.next{padding:22px}.phase-head,.row{padding-left:16px;padding-right:16px}}
+@media (max-width:600px){.logo-tag,.status-line{display:none}.logo-mark{width:44px;height:44px}.header .btn{padding:9px 14px}}
+@media (max-width:480px){:root{--padding-x:16px}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-in">
+    <a class="logo" href="https://tiendaosvaldo.com.ar" target="_blank" rel="noopener" aria-label="Tienda Osvaldo (abre el sitio)">
+      <span class="logo-mark"><img src="../site/public/img/logo.jpeg" alt="" onerror="this.parentNode.style.display='none'"></span>
+      <span class="logo-name">Tienda <em>Osvaldo</em><span class="logo-tag">Tracker</span></span>
+    </a>
+    <div class="header-actions">
+      <span id="status-line" class="status-line" aria-live="polite"></span>
+      <button type="button" class="btn" id="btn-reload" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></svg>Recargar</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="err" class="err" hidden></div>
+
+  <section class="hero" id="hero">
+    <div class="hero-main">
+      <span class="kicker">Plan de reactivación</span>
+      <h1 id="doc-title">Tracker</h1>
+      <div class="meta" id="doc-meta"></div>
+      <div class="progress">
+        <div class="progress-top"><span class="progress-pct" id="pct">0%</span><span class="progress-lbl" id="pct-lbl"></span></div>
+        <div class="bar" role="progressbar" aria-label="Avance total" aria-valuemin="0" aria-valuemax="100" id="bar"><span style="width:0"></span></div>
+      </div>
+      <div class="counts" id="counts"></div>
+      <div class="owners" id="owners"></div>
+    </div>
+    <aside class="next" aria-labelledby="next-h">
+      <h2 id="next-h">Lo próximo</h2>
+      <ol id="next"></ol>
+    </aside>
+  </section>
+
+  <section class="filters" aria-label="Filtros">
+    <div class="seg" role="group" aria-label="Estado"><span class="seg-lbl">Estado</span><span id="f-status"></span></div>
+    <div class="seg" role="group" aria-label="Responsable"><span class="seg-lbl">Responsable</span><span id="f-owner"></span></div>
+    <label class="search"><span class="sr">Buscar tareas</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill:none;stroke:#7A5A4A;stroke-width:2;stroke-linecap:round"><path d="M4 11a7 7 0 1 0 14 0a7 7 0 1 0-14 0M20 20l-4-4"/></svg>
+      <input type="search" id="q" placeholder="Buscar tarea, nota o ID">
+    </label>
+    <label class="check"><input type="checkbox" id="hide-done">Ocultar las hechas</label>
+  </section>
+
+  <div id="phases"></div>
+  <p class="empty" id="empty" hidden>No hay tareas con esos filtros.</p>
+</main>
+
+<p class="foot">Esta página muestra el contenido de <strong>tracker.md</strong>. Después de editar el archivo, hacé doble clic en <code>actualizar-tracker.bat</code> (o corré <code>node Docs/actualizar-tracker.js</code>) y la página se abre con los cambios.</p>
+
+<!-- Copia de tracker.md. No la edites a mano: se reemplaza con actualizar-tracker.js -->
+<!-- TRACKER-MD:START -->
+<script type="text/markdown" id="tracker-md" data-updated="2026-10-21T17:05:23.367Z">
+# Tracker · Tienda Osvaldo
+
+> Actualizado: 2026-10-21
+> Estados: Pendiente · En curso · Hecho · Bloqueado
+> Hallazgos, datos y fuentes detrás de cada tarea: `registro-hallazgos.md` (en esta misma carpeta).
+> Para actualizar una tarea, cambiá la columna **Estado** (y si querés, las **Notas**). Después hacé doble clic en `actualizar-tracker.bat` y se abre `tracker.html` con los cambios.
+> Para Claude: cada vez que edites este archivo, regenerá `tracker.html` (`node Docs/actualizar-tracker.js`) copiá el mismo contenido al tracker del proyecto de Claude y mandale a Rodrigo los dos archivos (`tracker.md` y `tracker.html`).
+> Regla: las tareas que dependen de medir el alcance (visitas, clics o ventas) van a la fase "Más adelante" hasta que la medición sea confiable (T34).
+
+## Fase 0 · Diagnóstico
+
+Objetivo: entender por qué los clics cayeron a cero y por dónde llega (o no llega) la gente.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T01 | Verificar que los links meli.la abren la app de Mercado Libre en el celular | Rodrigo | Alta | Hecho | Verificado el 21/10: siempre abren la app. |
+| T02 | Revisar Analytics: visitas del último mes y páginas de destino | Rodrigo | Alta | Hecho | 21/10. Respuesta: el problema es que no llega gente. Analytics: 4 usuarios en 90 días (piso, porque solo cuenta a quien acepta las cookies). Search Console: 11 visitas desde Google en 3 meses. El número total real pasa a T34. |
+| T03 | Revisar Google Search Console: páginas indexadas e impresiones | Rodrigo | Alta | Hecho | 21/10. La indexación no es el problema: 144 páginas indexadas y 9 sin indexar, casi todas esperables (redirección de http a https, URLs basura `/&` y `/$`, `/categoria/paseo`, 3 fichas con noindex y 2 que Google rastreó y no indexó). Lo que falla es la posición (media 16,9). Hallazgos: 1) las 106 fichas `/producto/MLA…` indexadas (55 % de las impresiones y 6 de los 11 clics) no tienen links desde el sitio desde el 9/6 ni están en el sitemap (T36); 2) el sitemap tiene solo 19 URLs, no incluye la guía de arena ni las fichas, y Google no lo lee desde el 9/6 (T35). Exportaciones en la carpeta `search-console` del proyecto. |
+| T04 | Panel de afiliados: ver los últimos 90 días y la pestaña "Fecha" | Rodrigo | Media | Pendiente | Del 14 al 20/10 hubo 0 clics. Ver qué día se cortaron. |
+| T05 | Consultar a Mercado Libre: atribución dentro de la app y plazo de atribución | Rodrigo | Media | Pendiente | El mensaje está redactado en la conversación con Claude. |
+| T06 | Venta de prueba: un familiar o amigo compra por tu link | Rodrigo | Media | Pendiente | Que compre un producto distinto al del link. No compres con tu propio link hasta leer los términos del programa. |
+| T34 | Medición confiable del alcance: contar todas las visitas, no solo las de quien acepta cookies | Claude + Rodrigo | Media | Pendiente | Opciones: revisar los logs del servidor (Traefik) o sumar un contador de visitas sin cookies. Habilita las tareas de la fase "Más adelante". |
+
+## Fase 1 · Arreglos en el sitio actual
+
+Objetivo: que nada de lo publicado lleve a una página vacía ni contradiga lo que promete.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T07 | El botón principal de la home ("Ver productos") lleva a una categoría vacía | Claude | Alta | En curso | 21/10: el botón ahora lleva a `/categoria/mascotas`, que muestra los 92 productos. El cambio está en `site/app/page.tsx` y falta publicarlo. Cuando se resuelva T08 no hay que volver a cambiarlo: "Ver productos" tiene que mostrar todo el catálogo, no solo alimento. |
+| T08 | Categorías de alimento vacías (alimentación, alimento-perro, alimento-gato) | Rodrigo + Claude | Alta | Pendiente | El catálogo (`site/data/productos-curados.ts`) no tiene ningún alimento: los 92 productos son accesorios, arena, camas, collares y juguetes. Recomendación: llenarlas, no sacarlas. La página con más impresiones en Google es un alimento (Purina Excellent 22 kg, `/producto/MLA15152919`): hay demanda. Al elegir alimentos, preferir productos de catálogo que alguien venda: se pueden buscar y revisar con la API (T28). Además del botón de la home (T07), llevan a estas categorías vacías: los accesos "Alimento perro" y "Alimento gato" de la home, "Alimentación" en el menú y en el pie de todas las páginas, y los accesos rápidos de las páginas de categoría. |
+| T09 | La guía de alimento para raza grande recomienda un arnés, un moisés y un juguete | Rodrigo + Claude | Alta | Pendiente | Depende de T08. |
+| T10 | Crear etiquetas de seguimiento por ubicación (home, cada guía, Instagram) | Rodrigo | Alta | Pendiente | Se crean en el panel de afiliados, pestaña "Etiquetas de seguimiento". |
+| T11 | Aplicar las etiquetas de seguimiento a los links del sitio | Claude | Alta | Pendiente | Depende de T10. |
+| T12 | Quitar el cartel "Nuevo" de todos los productos | Claude | Baja | Pendiente | Lo tienen los 92 productos, así que no informa nada. |
+| T13 | Unificar "Collares y correas" y "Collares y arneses" | Claude | Baja | Pendiente | Hoy aparecen los dos nombres para la misma categoría. |
+| T14 | Verificar que el texto de las guías esté en el HTML inicial (SEO) | Claude | Media | Pendiente | Leyendo el sitio desde afuera solo aparecían el título y los productos. |
+| T33 | Verificar que los botones de las páginas `/producto/MLA…` generen comisión | Rodrigo + Claude | Alta | Pendiente | Esas 90 páginas son las que más aparecen en Google, pero su botón usa otro formato de link (`mercadolibre.com.ar/p/…?partner_id=…`) que los meli.la del resto del sitio. Prueba: clic en el botón de una ficha y revisar al día siguiente si el clic aparece en el panel de afiliados. Hacerla con Eukanuba (`/producto/MLA11212944`), que tiene vendedores; la de Purina no. |
+| T35 | Completar el sitemap: guía de arena, fichas que se mantengan, categorías reales y fecha de modificación real | Claude | Media | Pendiente | Hoy lista 19 URLs. Falta la guía de arena, que es la página mejor posicionada (7,5); Google la encontró por el link desde /guias. La fecha de modificación es siempre "ahora", así que Google no puede usarla. Después de publicarlo, reenviarlo en Search Console. Para las fichas depende de T36. |
+| T36 | Decidir qué hacer con las 106 fichas `/producto/MLA…`: volver a enlazarlas desde el sitio o dejarlas caer | Rodrigo + Claude | Alta | Pendiente | Depende de T33. Desde el 9/6 las tarjetas llevan directo a Mercado Libre y ninguna página enlaza a las fichas; Google las conserva por lo que rastreó antes. Son un catálogo distinto al curado: salen de la API, no de `productos-curados.ts`. Si T33 confirma comisión, enlazarlas y sumarlas al sitemap. Si no, cambiar su botón por un link que comisione. Riesgo: si la API de Mercado Libre falla cuando pasa Google, la ficha sale con noindex o 404. Dato del 21/10: desde mediados de agosto las fichas perdieron cerca del 40 % de las impresiones semanales (el resto del sitio, cerca del 10 %), sin perder posición media ni indexación. La caída fue en dos escalones que coinciden con los spam updates de Google (18–21/8 y 24/9–8/10). Hipótesis principal: Google las trata como "afiliación de bajo valor" (texto y fotos copiados de Mercado Libre más un botón de afiliado). Si es así, volver a enlazarlas no alcanza: hay que agregarles contenido propio o sacarlas del índice. Comparación 20/7–17/8 contra 21/9–18/10, ficha por ficha: las 17 que Google no rastrea desde antes del 18/8 mantuvieron sus impresiones (81 → 82), y las rastreadas desde el 24/9 perdieron (94 → 64). Eso descarta la falta de links como causa principal y apoya que Google las reevaluó. Acciones manuales: ninguna. Los fragmentos de producto cayeron 71 % (103 → 30). El código publica mal los datos estructurados: van en una etiqueta meta y no en un script JSON-LD (el componente `ProductSchema` existe pero no se usa), y declaran a Tienda Osvaldo como vendedor y el producto siempre en stock. La Prueba de resultados enriquecidos (21/10, ficha de Purina) no detecta ningún dato de producto; la página sí es rastreable e indexable. El repo no tiene commits desde el 21/6, así que la caída de agosto y septiembre no vino de un cambio en el código. 10 fichas concentran el 55 % de las impresiones. Volver a enlazarlas tal como están no alcanza. Dato del 21/10: la ficha de Purina, la de más impresiones, no muestra precio porque hoy no la vende nadie en Mercado Libre ("No winners found"), y sus datos de producto dicen igual "en stock". |
+| T37 | Volver a autorizar la app de Mercado Libre antes del 29/10 | Rodrigo | Alta | Pendiente | La renovación automática funcionaba el 21/10 a las 13:38, pero eso no descarta el vencimiento. Abrir https://tiendaosvaldo.com.ar/api/ml-auth con la cuenta de Mercado Libre del sitio y aceptar: tiene que aparecer "Autenticación ML — OK". El refresh token vence a los 6 meses y la autorización es del 29–30/4. Si el plazo se cuenta desde ahí, vence cerca del 29/10 y las 106 fichas pasan a 404 con noindex. El script de diagnóstico ya está en el servidor (`/app/scripts/diagnostico-api-ml.mjs`) por si hace falta volver a probar. |
+| T38 | El buscador del sitio nunca devuelve resultados | Claude | Media | Pendiente | Está en la barra de todas las páginas y usa la búsqueda de Mercado Libre, que devuelve 403. Recomendación: que busque dentro de los 92 productos curados, sin API. Alternativa: `/products/search`, que el diagnóstico de T28 confirmó que responde. |
+| T39 | Token de Mercado Libre: aceptar solo la cuenta del sitio, sacar el plan B que no funciona y avisar si falla la renovación | Claude | Media | Pendiente | `/api/ml-auth` es pública y guarda el token de cualquier cuenta que autorice la app. El plan B (`client_credentials`) Mercado Libre no lo acepta. Hoy, si la renovación falla, solo queda en el log del contenedor. |
+
+## Fase 2 · Contenido y tráfico
+
+Objetivo: que vuelva a haber clics todas las semanas, con una o dos horas por mes de trabajo de Rodrigo.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T15 | Sesión de fotos y video: Osvaldo con 4 a 8 productos | Rodrigo | Alta | Pendiente | Mensual, una hora. Solo productos que use de verdad. |
+| T16 | Programar las publicaciones del mes en Meta Business Suite | Rodrigo | Alta | Pendiente | Mensual. En las historias, link de afiliado directo a Mercado Libre. |
+| T17 | Tarea programada mensual: paquete de contenido (productos, textos y links con etiqueta) | Claude | Alta | Pendiente | Depende de T10. |
+| T32 | SEO: mejorar las páginas que Google ya muestra entre la posición 8 y la 20 | Claude + Rodrigo | Alta | Pendiente | Datos de Search Console (3 meses) analizados el 21/10. Orden: 1) guía de arena (posición 7,5, CTR 1 %): nuevo título y descripción; 2) `/categoria/arena-gato` (125 impresiones, posición 20,6, 0 clics): texto útil arriba, precios y link a la guía, apuntando a "bolsa de arena para gatos" y búsquedas de precio; 3) llenar alimento (T08); 4) arnés antitirones: es el tema con más impresiones pero en posición ~44, necesita una guía propia (más largo plazo). |
+| T18 | Agregar una "respuesta corta" arriba de cada guía | Rodrigo + Claude | Media | Pendiente | Rodrigo escribe la conclusión de cada guía; Claude arma el formato. |
+| T19 | Elegir y compartir las mejores fotos de Instagram | Rodrigo | Baja | Pendiente | Sirven sobre todo las de Osvaldo usando productos. |
+
+## Fase 3 · Identidad y rediseño
+
+Objetivo: un sitio más moderno y simpático, con Osvaldo dibujado como personaje y que decida por el usuario.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T20 | Mock de rediseño: direcciones A, B y A2 "Decide por vos" | Claude | Media | Hecho | [Ver el canvas](https://claude.ai/artifact/AzN65SajFpCSd63WbqgLnj) |
+| T21 | Brief de la hoja de personaje de Osvaldo | Claude | Alta | Pendiente | Cara, cuerpo entero, 6 o 7 poses y 3 expresiones. Pedir SVG con las partes separadas para poder animarlo. |
+| T22 | Producir las ilustraciones del personaje | Rodrigo | Alta | Pendiente | Depende de T21. Con un ilustrador o con una herramienta de IA. |
+| T23 | Decidir el logo: mantener el actual o derivarlo del personaje | Rodrigo | Baja | Pendiente | Depende de T22. |
+| T24 | Diseño final con el personaje y las animaciones | Claude | Alta | Bloqueado | Depende de T22. Base: A2 "Decide por vos". |
+
+## Fase 4 · Automatización
+
+Objetivo: que lo repetitivo pase solo y que el seguimiento lleve unos minutos por semana.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T31 | Implementar n8n: decidir dónde corre y dejarlo funcionando | Rodrigo + Claude | Alta | Pendiente | Hoy n8n no está instalado: el `docker-compose.yml` del repo solo levanta el sitio. La guía asume n8n Cloud (servicio pago). La otra opción es sumarlo al servidor donde ya corre el sitio (Docker + Traefik), por ejemplo en n8n.tiendaosvaldo.com.ar. Tiene que estar siempre encendido para que los workflows programados se ejecuten. |
+| T27 | Activar el workflow de n8n "Reporte semanal Analytics → Notion" | Rodrigo | Alta | Pendiente | Depende de T31. El workflow ya está armado (`reporte_analytics_n8n.json`) pero inactivo: faltan las credenciales de Analytics, Search Console y Notion. Pasos en `guia_configuracion_n8n.md`. Con esto Claude puede leer los reportes semanales desde Notion. |
+| T28 | Verificar qué permite hoy la API de Mercado Libre (precio, foto, estado de la publicación) | Claude | Media | Hecho | 21/10, con el diagnóstico corrido en el servidor. Funcionan con token: `/products/{id}` (nombre, fotos, estado), `/products/{id}/items` (quién lo vende y a qué precio; 404 si no lo vende nadie) y `/products/search` (búsqueda por palabra en el catálogo). No funcionan: `/items/{id}`, `/items/bulk` e `/items?ids=` (403 para cada publicación de otro vendedor), `/sites/MLA/search` y `/highlights` (403). Conclusión: la API sirve para productos de catálogo, no para publicaciones sueltas. Los 92 curados no guardan su ID y el `meli.la` lleva al perfil de afiliado. Mercado Libre no publica un límite numérico de consultas. Detalle: registro, H8 a H13. |
+| T29 | Revisión automática diaria del catálogo: publicaciones pausadas, links rotos, fotos y precios | Claude | Media | Pendiente | Depende de que los curados tengan su ID de Mercado Libre (hoy no lo tienen). Solo puede revisar productos de catálogo: las publicaciones sueltas dan 403. Recomendación: al curar, elegir la versión de catálogo (`/p/MLA…`) y guardar su ID, empezando por los alimentos de T08. Los IDs se pueden buscar con `/products/search` sin abrir los `meli.la`. Usar `/items/bulk` (`/items?ids=` se depreca el 25/10/2026). No leer la web de Mercado Libre: va contra sus términos. Puede correr en n8n o en el repo. |
+| T30 | Revisar el panel de afiliados | Rodrigo | Media | Pendiente | Semanal, 10 minutos. |
+| T40 | Deploy automático: publicar el sitio al hacer push a GitHub | Rodrigo + Claude | Media | En curso | Se arma en Claude Code. Primero hay que decidir desde qué rama se publica: el trabajo está en `dev` y `main` quedó 30 commits atrás, con el último commit del 29/4. Si el deploy sale de `main` tal como está, publica el sitio de abril. Hoy el contenedor monta `/docker/tiendaosvaldo/site` y compila en cada arranque (`npm install && npm run build && npm run start`). En el servidor no hay que borrar ni pisar `.ml-token-cache.json` (el token de Mercado Libre: si se pierde, hay que volver a autorizar la app, ver T37), el `.env` de producción ni `scripts/diagnostico-api-ml.mjs`. Recomendación: guardar el token fuera de la carpeta del código y compilar antes de reiniciar, así un error de compilación no deja el sitio caído. Hacer el primer deploy después de la T37. Antes del primer deploy, hacer commit del cambio de la T07, de `Docs/` y de `site/scripts/`. |
+
+## Fase 5 · Más adelante
+
+Objetivo: tareas que dependen de medir el alcance. Se retoman cuando T34 dé números confiables.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T25 | Fotos reales de Osvaldo usando 5 a 10 de los productos más vendidos | Rodrigo | Media | Bloqueado | Depende de T34: para saber cuáles son los más vendidos hacen falta datos de clics y ventas. Para la sección "Probado en casa". |
+| T26 | Implementar el rediseño en el código | Claude | Media | Bloqueado | Depende de T24 y de T34: sin medición confiable no se puede saber si el rediseño mejora algo. |
+
+</script>
+<!-- TRACKER-MD:END -->
+
+<script>
+(function () {
+  'use strict';
+  var FILTER_KEY = 'tracker-osvaldo:filters';
+  var STATUS = {
+    pendiente: { label: 'Pendiente' }, curso: { label: 'En curso' }, hecho: { label: 'Hecho' }, bloqueado: { label: 'Bloqueado' }
+  };
+  var ORDER = ['pendiente', 'curso', 'bloqueado', 'hecho'];
+  var PRIO_RANK = { alta: 0, media: 1, baja: 2 };
+  var state = { data: null, filters: { status: 'todas', owner: 'todos', q: '', hideDone: false } };
+  try { var f = JSON.parse(localStorage.getItem(FILTER_KEY) || 'null'); if (f) state.filters = Object.assign(state.filters, f); } catch (e) {}
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- utilidades ---------- */
+  function norm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function inline(md) {
+    var h = esc(md);
+    h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+    h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (m, t, u) {
+      if (!/^(https?:\/\/|\.{0,2}\/|#)/i.test(u)) return t;
+      return '<a href="' + u + '"' + (/^https?:/i.test(u) ? ' target="_blank" rel="noopener"' : '') + '>' + t + '</a>';
+    });
+    return h;
+  }
+  function linkRefs(html, known) {
+    return html.split(/(<[^>]+>)/).map(function (part) {
+      if (part.charAt(0) === '<') return part;
+      return part.replace(/\bT\d{2,3}\b/g, function (id) { return known[id] ? '<a href="#task-' + id + '" data-ref="' + id + '">' + id + '</a>' : id; });
+    }).join('');
+  }
+  function statusKey(raw) {
+    var n = norm(raw);
+    if (/^hech/.test(n) || n === 'listo' || n === 'lista') return 'hecho';
+    if (/curso|progreso|haciendo/.test(n)) return 'curso';
+    if (/^bloque/.test(n)) return 'bloqueado';
+    if (/^pend/.test(n) || n === '') return 'pendiente';
+    return 'otro';
+  }
+  function owners(raw) { return String(raw || '').split(/\s*(?:\+|,|\/)\s*/).map(function (s) { return s.trim(); }).filter(Boolean); }
+  function splitRow(line) {
+    var t = line.trim().replace(/^\|/, '').replace(/\|\s*$/, ''), out = [], cur = '';
+    for (var i = 0; i < t.length; i++) {
+      var c = t.charAt(i);
+      if (c === '\\' && t.charAt(i + 1) === '|') { cur += '|'; i++; continue; }
+      if (c === '|') { out.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    out.push(cur.trim());
+    return out;
+  }
+
+  /* ---------- lectura del Markdown ---------- */
+  function parse(md) {
+    var lines = md.replace(/\r\n?/g, '\n').split('\n');
+    var doc = { title: 'Tracker', meta: [], updated: '', phases: [] }, phase = null;
+    var COLS = { id: 'id', tarea: 'task', responsable: 'owner', prioridad: 'prio', estado: 'status', notas: 'notes', nota: 'notes' };
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i], m;
+      if ((m = line.match(/^#\s+(.+)/))) { doc.title = m[1].trim(); continue; }
+      if ((m = line.match(/^##\s+(.+)/))) { phase = { title: m[1].trim(), goal: '', tasks: [] }; doc.phases.push(phase); continue; }
+      if ((m = line.match(/^>\s?(.*)/))) {
+        var txt = m[1].trim(), u = txt.match(/^actualizado:\s*(.+)$/i);
+        if (u) doc.updated = u[1].trim(); else if (txt) doc.meta.push(txt);
+        continue;
+      }
+      if (phase && (m = line.match(/^objetivo:\s*(.+)/i))) { phase.goal = m[1].trim(); continue; }
+      if (phase && /^\s*\|/.test(line) && lines[i + 1] && /^\s*\|?\s*:?-{3,}/.test(lines[i + 1])) {
+        var head = splitRow(line).map(function (h) { return COLS[norm(h)] || null; });
+        for (i += 2; i < lines.length && /^\s*\|/.test(lines[i]); i++) {
+          var cells = splitRow(lines[i]), t = {};
+          head.forEach(function (k, j) { if (k) t[k] = cells[j] || ''; });
+          if (!t.task && !t.id) continue;
+          t.statusKey = statusKey(t.status); t.prioKey = norm(t.prio); t.owners = owners(t.owner);
+          phase.tasks.push(t);
+        }
+        i--;
+      }
+    }
+    doc.phases = doc.phases.filter(function (p) { return p.tasks.length; });
+    return doc;
+  }
+
+  /* ---------- dibujo ---------- */
+  function pill(key, label) { return '<span class="pill ' + (STATUS[key] ? 's-' + key : 's-otro') + '">' + esc(label) + '</span>'; }
+  function allTasks() { var a = []; state.data.phases.forEach(function (p) { a = a.concat(p.tasks); }); return a; }
+
+  function renderSummary() {
+    var d = state.data, tasks = allTasks();
+    var done = tasks.filter(function (t) { return t.statusKey === 'hecho'; }).length;
+    var pct = tasks.length ? Math.round(done * 100 / tasks.length) : 0;
+    $('doc-title').textContent = d.title; document.title = d.title;
+    $('doc-meta').innerHTML = (d.updated ? '<span>Actualizado: <strong>' + esc(d.updated) + '</strong></span>' : '') +
+      d.meta.map(function (x) { return '<span>' + inline(x) + '</span>'; }).join('');
+    $('pct').textContent = pct + '%';
+    $('pct-lbl').textContent = done + ' de ' + tasks.length + ' tareas hechas';
+    $('bar').setAttribute('aria-valuenow', pct); $('bar').firstElementChild.style.width = pct + '%';
+    $('counts').innerHTML = ORDER.map(function (k) {
+      return pill(k, STATUS[k].label + ': ' + tasks.filter(function (t) { return t.statusKey === k; }).length);
+    }).join('');
+    var names = {};
+    tasks.forEach(function (t) { t.owners.forEach(function (o) { names[o] = names[o] || { total: 0, done: 0 }; names[o].total++; if (t.statusKey === 'hecho') names[o].done++; }); });
+    $('owners').innerHTML = Object.keys(names).map(function (o) { return '<span><strong>' + esc(o) + '</strong>: ' + names[o].done + ' de ' + names[o].total + ' hechas</span>'; }).join('');
+    var next = tasks.filter(function (t) { return t.statusKey === 'pendiente' || t.statusKey === 'curso'; }).sort(function (a, b) {
+      var ca = a.statusKey === 'curso' ? 0 : 1, cb = b.statusKey === 'curso' ? 0 : 1;
+      if (ca !== cb) return ca - cb;
+      return (PRIO_RANK[a.prioKey] != null ? PRIO_RANK[a.prioKey] : 9) - (PRIO_RANK[b.prioKey] != null ? PRIO_RANK[b.prioKey] : 9);
+    }).slice(0, 4);
+    $('next').innerHTML = next.length ? next.map(function (t) {
+      return '<li><a href="#task-' + esc(t.id) + '" data-ref="' + esc(t.id) + '"><span class="nid">' + esc(t.id) + '</span><span>' + inline(t.task) +
+        '<span class="nown">' + esc(t.owner || 'Sin responsable') + ' · ' + esc(t.status || 'Pendiente') + (t.prio ? ' · prioridad ' + esc(t.prio.toLowerCase()) : '') + '</span></span></a></li>';
+    }).join('') : '<li class="none">No quedan tareas pendientes.</li>';
+  }
+
+  function renderFilters() {
+    var tasks = allTasks(), f = state.filters;
+    $('f-status').innerHTML = [['todas', 'Todas', tasks.length]].concat(ORDER.map(function (k) {
+      return [k, STATUS[k].label, tasks.filter(function (t) { return t.statusKey === k; }).length];
+    })).map(function (o) {
+      return '<button type="button" class="chip" data-fs="' + o[0] + '" aria-pressed="' + (f.status === o[0]) + '">' + o[1] + '<span class="n">' + o[2] + '</span></button>';
+    }).join('');
+    var names = [];
+    tasks.forEach(function (t) { t.owners.forEach(function (o) { if (names.indexOf(o) < 0) names.push(o); }); });
+    if (f.owner !== 'todos' && names.indexOf(f.owner) < 0) f.owner = 'todos';
+    $('f-owner').innerHTML = [['todos', 'Todos']].concat(names.map(function (n) { return [n, n]; })).map(function (o) {
+      return '<button type="button" class="chip" data-fo="' + esc(o[0]) + '" aria-pressed="' + (f.owner === o[0]) + '">' + esc(o[1]) + '</button>';
+    }).join('');
+    $('q').value = f.q; $('hide-done').checked = !!f.hideDone;
+  }
+
+  function matches(t) {
+    var f = state.filters;
+    if (f.status !== 'todas' && t.statusKey !== f.status) return false;
+    if (f.owner !== 'todos' && t.owners.indexOf(f.owner) < 0) return false;
+    if (f.hideDone && t.statusKey === 'hecho' && f.status !== 'hecho') return false;
+    if (f.q && norm([t.id, t.task, t.notes, t.owner, t.status, t.prio].join(' ')).indexOf(norm(f.q)) < 0) return false;
+    return true;
+  }
+
+  function renderPhases() {
+    var known = {}; allTasks().forEach(function (t) { known[t.id] = 1; });
+    var shown = 0;
+    $('phases').innerHTML = state.data.phases.map(function (p) {
+      var done = p.tasks.filter(function (t) { return t.statusKey === 'hecho'; }).length;
+      var pct = Math.round(done * 100 / p.tasks.length);
+      var vis = p.tasks.filter(matches);
+      shown += vis.length;
+      if (!vis.length) return '';
+      return '<section class="phase" aria-label="' + esc(p.title) + '">' +
+        '<div class="phase-head"><div><h2>' + inline(p.title) + '</h2>' + (p.goal ? '<p class="phase-goal"><strong>Objetivo:</strong> ' + inline(p.goal) + '</p>' : '') + '</div>' +
+        '<div class="phase-prog"><span>' + done + ' de ' + p.tasks.length + ' hechas</span><div class="bar sm"><span style="width:' + pct + '%"></span></div></div></div>' +
+        '<ul class="rows"><li class="row row-head" aria-hidden="true"><span>ID</span><span>Tarea</span><span class="r-meta"><span>Responsable</span><span>Prioridad</span><span>Estado</span></span></li>' +
+        vis.map(function (t) {
+          return '<li class="row' + (t.statusKey === 'hecho' ? ' is-done' : '') + '" id="task-' + esc(t.id) + '">' +
+            '<span class="r-id">' + esc(t.id) + '</span>' +
+            '<div><div class="r-title">' + linkRefs(inline(t.task), known) + '</div>' + (t.notes ? '<div class="r-notes">' + linkRefs(inline(t.notes), known) + '</div>' : '') + '</div>' +
+            '<div class="r-meta">' +
+            '<span class="r-owner"><span class="r-lbl">Responsable</span>' + esc(t.owner || '—') + '</span>' +
+            (t.prioKey ? '<span class="r-prio p-' + esc(t.prioKey) + '"><span class="r-lbl">Prioridad</span>' + esc(t.prio) + '</span>' : '<span class="r-prio"></span>') +
+            '<span class="r-status">' + pill(t.statusKey, t.status || 'Pendiente') + '</span>' +
+            '</div></li>';
+        }).join('') + '</ul></section>';
+    }).join('');
+    $('empty').hidden = shown > 0;
+  }
+
+  function show(md, label) {
+    var d = parse(md);
+    if (!d.phases.length) {
+      $('err').textContent = 'No encontré tareas en tracker.md. Cada fase tiene que ser un título "##" seguido de una tabla con las columnas ID, Tarea, Responsable, Prioridad, Estado y Notas.';
+      $('err').hidden = false;
+      return;
+    }
+    $('err').hidden = true;
+    state.data = d;
+    renderSummary(); renderFilters(); renderPhases();
+    $('status-line').textContent = label;
+  }
+
+  function fmt(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /* 1) Siempre muestra la copia de tracker.md que está dentro de esta página (funciona con doble clic).
+     2) Si la página está servida por http (Live Server, npx serve…), además lee tracker.md en vivo. */
+  var embedded = $('tracker-md');
+  var embeddedMd = (embedded.textContent || '').replace(/<\\\/script/gi, '</script');
+  var stamp = fmt(embedded.getAttribute('data-updated'));
+  show(embeddedMd, stamp ? 'Datos de tracker.md al ' + stamp : 'Datos de tracker.md');
+
+  function live() {
+    return fetch('tracker.md?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    }).then(function (t) {
+      show(t, 'En vivo desde tracker.md · ' + new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }));
+      return true;
+    });
+  }
+  if (/^https?:$/.test(location.protocol)) {
+    live().then(function () {
+      $('btn-reload').hidden = false;
+      $('btn-reload').addEventListener('click', function () { live().catch(function () {}); });
+      window.addEventListener('focus', function () { live().catch(function () {}); });
+    }).catch(function () {});
+  }
+
+  /* ---------- eventos ---------- */
+  function saveFilters() { try { localStorage.setItem(FILTER_KEY, JSON.stringify(state.filters)); } catch (e) {} }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-fs]');
+    if (b) { state.filters.status = b.getAttribute('data-fs'); saveFilters(); renderFilters(); renderPhases(); return; }
+    b = e.target.closest('[data-fo]');
+    if (b) { state.filters.owner = b.getAttribute('data-fo'); saveFilters(); renderFilters(); renderPhases(); return; }
+    var a = e.target.closest('a[data-ref]');
+    if (a) {
+      var id = a.getAttribute('data-ref'), el = document.getElementById('task-' + id);
+      if (!el) { state.filters = { status: 'todas', owner: 'todos', q: '', hideDone: false }; saveFilters(); renderFilters(); renderPhases(); el = document.getElementById('task-' + id); }
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    }
+  });
+  $('q').addEventListener('input', function () { state.filters.q = this.value; saveFilters(); renderPhases(); });
+  $('hide-done').addEventListener('change', function () { state.filters.hideDone = this.checked; saveFilters(); renderPhases(); });
+})();
+</script>
+</body>
+</html>

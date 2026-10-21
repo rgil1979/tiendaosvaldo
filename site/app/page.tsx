@@ -44,7 +44,7 @@ export default function HomePage() {
               Todo disponible en Mercado Libre con envío a todo el país.
             </p>
             <div className={styles.heroActions}>
-              <Link href="/categoria/alimento-perro" className="btn btn-fill">
+              <Link href="/categoria/mascotas" className="btn btn-fill">
                 Ver productos →
               </Link>
               <Link href="/sobre-osvaldo" className="btn btn-ghost">
