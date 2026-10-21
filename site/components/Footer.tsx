@@ -2,6 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { navConfig, siteConfig } from "@/config/site.config"
 import { productosCurados } from "@/data/productos-curados"
+import CookiePreferencesLink from "@/components/CookiePreferencesLink"
 import styles from "./Footer.module.css"
 
 export default function Footer() {
@@ -63,6 +64,9 @@ export default function Footer() {
                 <Link href={item.href}>{item.label}</Link>
               </li>
             ))}
+            <li>
+              <CookiePreferencesLink />
+            </li>
           </ul>
         </div>
 

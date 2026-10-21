@@ -118,6 +118,13 @@ export const productosCurados: ProductoCurado[] = [
   { id: "acc-g-006", titulo: "Rascador Autoadhesivo Premium Sillón Esquinero Gatos 100x50", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_666289-MLA92512350122_092025-F.webp", categoria: "accesorios", linkAfiliado: "https://meli.la/1BGUZFX", mascota: "gato" },
   { id: "acc-g-007", titulo: "Rascador Gatos Sillón Alfombra Esquinero X 2 Unidades 50cm", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_728068-MLA108796918894_032026-F.webp", categoria: "accesorios", linkAfiliado: "https://meli.la/2bdztcj", mascota: "gato" },
   { id: "acc-g-008", titulo: "Rascador Tomaso Felpa Gatos Persa Siames Mascotas", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_634091-MLA99607188663_112025-F.webp", categoria: "accesorios", linkAfiliado: "https://meli.la/2srgnwy", mascota: "gato" },
+
+  // ─── Arena Gatos ─────────────────────────────────────────────────────────
+  { id: "are-g-001", titulo: "Piedras Sanitarias Para Gatos Bentonita Aglutinante Zootec 30 Kg Ultra Absorbente - Pack De 2 Bolsas De 15 Kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_888626-MLA84237720066_052025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/2tFCX2X", mascota: "gato"},
+  { id: "are-g-002", titulo: "Arena Sanitaria Aglutinante Biodegradable Para Gatos Catit Go Natural Aroma Vainilla De 5,6 Kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_670445-MLA99509528430_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1JqJssK", mascota: "gato" },
+  { id: "are-g-003", titulo: "Arena Aglutinante Para Gatos Zootec 24kgs Pack De 6 Bolsas De 4Kg Cada Una", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_892132-MLA99529656380_122025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1RU6nZo", mascota: "gato" },
+  { id: "are-g-004", titulo: "Arena Sanitaria Aglutinante Biodegradable Para Gatos Catit Go Natural Aroma Lavanda de 5,6 Kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_787254-MLA99992063741_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/2FgzAuf", mascota: "gato" },
+  { id: "are-g-005", titulo: "Arena Piedras Sanitarias Para Gatos Bentonita Sodica Aglomerante Bio Stones Aroma Lavanda 20 Kg - Pack De 5 Bolsas De 4 Kg Cada Una", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_978671-MLA99466003810_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1PrLE6E", mascota: "gato" },
 ]
 
 // Helper: obtener productos por slug de categoría

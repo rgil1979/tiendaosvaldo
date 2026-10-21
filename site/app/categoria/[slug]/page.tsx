@@ -1,11 +1,10 @@
 import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { SLUG_CONFIG } from "@/config/site.config"
+import { SLUG_CONFIG, ogBase } from "@/config/site.config"
 import { getProductosByCategoria, productosCurados } from "@/data/productos-curados"
 import { getAllCategoriesForTree, getCategoryBySlug } from "@/lib/categories"
-import CategoryResults from "./CategoryResults"
-import CategoryTree from "./CategoryTree"
+import CategoryPageClient from "./CategoryPageClient"
 import styles from "./page.module.css"
 
 export const revalidate = 3600
@@ -21,18 +20,21 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const cfg = SLUG_CONFIG[slug]
+
   if (cfg) {
     return {
-      title:       `${cfg.label} — Tienda Osvaldo`,
+      title:       cfg.label,
       description: `${cfg.label} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
+      openGraph:   { ...ogBase, title: `${cfg.label} — Tienda Osvaldo` },
       robots:      { index: true, follow: true },
     }
   }
   const dbCat = await getCategoryBySlug(slug)
   if (!dbCat) return { robots: { index: false, follow: false } }
   return {
-    title:       `${dbCat.name} — Tienda Osvaldo`,
+    title:       dbCat.name,
     description: `${dbCat.name} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
+    openGraph:   { ...ogBase, title: `${dbCat.name} — Tienda Osvaldo` },
     robots:      { index: true, follow: true },
   }
 }
@@ -59,21 +61,22 @@ export default async function CategoryPage({ params }: Props) {
   }
 
   const total = products.length
-  const totalPages = 1
-  const page = 1
 
   if (!cfg && !dbCat && products.length === 0) notFound()
 
   const label = cfg?.label ?? dbCat?.name ?? ""
   const emoji = cfg?.emoji ?? "🐾"
 
+  const currentMascota = cfg?.mascota
   const siblings = Object.entries(SLUG_CONFIG).filter(
-    ([s]) => s !== slug && !["mascotas", "alimentacion"].includes(s)
+    ([s, info]) =>
+      s !== slug &&
+      !["mascotas", "alimentacion"].includes(s) &&
+      !(currentMascota && info.mascota && info.mascota !== currentMascota)
   )
 
   return (
     <>
-      {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
         <div className={styles.breadcrumbInner}>
           <Link href="/">Inicio</Link>
@@ -82,7 +85,6 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Header */}
       <div className={styles.catHeader}>
         <div className={styles.catHeaderInner}>
           <div className={styles.catHeaderLeft}>
@@ -106,43 +108,11 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Layout */}
-      <div className={styles.pageBody}>
-
-        {/* Sidebar */}
-        <aside className={styles.sidebar}>
-          <CategoryTree
-            key={slug}
-            categories={treeCategories}
-            currentSlug={slug}
-          />
-        </aside>
-
-        {/* Productos */}
-        <div className={styles.productsArea}>
-          <div className={styles.toolbar}>
-            <span className={styles.resultsCount}>
-              {total > 0 ? `${total.toLocaleString("es-AR")} productos` : label}
-            </span>
-          </div>
-
-          {products.length > 0 ? (
-            <CategoryResults
-              products={products}
-              page={page}
-              totalPages={totalPages}
-              slug={slug}
-              mascotaFilter=""
-            />
-          ) : (
-            <div className={styles.empty}>
-              <span>🐾</span>
-              <p>No encontramos productos en este momento.</p>
-              <Link href="/" className="btn btn-ghost">Volver al inicio</Link>
-            </div>
-          )}
-        </div>
-      </div>
+      <CategoryPageClient
+        products={products}
+        treeCategories={treeCategories}
+        currentSlug={slug}
+      />
     </>
   )
 }

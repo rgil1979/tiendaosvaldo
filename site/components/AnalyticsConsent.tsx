@@ -26,10 +26,22 @@ export default function AnalyticsConsent({ gaId }: { gaId?: string }) {
     }
   }, [])
 
+  // Allow footer link to reopen the banner after first decision
+  useEffect(() => {
+    function handleReopenBanner() {
+      setBannerVisible(true)
+    }
+    window.addEventListener("show-cookie-banner", handleReopenBanner)
+    return () => window.removeEventListener("show-cookie-banner", handleReopenBanner)
+  }, [])
+
   // Track SPA page views on route change (only when accepted)
   useEffect(() => {
     if (consent !== "accepted" || !gaId) return
-    window.gtag?.("config", gaId, { page_path: pathname })
+    window.gtag?.("config", gaId, {
+      page_path: pathname,
+      send_page_view: process.env.NODE_ENV === "production",
+    })
   }, [pathname, consent, gaId])
 
   function handleConsent(next: Exclude<ConsentState, "pending">) {
@@ -43,24 +55,6 @@ export default function AnalyticsConsent({ gaId }: { gaId?: string }) {
 
   return (
     <>
-      {/*
-        Consent Mode v2: set denied defaults BEFORE gtag.js processes the dataLayer.
-        GA4 still fires basic signals (cookieless pings) that feed Google's traffic
-        modeling — so data appears in reports even without explicit consent.
-      */}
-      <Script id="ga-consent-defaults" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){window.dataLayer.push(arguments);}
-          window.gtag = gtag;
-          gtag('consent', 'default', {
-            analytics_storage: 'denied',
-            ad_storage: 'denied',
-            wait_for_update: 500
-          });
-        `}
-      </Script>
-
       {/* GA4 always loads — consent mode controls whether cookies are written */}
       <Script
         id="ga-loader"
@@ -71,7 +65,9 @@ export default function AnalyticsConsent({ gaId }: { gaId?: string }) {
       <Script id="ga-init" strategy="afterInteractive">
         {`
           gtag('js', new Date());
-          gtag('config', '${gaId}', { send_page_view: true });
+          gtag('config', '${gaId}', {
+            send_page_view: ${process.env.NODE_ENV === "production"}
+          });
         `}
       </Script>
 

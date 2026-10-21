@@ -1,0 +1,90 @@
+# Tracker · Tienda Osvaldo
+
+> Actualizado: 2026-10-21
+> Estados: Pendiente · En curso · Hecho · Bloqueado
+> Hallazgos, datos y fuentes detrás de cada tarea: `registro-hallazgos.md` (en esta misma carpeta).
+> Para actualizar una tarea, cambiá la columna **Estado** (y si querés, las **Notas**). Después hacé doble clic en `actualizar-tracker.bat` y se abre `tracker.html` con los cambios.
+> Para Claude: cada vez que edites este archivo, regenerá `tracker.html` (`node Docs/actualizar-tracker.js`) copiá el mismo contenido al tracker del proyecto de Claude y mandale a Rodrigo los dos archivos (`tracker.md` y `tracker.html`).
+> Regla: las tareas que dependen de medir el alcance (visitas, clics o ventas) van a la fase "Más adelante" hasta que la medición sea confiable (T34).
+
+## Fase 0 · Diagnóstico
+
+Objetivo: entender por qué los clics cayeron a cero y por dónde llega (o no llega) la gente.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T01 | Verificar que los links meli.la abren la app de Mercado Libre en el celular | Rodrigo | Alta | Hecho | Verificado el 21/10: siempre abren la app. |
+| T02 | Revisar Analytics: visitas del último mes y páginas de destino | Rodrigo | Alta | Hecho | 21/10. Respuesta: el problema es que no llega gente. Analytics: 4 usuarios en 90 días (piso, porque solo cuenta a quien acepta las cookies). Search Console: 11 visitas desde Google en 3 meses. El número total real pasa a T34. |
+| T03 | Revisar Google Search Console: páginas indexadas e impresiones | Rodrigo | Alta | Hecho | 21/10. La indexación no es el problema: 144 páginas indexadas y 9 sin indexar, casi todas esperables (redirección de http a https, URLs basura `/&` y `/$`, `/categoria/paseo`, 3 fichas con noindex y 2 que Google rastreó y no indexó). Lo que falla es la posición (media 16,9). Hallazgos: 1) las 106 fichas `/producto/MLA…` indexadas (55 % de las impresiones y 6 de los 11 clics) no tienen links desde el sitio desde el 9/6 ni están en el sitemap (T36); 2) el sitemap tiene solo 19 URLs, no incluye la guía de arena ni las fichas, y Google no lo lee desde el 9/6 (T35). Exportaciones en la carpeta `search-console` del proyecto. |
+| T04 | Panel de afiliados: ver los últimos 90 días y la pestaña "Fecha" | Rodrigo | Media | Pendiente | Del 14 al 20/10 hubo 0 clics. Ver qué día se cortaron. |
+| T05 | Consultar a Mercado Libre: atribución dentro de la app y plazo de atribución | Rodrigo | Media | Pendiente | El mensaje está redactado en la conversación con Claude. |
+| T06 | Venta de prueba: un familiar o amigo compra por tu link | Rodrigo | Media | Pendiente | Que compre un producto distinto al del link. No compres con tu propio link hasta leer los términos del programa. |
+| T34 | Medición confiable del alcance: contar todas las visitas, no solo las de quien acepta cookies | Claude + Rodrigo | Media | Pendiente | Opciones: revisar los logs del servidor (Traefik) o sumar un contador de visitas sin cookies. Habilita las tareas de la fase "Más adelante". |
+
+## Fase 1 · Arreglos en el sitio actual
+
+Objetivo: que nada de lo publicado lleve a una página vacía ni contradiga lo que promete.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T07 | El botón principal de la home ("Ver productos") lleva a una categoría vacía | Claude | Alta | En curso | 21/10: el botón ahora lleva a `/categoria/mascotas`, que muestra los 92 productos. El cambio está en `site/app/page.tsx` y falta publicarlo. Cuando se resuelva T08 no hay que volver a cambiarlo: "Ver productos" tiene que mostrar todo el catálogo, no solo alimento. |
+| T08 | Categorías de alimento vacías (alimentación, alimento-perro, alimento-gato) | Rodrigo + Claude | Alta | Pendiente | El catálogo (`site/data/productos-curados.ts`) no tiene ningún alimento: los 92 productos son accesorios, arena, camas, collares y juguetes. Recomendación: llenarlas, no sacarlas. La página con más impresiones en Google es un alimento (Purina Excellent 22 kg, `/producto/MLA15152919`): hay demanda. Al elegir alimentos, preferir productos de catálogo que alguien venda: se pueden buscar y revisar con la API (T28). Además del botón de la home (T07), llevan a estas categorías vacías: los accesos "Alimento perro" y "Alimento gato" de la home, "Alimentación" en el menú y en el pie de todas las páginas, y los accesos rápidos de las páginas de categoría. |
+| T09 | La guía de alimento para raza grande recomienda un arnés, un moisés y un juguete | Rodrigo + Claude | Alta | Pendiente | Depende de T08. |
+| T10 | Crear etiquetas de seguimiento por ubicación (home, cada guía, Instagram) | Rodrigo | Alta | Pendiente | Se crean en el panel de afiliados, pestaña "Etiquetas de seguimiento". |
+| T11 | Aplicar las etiquetas de seguimiento a los links del sitio | Claude | Alta | Pendiente | Depende de T10. |
+| T12 | Quitar el cartel "Nuevo" de todos los productos | Claude | Baja | Pendiente | Lo tienen los 92 productos, así que no informa nada. |
+| T13 | Unificar "Collares y correas" y "Collares y arneses" | Claude | Baja | Pendiente | Hoy aparecen los dos nombres para la misma categoría. |
+| T14 | Verificar que el texto de las guías esté en el HTML inicial (SEO) | Claude | Media | Pendiente | Leyendo el sitio desde afuera solo aparecían el título y los productos. |
+| T33 | Verificar que los botones de las páginas `/producto/MLA…` generen comisión | Rodrigo + Claude | Alta | Pendiente | Esas 90 páginas son las que más aparecen en Google, pero su botón usa otro formato de link (`mercadolibre.com.ar/p/…?partner_id=…`) que los meli.la del resto del sitio. Prueba: clic en el botón de una ficha y revisar al día siguiente si el clic aparece en el panel de afiliados. Hacerla con Eukanuba (`/producto/MLA11212944`), que tiene vendedores; la de Purina no. |
+| T35 | Completar el sitemap: guía de arena, fichas que se mantengan, categorías reales y fecha de modificación real | Claude | Media | Pendiente | Hoy lista 19 URLs. Falta la guía de arena, que es la página mejor posicionada (7,5); Google la encontró por el link desde /guias. La fecha de modificación es siempre "ahora", así que Google no puede usarla. Después de publicarlo, reenviarlo en Search Console. Para las fichas depende de T36. |
+| T36 | Decidir qué hacer con las 106 fichas `/producto/MLA…`: volver a enlazarlas desde el sitio o dejarlas caer | Rodrigo + Claude | Alta | Pendiente | Depende de T33. Desde el 9/6 las tarjetas llevan directo a Mercado Libre y ninguna página enlaza a las fichas; Google las conserva por lo que rastreó antes. Son un catálogo distinto al curado: salen de la API, no de `productos-curados.ts`. Si T33 confirma comisión, enlazarlas y sumarlas al sitemap. Si no, cambiar su botón por un link que comisione. Riesgo: si la API de Mercado Libre falla cuando pasa Google, la ficha sale con noindex o 404. Dato del 21/10: desde mediados de agosto las fichas perdieron cerca del 40 % de las impresiones semanales (el resto del sitio, cerca del 10 %), sin perder posición media ni indexación. La caída fue en dos escalones que coinciden con los spam updates de Google (18–21/8 y 24/9–8/10). Hipótesis principal: Google las trata como "afiliación de bajo valor" (texto y fotos copiados de Mercado Libre más un botón de afiliado). Si es así, volver a enlazarlas no alcanza: hay que agregarles contenido propio o sacarlas del índice. Comparación 20/7–17/8 contra 21/9–18/10, ficha por ficha: las 17 que Google no rastrea desde antes del 18/8 mantuvieron sus impresiones (81 → 82), y las rastreadas desde el 24/9 perdieron (94 → 64). Eso descarta la falta de links como causa principal y apoya que Google las reevaluó. Acciones manuales: ninguna. Los fragmentos de producto cayeron 71 % (103 → 30). El código publica mal los datos estructurados: van en una etiqueta meta y no en un script JSON-LD (el componente `ProductSchema` existe pero no se usa), y declaran a Tienda Osvaldo como vendedor y el producto siempre en stock. La Prueba de resultados enriquecidos (21/10, ficha de Purina) no detecta ningún dato de producto; la página sí es rastreable e indexable. El repo no tiene commits desde el 21/6, así que la caída de agosto y septiembre no vino de un cambio en el código. 10 fichas concentran el 55 % de las impresiones. Volver a enlazarlas tal como están no alcanza. Dato del 21/10: la ficha de Purina, la de más impresiones, no muestra precio porque hoy no la vende nadie en Mercado Libre ("No winners found"), y sus datos de producto dicen igual "en stock". |
+| T37 | Volver a autorizar la app de Mercado Libre antes del 29/10 | Rodrigo | Alta | Pendiente | La renovación automática funcionaba el 21/10 a las 13:38, pero eso no descarta el vencimiento. Abrir https://tiendaosvaldo.com.ar/api/ml-auth con la cuenta de Mercado Libre del sitio y aceptar: tiene que aparecer "Autenticación ML — OK". El refresh token vence a los 6 meses y la autorización es del 29–30/4. Si el plazo se cuenta desde ahí, vence cerca del 29/10 y las 106 fichas pasan a 404 con noindex. El script de diagnóstico ya está en el servidor (`/app/scripts/diagnostico-api-ml.mjs`) por si hace falta volver a probar. |
+| T38 | El buscador del sitio nunca devuelve resultados | Claude | Media | Pendiente | Está en la barra de todas las páginas y usa la búsqueda de Mercado Libre, que devuelve 403. Recomendación: que busque dentro de los 92 productos curados, sin API. Alternativa: `/products/search`, que el diagnóstico de T28 confirmó que responde. |
+| T39 | Token de Mercado Libre: aceptar solo la cuenta del sitio, sacar el plan B que no funciona y avisar si falla la renovación | Claude | Media | Pendiente | `/api/ml-auth` es pública y guarda el token de cualquier cuenta que autorice la app. El plan B (`client_credentials`) Mercado Libre no lo acepta. Hoy, si la renovación falla, solo queda en el log del contenedor. |
+
+## Fase 2 · Contenido y tráfico
+
+Objetivo: que vuelva a haber clics todas las semanas, con una o dos horas por mes de trabajo de Rodrigo.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T15 | Sesión de fotos y video: Osvaldo con 4 a 8 productos | Rodrigo | Alta | Pendiente | Mensual, una hora. Solo productos que use de verdad. |
+| T16 | Programar las publicaciones del mes en Meta Business Suite | Rodrigo | Alta | Pendiente | Mensual. En las historias, link de afiliado directo a Mercado Libre. |
+| T17 | Tarea programada mensual: paquete de contenido (productos, textos y links con etiqueta) | Claude | Alta | Pendiente | Depende de T10. |
+| T32 | SEO: mejorar las páginas que Google ya muestra entre la posición 8 y la 20 | Claude + Rodrigo | Alta | Pendiente | Datos de Search Console (3 meses) analizados el 21/10. Orden: 1) guía de arena (posición 7,5, CTR 1 %): nuevo título y descripción; 2) `/categoria/arena-gato` (125 impresiones, posición 20,6, 0 clics): texto útil arriba, precios y link a la guía, apuntando a "bolsa de arena para gatos" y búsquedas de precio; 3) llenar alimento (T08); 4) arnés antitirones: es el tema con más impresiones pero en posición ~44, necesita una guía propia (más largo plazo). |
+| T18 | Agregar una "respuesta corta" arriba de cada guía | Rodrigo + Claude | Media | Pendiente | Rodrigo escribe la conclusión de cada guía; Claude arma el formato. |
+| T19 | Elegir y compartir las mejores fotos de Instagram | Rodrigo | Baja | Pendiente | Sirven sobre todo las de Osvaldo usando productos. |
+
+## Fase 3 · Identidad y rediseño
+
+Objetivo: un sitio más moderno y simpático, con Osvaldo dibujado como personaje y que decida por el usuario.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T20 | Mock de rediseño: direcciones A, B y A2 "Decide por vos" | Claude | Media | Hecho | [Ver el canvas](https://claude.ai/artifact/AzN65SajFpCSd63WbqgLnj) |
+| T21 | Brief de la hoja de personaje de Osvaldo | Claude | Alta | Pendiente | Cara, cuerpo entero, 6 o 7 poses y 3 expresiones. Pedir SVG con las partes separadas para poder animarlo. |
+| T22 | Producir las ilustraciones del personaje | Rodrigo | Alta | Pendiente | Depende de T21. Con un ilustrador o con una herramienta de IA. |
+| T23 | Decidir el logo: mantener el actual o derivarlo del personaje | Rodrigo | Baja | Pendiente | Depende de T22. |
+| T24 | Diseño final con el personaje y las animaciones | Claude | Alta | Bloqueado | Depende de T22. Base: A2 "Decide por vos". |
+
+## Fase 4 · Automatización
+
+Objetivo: que lo repetitivo pase solo y que el seguimiento lleve unos minutos por semana.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T31 | Implementar n8n: decidir dónde corre y dejarlo funcionando | Rodrigo + Claude | Alta | Pendiente | Hoy n8n no está instalado: el `docker-compose.yml` del repo solo levanta el sitio. La guía asume n8n Cloud (servicio pago). La otra opción es sumarlo al servidor donde ya corre el sitio (Docker + Traefik), por ejemplo en n8n.tiendaosvaldo.com.ar. Tiene que estar siempre encendido para que los workflows programados se ejecuten. |
+| T27 | Activar el workflow de n8n "Reporte semanal Analytics → Notion" | Rodrigo | Alta | Pendiente | Depende de T31. El workflow ya está armado (`reporte_analytics_n8n.json`) pero inactivo: faltan las credenciales de Analytics, Search Console y Notion. Pasos en `guia_configuracion_n8n.md`. Con esto Claude puede leer los reportes semanales desde Notion. |
+| T28 | Verificar qué permite hoy la API de Mercado Libre (precio, foto, estado de la publicación) | Claude | Media | Hecho | 21/10, con el diagnóstico corrido en el servidor. Funcionan con token: `/products/{id}` (nombre, fotos, estado), `/products/{id}/items` (quién lo vende y a qué precio; 404 si no lo vende nadie) y `/products/search` (búsqueda por palabra en el catálogo). No funcionan: `/items/{id}`, `/items/bulk` e `/items?ids=` (403 para cada publicación de otro vendedor), `/sites/MLA/search` y `/highlights` (403). Conclusión: la API sirve para productos de catálogo, no para publicaciones sueltas. Los 92 curados no guardan su ID y el `meli.la` lleva al perfil de afiliado. Mercado Libre no publica un límite numérico de consultas. Detalle: registro, H8 a H13. |
+| T29 | Revisión automática diaria del catálogo: publicaciones pausadas, links rotos, fotos y precios | Claude | Media | Pendiente | Depende de que los curados tengan su ID de Mercado Libre (hoy no lo tienen). Solo puede revisar productos de catálogo: las publicaciones sueltas dan 403. Recomendación: al curar, elegir la versión de catálogo (`/p/MLA…`) y guardar su ID, empezando por los alimentos de T08. Los IDs se pueden buscar con `/products/search` sin abrir los `meli.la`. Usar `/items/bulk` (`/items?ids=` se depreca el 25/10/2026). No leer la web de Mercado Libre: va contra sus términos. Puede correr en n8n o en el repo. |
+| T30 | Revisar el panel de afiliados | Rodrigo | Media | Pendiente | Semanal, 10 minutos. |
+| T40 | Deploy automático: publicar el sitio al hacer push a GitHub | Rodrigo + Claude | Media | En curso | Se arma en Claude Code. Primero hay que decidir desde qué rama se publica: el trabajo está en `dev` y `main` quedó 30 commits atrás, con el último commit del 29/4. Si el deploy sale de `main` tal como está, publica el sitio de abril. Hoy el contenedor monta `/docker/tiendaosvaldo/site` y compila en cada arranque (`npm install && npm run build && npm run start`). En el servidor no hay que borrar ni pisar `.ml-token-cache.json` (el token de Mercado Libre: si se pierde, hay que volver a autorizar la app, ver T37), el `.env` de producción ni `scripts/diagnostico-api-ml.mjs`. Recomendación: guardar el token fuera de la carpeta del código y compilar antes de reiniciar, así un error de compilación no deja el sitio caído. Hacer el primer deploy después de la T37. Antes del primer deploy, hacer commit del cambio de la T07, de `Docs/` y de `site/scripts/`. |
+
+## Fase 5 · Más adelante
+
+Objetivo: tareas que dependen de medir el alcance. Se retoman cuando T34 dé números confiables.
+
+| ID | Tarea | Responsable | Prioridad | Estado | Notas |
+|---|---|---|---|---|---|
+| T25 | Fotos reales de Osvaldo usando 5 a 10 de los productos más vendidos | Rodrigo | Media | Bloqueado | Depende de T34: para saber cuáles son los más vendidos hacen falta datos de clics y ventas. Para la sección "Probado en casa". |
+| T26 | Implementar el rediseño en el código | Claude | Media | Bloqueado | Depende de T24 y de T34: sin medición confiable no se puede saber si el rediseño mejora algo. |

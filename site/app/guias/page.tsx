@@ -1,10 +1,12 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import { ogBase } from "@/config/site.config"
 import styles from "./page.module.css"
 
 export const metadata: Metadata = {
-  title: "Guías para mascotas — Tienda Osvaldo",
+  title:       "Guías para mascotas",
   description: "Guías y comparativas para elegir los mejores productos para tu perro o gato. Aprobadas por Osvaldo.",
+  openGraph: { ...ogBase, title: "Guías para mascotas — Tienda Osvaldo" },
 }
 
 const guias = [
@@ -13,6 +15,12 @@ const guias = [
     titulo: "Mejor alimento para perro adulto raza grande Argentina 2026",
     descripcion: "Comparativa real de las mejores marcas disponibles en Argentina: Royal Canin, Pro Plan, Eukanuba y más.",
     emoji: "🐕",
+  },
+  {
+    slug: "arena-gatos-aglutinante-vs-silice-argentina-2026",
+    titulo: "Arena para gatos: aglutinante o sílice",
+    descripcion: "Comparamos arena aglutinante y de sílice para gatos: cuál absorbe mejor, cuál rinde más por peso y cuál conviene según tu presupuesto y cuántos gatos tenés.",
+    emoji: "🐈",
   },
 ]
 
