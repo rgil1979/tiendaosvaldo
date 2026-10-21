@@ -11,11 +11,37 @@
 3. **Desde mediados de agosto las fichas perdieron cerca del 40 % de sus impresiones**, en dos escalones que coinciden con los spam updates de Google de agosto y septiembre. La falta de links internos quedó descartada como causa principal. Hipótesis principal: Google las trata como afiliación de bajo valor. (T36)
 4. **Los datos estructurados de las fichas no funcionan**: Google no detecta ningún dato de producto. (T36)
 5. **El sitemap está incompleto**: 19 URLs, sin la guía de arena, que es la página mejor posicionada. (T35)
-6. **Las categorías de alimento están vacías** aunque hay demanda: la ficha con más impresiones es un alimento. (T08)
+6. **Las categorías de alimento están vacías** aunque hay demanda: la ficha con más impresiones es un alimento. Hay oferta para llenarlas: 137 alimentos de catálogo tienen vendedores, varios con más de 30. (T08, H14)
 7. **Analytics cuenta menos de lo real**: solo registra a quien acepta las cookies. (T34)
-8. **Todo lo que usa la API de Mercado Libre depende de un solo token**, que podría vencer cerca del 29/10. La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
+8. **Todo lo que usa la API de Mercado Libre depende de un solo token.** Se volvió a autorizar el 21/10 (T37). La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
 
-Lo urgente: volver a autorizar la app de Mercado Libre antes del 29/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
+Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
+
+---
+
+## 2026-10-21 · Alimentos de catálogo en Mercado Libre (T08)
+
+Tareas: T08, T09, T36.
+
+**Fuente.** `site/scripts/buscar-alimentos-ml.mjs` (solo lectura), que Rodrigo corrió en el servidor el 21/10 cerca de las 15:05. Token de la cuenta RODRIGO.GILBULACIO, recién autorizado (T37). 23 búsquedas (marcas comunes y "alimento perro adulto", "gato castrado", etc.), 319 consultas, sin errores ni límites de uso. Detalle completo en `/app/alimentos-ml.json` del servidor.
+
+### H14 · Hay alimentos de catálogo con muchos vendedores
+
+**Dato.** De 295 productos de alimento revisados, 137 tienen al menos un vendedor: 69 aparecen en las búsquedas de perro y 68 en las de gato. Los que más vendedores tienen son Excellent Gato Adulto 7,5 kg (MLA8726956, 69), Eukanuba Perro Adulto Raza Mediana 15 kg (MLA9775933, 50), Excellent Perro Adulto Raza Mediana y Grande 20 kg (MLA15152920, 48) y Eukanuba Perro Adulto Raza Pequeña 15 kg (MLA8726947, 42). Casi todos tienen tienda oficial entre los vendedores.
+
+**Interpretación.**
+- Un producto con muchos vendedores tiene menos riesgo de quedar sin ninguno, como le pasó a Purina 22 kg (H13). Por eso conviene elegir los que tienen 10 o más.
+- Los precios "desde" (el mínimo entre los vendedores) tienen valores raros. Por ejemplo, Excellent Reduced Calorie 15 kg figura desde $ 20.000, mientras que la bolsa de 3 kg arranca en $ 22.990. No sirven para escribir precios en el sitio.
+- La lista de perro o de gato depende de qué búsqueda encontró cada producto, no del producto en sí. Hay errores: Old Prince Gatito y una lata de gato aparecen como perro, y también figura "Leche Royal Canin".
+- Muchos de los resultados son dietas veterinarias (Royal Canin Diabetic, Cardiac, Hepatic, Gastrointestinal, Hypoallergenic; Pro Plan NC y OM). Se usan por indicación del veterinario, así que no conviene recomendarlas.
+
+### H15 · Un producto con el ID siguiente al de la ficha de Purina sí tiene vendedores
+
+**Dato.** MLA15152920, "Excellent Perro Adulto Raza Mediana y Grande x 20 kg", tiene 48 vendedores. La ficha con más impresiones del sitio es MLA15152919 (Purina Excellent 22 kg), que no tiene ninguno (H13).
+
+**Interpretación (especulación).** Que los IDs sean consecutivos sugiere que son la misma línea en dos presentaciones. Si es así, la ficha de Purina podría ofrecer la de 20 kg en vez de quedar sin precio.
+
+**Pendiente.** Comparar `/products/MLA15152919` y `/products/MLA15152920` (nombre, marca, línea y `parent_id`). Sirve para la T36.
 
 ---
 
