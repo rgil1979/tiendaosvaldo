@@ -14,11 +14,22 @@ const GUIAS: Record<string, {
   descripcion: string
   contenido: string
   productosRelacionados: string[]
+  // Links generados en el panel de afiliados con la etiqueta de esta guía (T10, T11),
+  // para saber qué clics y ventas salen de cada guía. Clave: id del producto curado.
+  // Si un producto no figura acá, la tarjeta usa su link de productos-curados.ts
+  // (etiqueta rodrigogilbulacio). Un producto nuevo en una guía necesita su propio
+  // link, generado con la etiqueta de la guía en uso.
+  linksEtiquetados?: Record<string, string>
 }> = {
   "mejor-alimento-perro-adulto-raza-grande-argentina-2026": {
     titulo: "Mejor alimento perro adulto raza grande Argentina 2026",
     descripcion: "Comparamos Royal Canin Maxi Adult, Pro Plan Razas Grandes y Eukanuba Razas Grandes: qué tiene cada uno en la etiqueta y cuál conviene.",
     productosRelacionados: ["ali-p-007", "ali-p-003"],
+    // Etiqueta guiaalimentoperro
+    linksEtiquetados: {
+      "ali-p-007": "https://meli.la/2MgKzrC", // Pro Plan Adulto Razas Grandes 15 kg
+      "ali-p-003": "https://meli.la/1akqNyn", // Eukanuba Razas Grandes 15 kg
+    },
     contenido: `
 ## Por qué el alimento importa más de lo que pensás
 
@@ -90,6 +101,14 @@ Todas las marcas de esta guía están disponibles en Mercado Libre con envío a 
     titulo: "Arena para gatos: aglutinante o sílice",
     descripcion: "Comparamos arena aglutinante y de sílice para gatos: cuál absorbe mejor, cuál rinde más por peso y cuál conviene según tu presupuesto y cuántos gatos tenés.",
     productosRelacionados: ["are-g-001", "are-g-002", "are-g-003", "are-g-004", "are-g-005"],
+    // Etiqueta guiaarena
+    linksEtiquetados: {
+      "are-g-001": "https://meli.la/2as3wFb", // Zootec 30 kg (2 bolsas de 15 kg)
+      "are-g-002": "https://meli.la/1oT7oSF", // Catit Go Natural Vainilla 5,6 kg
+      "are-g-003": "https://meli.la/227PLeZ", // Zootec 24 kg (6 bolsas de 4 kg)
+      "are-g-004": "https://meli.la/26vf3z4", // Catit Go Natural Lavanda 5,6 kg
+      "are-g-005": "https://meli.la/33zCSQe", // Bio Stones Lavanda 20 kg (5 bolsas de 4 kg)
+    },
     contenido: `
 ## Por qué esta decisión te va a perseguir todos los días
 
@@ -200,7 +219,7 @@ export default async function GuiaPage({ params }: Props) {
                   id: p.id,
                   name: p.titulo,
                   pictures: [{ id: "0", url: p.imagen }],
-                  affiliateUrl: p.linkAfiliado,
+                  affiliateUrl: guia.linksEtiquetados?.[p.id] ?? p.linkAfiliado,
                   price: 0,
                   condition: "new" as const,
                   free_shipping: false,
