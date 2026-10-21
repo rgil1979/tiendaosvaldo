@@ -17,55 +17,53 @@ const GUIAS: Record<string, {
 }> = {
   "mejor-alimento-perro-adulto-raza-grande-argentina-2026": {
     titulo: "Mejor alimento perro adulto raza grande Argentina 2026",
-    descripcion: "Comparativa real de las mejores marcas disponibles en Argentina: Royal Canin, Pro Plan, Eukanuba y más.",
-    productosRelacionados: ["col-p-001", "cam-p-001", "jug-p-001"],
+    descripcion: "Comparamos Royal Canin Maxi Adult, Pro Plan Razas Grandes y Eukanuba Razas Grandes: qué tiene cada uno en la etiqueta y cuál conviene.",
+    productosRelacionados: ["ali-p-007", "ali-p-003"],
     contenido: `
 ## Por qué el alimento importa más de lo que pensás
 
 Los perros de raza grande tienen necesidades nutricionales específicas que los diferencian del resto. Su desarrollo óseo, la salud articular y el control del peso corporal dependen directamente de la calidad del alimento que reciben.
 
-Osvaldo lo aprendió de la manera difícil: un par de marcas genéricas y mucho tiempo en el veterinario. Hoy come solo lo que pasa el corte.
-
 ## Qué mirar en la etiqueta (y qué ignorar)
 
 **Lo que importa:**
 - Proteína animal como primer ingrediente (pollo, res, cordero — no "harina de subproductos")
-- Porcentaje de proteína: mínimo 22% para adultos, 25%+ para razas activas
+- Porcentaje de proteína: en la etiqueta figura como "proteína bruta (mín.)". En los alimentos premium para razas grandes suele estar entre 24% y 26%
 - Glucosamina y condroitina para articulaciones (crítico en razas grandes)
-- Calcio y fósforo balanceados: exceso de calcio acelera el crecimiento y daña las articulaciones
+- Calcio y fósforo balanceados: es clave sobre todo en cachorros de raza grande, porque el exceso de calcio durante el crecimiento daña las articulaciones
 
 **Lo que podés ignorar:**
 - "Natural", "premium", "gourmet" — no tienen definición legal en Argentina
 - Colores del packaging — no dice nada sobre la calidad
 
-## Las marcas más vendidas en Argentina: análisis real
+## Las tres marcas, una por una
 
 ### Royal Canin Maxi Adult
-La opción más conocida y más vendida. Formulada específicamente para razas de 26 a 44 kg.
+Formulada para perros adultos de raza grande, de 26 a 44 kg.
 
 **Lo bueno:** croqueta grande que obliga a masticar despacio, fórmula probada durante años, fácil de conseguir en todo el país.
 
 **Lo no tan bueno:** precio alto y el primer ingrediente es maíz, no proteína animal. Para muchos perros funciona bien igual, pero hay opciones con mejor composición al mismo precio.
 
-**Veredicto de Osvaldo:** ✅ Confiable. No la más eficiente en costo-beneficio, pero no falla.
+**Veredicto:** ✅ Confiable. No la más eficiente en costo-beneficio, pero no falla.
 
 ### Pro Plan Large Breed Adult
-Proteína de pollo como primer ingrediente. Incluye glucosamina y EPA para articulaciones.
+Carne de pollo como primer ingrediente. Incluye harina de subproductos de pollo, fuente natural de glucosamina, y ácidos grasos omega 3 y 6.
 
 **Lo bueno:** mejor perfil nutricional que Royal Canin en papel, proteína animal al frente, omega-3 incluido.
 
 **Lo no tan bueno:** precio similar a Royal Canin, disponibilidad variable según la región.
 
-**Veredicto de Osvaldo:** ✅ La mejor relación composición/precio del segmento premium.
+**Veredicto:** ✅ La mejor relación composición/precio del segmento premium.
 
 ### Eukanuba Large Breed Adult
-Menos conocida pero sólida. Pollo como primer ingrediente, tecnología de control de sarro dental.
+Menos conocida pero sólida. Carne de pollo como primer ingrediente, tecnología de control de sarro dental.
 
 **Lo bueno:** composición honesta, precio levemente inferior a las dos anteriores.
 
 **Lo no tan bueno:** distribución más limitada — no siempre está en todos los pet shops.
 
-**Veredicto de Osvaldo:** ✅ Buena opción si la conseguís cerca.
+**Veredicto:** ✅ Buena opción si la conseguís cerca.
 
 ## ¿Cuánto debería comer un perro grande?
 
@@ -85,7 +83,7 @@ Todas las marcas de esta guía están disponibles en Mercado Libre con envío a 
 
 ---
 
-*Esta guía está basada en las fichas técnicas oficiales de cada marca y no reemplaza la consulta con un médico veterinario. Los precios varían constantemente — siempre verificá el precio actual en Mercado Libre antes de comprar. Última actualización: junio 2026.*
+*Esta guía está basada en las fichas técnicas oficiales de cada marca y no reemplaza la consulta con un médico veterinario. Los precios varían constantemente — siempre verificá el precio actual en Mercado Libre antes de comprar. Última actualización: octubre 2026.*
     `,
   },
   "arena-gatos-aglutinante-vs-silice-argentina-2026": {
@@ -192,7 +190,7 @@ export default async function GuiaPage({ params }: Props) {
       {productosRelacionados.length > 0 && (
         <div style={{ marginTop: "3rem", borderTop: "1px solid #eee", paddingTop: "2rem" }}>
           <h2 style={{ fontSize: "1.4rem", marginBottom: "1rem", color: "#3D1F0D" }}>
-            🐾 Productos aprobados por Osvaldo
+            🐾 Los productos de esta guía
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
             {productosRelacionados.map((p) => p && (

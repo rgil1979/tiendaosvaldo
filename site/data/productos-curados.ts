@@ -136,6 +136,7 @@ export const productosCurados: ProductoCurado[] = [
   { id: "ali-p-004", titulo: "Eukanuba Perro Adulto Raza Pequeña Mix 3 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_785784-MLA99933971853_112025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2CGSNDY", mascota: "perro", mlId: "MLA9303706" },
   { id: "ali-p-005", titulo: "Nutrique Large Puppy Cachorro Raza Grande 15 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_766866-MLA82481579013_022025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2G3Tpw2", mascota: "perro", mlId: "MLA15219909" },
   { id: "ali-p-006", titulo: "Old Prince Cordero Senior Perro Todas las Razas 3 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_935783-MLA99391122040_112025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/1HugwMX", mascota: "perro", mlId: "MLA24753399" },
+  { id: "ali-p-007", titulo: "Pro Plan Perro Adulto Razas Grandes 15 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_666364-MLA99842184585_112025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/1c5uq7d", mascota: "perro", mlId: "MLA22146528" },
 
   // ─── Alimento Gatos (T08) ───────────────────────────────────────────────
   { id: "ali-g-001", titulo: "Excellent Gato Adulto Pollo, Carne y Arroz 7,5 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_677238-MLA99442302478_112025-F.webp", categoria: "alimento-gato", linkAfiliado: "https://meli.la/1NLAEwE", mascota: "gato", mlId: "MLA8726956" },
