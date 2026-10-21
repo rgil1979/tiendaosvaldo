@@ -5,6 +5,9 @@ export type ProductoCurado = {
   categoria: string
   linkAfiliado: string
   mascota: "perro" | "gato"
+  // ID del producto de catálogo de Mercado Libre (/p/MLA…). Permite revisar precio y
+  // vendedores con la API (T29). Cargarlo en todo producto nuevo.
+  mlId?: string
 }
 
 export const CATEGORIA_SLUGS: Record<string, string> = {
@@ -125,10 +128,28 @@ export const productosCurados: ProductoCurado[] = [
   { id: "are-g-003", titulo: "Arena Aglutinante Para Gatos Zootec 24kgs Pack De 6 Bolsas De 4Kg Cada Una", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_892132-MLA99529656380_122025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1RU6nZo", mascota: "gato" },
   { id: "are-g-004", titulo: "Arena Sanitaria Aglutinante Biodegradable Para Gatos Catit Go Natural Aroma Lavanda de 5,6 Kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_787254-MLA99992063741_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/2FgzAuf", mascota: "gato" },
   { id: "are-g-005", titulo: "Arena Piedras Sanitarias Para Gatos Bentonita Sodica Aglomerante Bio Stones Aroma Lavanda 20 Kg - Pack De 5 Bolsas De 4 Kg Cada Una", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_978671-MLA99466003810_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1PrLE6E", mascota: "gato" },
+
+  // ─── Alimento Perros (T08) ──────────────────────────────────────────────
+  { id: "ali-p-001", titulo: "Excellent Perro Adulto Raza Mediana y Grande 20 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_666150-MLA115096376086_082026-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2D4m5MN", mascota: "perro", mlId: "MLA15152920" },
+  { id: "ali-p-002", titulo: "Old Prince Premium Perro Adulto Cordero 15 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_606172-MLA99901222225_112025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2PQbDgD", mascota: "perro", mlId: "MLA23327750" },
+  { id: "ali-p-003", titulo: "Eukanuba Perro Adulto Razas Grandes 15 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_975051-MLA99452086132_112025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2FsWG9w", mascota: "perro", mlId: "MLA13363713" },
+  { id: "ali-p-004", titulo: "Eukanuba Perro Adulto Raza Pequeña Mix 3 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_785784-MLA99933971853_112025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2CGSNDY", mascota: "perro", mlId: "MLA9303706" },
+  { id: "ali-p-005", titulo: "Nutrique Large Puppy Cachorro Raza Grande 15 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_766866-MLA82481579013_022025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2G3Tpw2", mascota: "perro", mlId: "MLA15219909" },
+  { id: "ali-p-006", titulo: "Old Prince Cordero Senior Perro Todas las Razas 3 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_935783-MLA99391122040_112025-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/1HugwMX", mascota: "perro", mlId: "MLA24753399" },
+
+  // ─── Alimento Gatos (T08) ───────────────────────────────────────────────
+  { id: "ali-g-001", titulo: "Excellent Gato Adulto Pollo, Carne y Arroz 7,5 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_677238-MLA99442302478_112025-F.webp", categoria: "alimento-gato", linkAfiliado: "https://meli.la/1NLAEwE", mascota: "gato", mlId: "MLA8726956" },
+  { id: "ali-g-002", titulo: "Old Prince Premium Gato Adulto 7,5 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_622629-MLA115361498321_072026-F.webp", categoria: "alimento-gato", linkAfiliado: "https://meli.la/1xpW2D2", mascota: "gato", mlId: "MLA25363194" },
+  { id: "ali-g-003", titulo: "Old Prince Equilibrium Gato Esterilizado 3 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_968298-MLA99335479672_112025-F.webp", categoria: "alimento-gato", linkAfiliado: "https://meli.la/2Ybvona", mascota: "gato", mlId: "MLA24743476" },
+  { id: "ali-g-004", titulo: "Pro Plan Gato Kitten Optistart 1 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_614030-MLA99413422098_112025-F.webp", categoria: "alimento-gato", linkAfiliado: "https://meli.la/1dL1Sp9", mascota: "gato", mlId: "MLA14299551" },
 ]
+
+// "alimentacion" agrupa los alimentos de perro y gato
+const CATEGORIAS_ALIMENTO = ["alimento-perro", "alimento-gato"]
 
 // Helper: obtener productos por slug de categoría
 export function getProductosByCategoria(slug: string): ProductoCurado[] {
+  if (slug === "alimentacion") return productosCurados.filter((p) => CATEGORIAS_ALIMENTO.includes(p.categoria))
   return productosCurados.filter((p) => p.categoria === slug)
 }
 
