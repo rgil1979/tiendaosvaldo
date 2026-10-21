@@ -27,7 +27,6 @@ exec 9>"$BASE/.deploy.lock"
 flock -n 9 || { log "Ya hay un deploy corriendo"; exit 1; }
 
 command -v rsync >/dev/null || { log "Falta rsync en el servidor (apt install rsync)"; exit 1; }
-[ -f "$LIVE/.env" ] || { log "No existe $LIVE/.env — abortando"; exit 1; }
 
 # Archivos que existen solo en el servidor. Excluirlos de rsync los protege también de --delete.
 PROTECTED=(--exclude=.env --exclude='.env.*' --exclude=.ml-token-cache.json
@@ -38,7 +37,22 @@ log "Commit: $(git -C "$REPO" log -1 --oneline)"
 mkdir -p "$STAGE"
 rsync -a --delete "${PROTECTED[@]}" --exclude=.next/ "$REPO/site/" "$STAGE/"
 
-# .env de producción para que se horneen las NEXT_PUBLIC_*, pero sin refresh token.
+# Variables de producción (las que el compose carga con env_file/environment) para que se
+# horneen las NEXT_PUBLIC_*, pero sin refresh token.
+BUILD_ENV="$BASE/.build.env"
+trap 'rm -f "$BUILD_ENV"' EXIT
+( umask 077
+  compose config --format json | docker run --rm -i "$NODE_IMAGE" node -e '
+    let s = ""
+    process.stdin.on("data", d => s += d).on("end", () => {
+      const env = JSON.parse(s).services[process.argv[1]].environment || {}
+      for (const [k, v] of Object.entries(env))
+        if (k !== "ML_REFRESH_TOKEN") console.log(`${k}=${v ?? ""}`)
+    })' "$SERVICE" > "$BUILD_ENV" )
+grep -q '^NEXT_PUBLIC_' "$BUILD_ENV" || { log "El compose no define variables NEXT_PUBLIC_* — abortando"; exit 1; }
+log "Variables para el build: $(cut -d= -f1 "$BUILD_ENV" | tr '\n' ' ')"
+
+# Si además hay .env* en el sitio, también van a staging sin refresh token.
 for f in "$LIVE"/.env "$LIVE"/.env.*; do
   [ -f "$f" ] || continue
   sed 's/^ML_REFRESH_TOKEN=.*/ML_REFRESH_TOKEN=/' "$f" > "$STAGE/$(basename "$f")"
@@ -53,7 +67,7 @@ else
 fi
 
 log "Compilando en staging…"
-docker run --rm -v "$STAGE:/app" -w /app "$NODE_IMAGE" \
+docker run --rm --env-file "$BUILD_ENV" -v "$STAGE:/app" -w /app "$NODE_IMAGE" \
   sh -c "rm -rf .next && npm ci --no-audit --no-fund && npm run build"
 [ -f "$STAGE/.next/BUILD_ID" ] || { log "El build no generó .next/BUILD_ID — abortando"; exit 1; }
 log "Build OK"
