@@ -11,11 +11,46 @@
 3. **Desde mediados de agosto las fichas perdieron cerca del 40 % de sus impresiones**, en dos escalones que coinciden con los spam updates de Google de agosto y septiembre. La falta de links internos quedó descartada como causa principal. Hipótesis principal: Google las trata como afiliación de bajo valor. (T36)
 4. **Los datos estructurados de las fichas no funcionan**: Google no detecta ningún dato de producto. (T36)
 5. **El sitemap está incompleto**: 19 URLs, sin la guía de arena, que es la página mejor posicionada. (T35)
-6. **Las categorías de alimento ya tienen productos**: 10 alimentos de catálogo con 13 o más vendedores, publicados el 21/10 (T08, H14). La guía de alimento para raza grande todavía muestra un arnés, un moisés y un juguete, y su texto recomienda marcas que el catálogo no tiene (T09, H16).
+6. **Las categorías de alimento ya tienen productos**: 10 alimentos de catálogo con 13 o más vendedores, publicados el 21/10 (T08, H14). La guía de alimento para raza grande ya muestra Pro Plan y Eukanuba, con el texto corregido según las fichas oficiales (T09, H16).
 7. **Analytics cuenta menos de lo real**: solo registra a quien acepta las cookies. (T34)
 8. **Todo lo que usa la API de Mercado Libre depende de un solo token.** Se volvió a autorizar el 21/10 (T37). La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
+9. **Ya se puede separar de dónde salen los clics: cada guía e Instagram tienen su etiqueta en el panel de afiliados.** La home y las categorías quedan juntas en `rodrigogilbulacio`. Con el tráfico de hoy, las etiquetas van a mostrar casi cero durante semanas. (T10, T11, H17)
 
 Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
+
+---
+
+## 2026-10-21 · Etiquetas de seguimiento del panel de afiliados (T10, T11)
+
+Tareas: T10, T11, T16, T17.
+
+**Fuentes**
+- Capturas del Administrador de etiquetas que pasó Rodrigo (21/10, 20:11 y 20:12).
+- Código: `site/app/page.tsx`, `site/app/guias/[slug]/page.tsx`, `site/app/categoria/[slug]/` y `site/data/productos-curados.ts`.
+- Guías de terceros: [GrupoZap](https://grupozap.online/afiliados/mercado-livre) y [Divulga Ninja](https://www.divulganinja.com.br/es/blog/como-criar-link-afiliado-mercado-livre/). La ayuda oficial de Mercado Libre ([Cómo crear etiquetas](https://www.mercadolibre.com.ar/l/primeros-pasos-organiza-tus-links)) no se puede leer de forma automática.
+- Producción, revisada el 21/10 con el navegador integrado.
+
+### H17 · La etiqueta se elige al generar el link y no se puede cambiar después
+
+**Dato.**
+- El Administrador de etiquetas tenía una sola, `rodrigogilbulacio`, marcada como "Etiqueta en uso". La etiqueta en uso se elige con un botón de opción. La pantalla no muestra los links ni permite cambiarle la etiqueta a uno ya generado.
+- Al intentar crear `guia-alimento`, el panel respondió: "Creá la etiqueta sin caracteres especiales como %$&!." El máximo es de 30 caracteres.
+- Cada producto curado tiene un solo link (`linkAfiliado`), que se usa en la home, en su categoría y en las guías. Links por ubicación: 31 en la home (8 de perro, 8 de gato y 15 accesorios), 2 en la guía de alimento, 5 en la guía de arena y 103 en las categorías.
+- Según las guías de terceros, sin confirmar con Mercado Libre: el generador usa la etiqueta en uso, la etiqueta queda dentro del link (en el parámetro `matt_word`) y los términos del programa prohíben editar el link generado.
+- La primera vez que Rodrigo generó los 2 links de alimento, salieron con otra etiqueta. Hubo que generarlos de nuevo.
+
+**Interpretación.**
+- Para medir una ubicación nueva hay que generar de nuevo todos sus links. En la home serían 31.
+- *Opinión:* con el tráfico de hoy (11 clics desde Google en 3 meses), las etiquetas van a mostrar casi cero durante semanas. En los próximos meses hay que decidir dos cosas: si las guías venden (T32, T18) y si vale la pena volver a Instagram (T16). Por eso se etiquetaron solo las guías e Instagram. Si hace falta saber qué ubicación del sitio genera clics, conviene medirlo desde el sitio (T34), sin tocar los links.
+- El riesgo principal es de operación: si queda en uso la etiqueta equivocada, todo lo que se genere después sale mal etiquetado y nadie lo nota. Ya pasó una vez.
+
+**Pendiente.**
+- Una captura del Administrador de etiquetas donde se vea que existe `instagram` y que está en uso `rodrigogilbulacio`.
+- Prueba de clic: abrir desde el celular los 7 links de las guías y, al día siguiente, ver en el panel 2 clics en `guiaalimentoperro` y 5 en `guiaarena`. Sirve para confirmar a la vez la etiqueta y que cada link lleve al producto correcto.
+
+**Decisiones (21/10).**
+- Etiquetas: `guiaalimentoperro`, `guiaarena` e `instagram`. La home y las categorías se quedan con `rodrigogilbulacio`.
+- Cada guía usa sus propios links (`linksEtiquetados` en `site/app/guias/[slug]/page.tsx`). El detalle de los 7 links está en la T11.
 
 ---
 
