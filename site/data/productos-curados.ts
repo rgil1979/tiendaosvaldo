@@ -10,6 +10,11 @@ export type ProductoCurado = {
   mlId?: string
 }
 
+// Fecha del último cambio del catálogo (AAAA-MM-DD). El sitemap la usa como fecha de
+// modificación de la home y de las categorías (T35): actualizala al sumar, sacar o
+// cambiar productos.
+export const CATALOGO_ACTUALIZADO = "2026-10-21"
+
 export const CATEGORIA_SLUGS: Record<string, string> = {
   "Collares / arnese": "collares",
   "Camas":             "camas",
