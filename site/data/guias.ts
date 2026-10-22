@@ -110,13 +110,19 @@ Todas las marcas de esta guía están disponibles en Mercado Libre con envío a 
     // T32: las búsquedas donde la guía aparece cerca de la posición 8 son de compra
     // ("bolsa de arena para gatos", "cuánto sale la arena para gatos").
     tituloSeo: "Arena para gatos: qué bolsa comprar, ¿aglutinante o sílice?",
-    descripcion: "Qué arena para gatos comprar según cuántos gatos tenés: aglutinante o sílice, cuál rinde más, polvo, olor y qué prefieren los gatos. Con bolsas de 4 a 15 kg.",
+    descripcion: "Qué arena para gatos comprar según cuántos gatos tenés: aglutinante o sílice, cuál rinde más, polvo, olor y qué prefieren los gatos. Con bolsas de 5 a 7 kg.",
     emoji: "🐈",
-    actualizado: "2026-10-22",
-    productosRelacionados: ["are-g-001", "are-g-002", "are-g-003", "are-g-004"],
-    // Etiqueta guiaarena: pendiente. Los links generados el 21/10 llevaban a otros
-    // productos (Rubicat, Absorsol, Sanicat) y se sacaron. Mientras tanto, las
-    // tarjetas usan el link de productos-curados.ts (T11).
+    actualizado: "2026-10-23",
+    // T41: las cuatro son aglutinantes sin fragancia, para que los productos no contradigan
+    // la guía (la mayoría de los gatos prefiere arena sin perfume).
+    productosRelacionados: ["are-g-006", "are-g-007", "are-g-008", "are-g-009"],
+    // Etiqueta guiaarena (T11), generados el 22/10.
+    linksEtiquetados: {
+      "are-g-006": "https://meli.la/2RNfu4s", // Rubicat Classic 5,3 kg
+      "are-g-007": "https://meli.la/14FE2HB", // Sanicat Strong Clumps 7 kg
+      "are-g-008": "https://meli.la/2CfLr4C", // Catit Go Natural Sin Aromas 5,6 kg
+      "are-g-009": "https://meli.la/2MvPbtH", // Rubicat Sensitive Microesferas 5 kg
+    },
     contenido: `
 ## Por qué conviene elegir bien
 
@@ -124,7 +130,7 @@ Vas a limpiar el arenero todos los días durante años, así que el tipo de aren
 
 ## Aglutinante vs sílice: qué es cada una
 
-**Arena aglutinante:** al contacto con la orina forma una bola compacta que se levanta entera con la pala. La mayoría es de bentonita, una arcilla, y también hay aglutinantes biodegradables, como la Catit Go Natural de esta guía. En Mercado Libre se consiguen marcas como Rubicat, Sanicat, Absorsol, Zootec y Catit. Sacás las bolas y los sólidos, y reponés solo lo que falta.
+**Arena aglutinante:** al contacto con la orina forma una bola compacta que se levanta entera con la pala. La mayoría es de bentonita, una arcilla, y también hay aglutinantes biodegradables, como la Catit Go Natural de esta guía, hecha con cáscara de arveja. En Mercado Libre se consiguen marcas como Rubicat, Sanicat, Absorsol, Zootec y Catit. Sacás las bolas y los sólidos, y reponés solo lo que falta.
 
 **Arena de sílice (cristales):** no forma bolas: el cristal absorbe la orina. Los sólidos se sacan todos los días y, cuando los cristales se saturan, se cambia toda la carga. Los fabricantes hablan de hasta 30 días con un solo gato (PetSafe, para su bandeja de cristales); con más gatos dura menos.
 
@@ -164,7 +170,7 @@ Si el gato no quiere usar la arena, nada de lo anterior sirve. Según los estudi
 
 ## Dónde comprar en Argentina
 
-Las cuatro arenas de esta guía son aglutinantes: Zootec, en bolsas de 15 kg (pack de 2) y de 4 kg (pack de 6), y Catit Go Natural, de 5,6 kg, con aroma a vainilla o a lavanda. Están en Mercado Libre. El precio y el envío cambian según el vendedor: confirmalos antes de comprar.
+Las cuatro arenas de esta guía son aglutinantes y, según los datos de cada producto en Mercado Libre, sin fragancia: Rubicat Classic (5,3 kg), Sanicat Strong Clumps (7 kg), Rubicat Sensitive Microesferas (5 kg) y Catit Go Natural Sin Aromas (5,6 kg), la biodegradable. Están en Mercado Libre. El precio y el envío cambian según el vendedor: confirmalos antes de comprar.
 
 ## Fuentes
 
@@ -173,7 +179,7 @@ Las cuatro arenas de esta guía son aglutinantes: Zootec, en bolsas de 15 kg (pa
 
 ---
 
-*Esta guía se basa en las fuentes citadas y en las publicaciones de los productos, y no reemplaza la consulta con un médico veterinario. Última actualización: octubre 2026.*
+*Esta guía se basa en las fuentes citadas y en los datos de cada producto en Mercado Libre, y no reemplaza la consulta con un médico veterinario. Última actualización: octubre 2026.*
     `,
   },
 }

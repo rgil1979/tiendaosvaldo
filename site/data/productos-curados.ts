@@ -13,7 +13,7 @@ export type ProductoCurado = {
 // Fecha del último cambio del catálogo (AAAA-MM-DD). El sitemap la usa como fecha de
 // modificación de la home y de las categorías (T35): actualizala al sumar, sacar o
 // cambiar productos.
-export const CATALOGO_ACTUALIZADO = "2026-10-21"
+export const CATALOGO_ACTUALIZADO = "2026-10-23"
 
 export const CATEGORIA_SLUGS: Record<string, string> = {
   "Collares / arnese": "collares",
@@ -132,6 +132,12 @@ export const productosCurados: ProductoCurado[] = [
   { id: "are-g-002", titulo: "Arena Sanitaria Aglutinante Biodegradable Para Gatos Catit Go Natural Aroma Vainilla De 5,6 Kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_670445-MLA99509528430_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1JqJssK", mascota: "gato", mlId: "MLA60924254" },
   { id: "are-g-003", titulo: "Arena Aglutinante Para Gatos Zootec 24kgs Pack De 6 Bolsas De 4Kg Cada Una", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_892132-MLA99529656380_122025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1RU6nZo", mascota: "gato", mlId: "MLA48897680" },
   { id: "are-g-004", titulo: "Arena Sanitaria Aglutinante Biodegradable Para Gatos Catit Go Natural Aroma Lavanda de 5,6 Kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_787254-MLA99992063741_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/2FgzAuf", mascota: "gato", mlId: "MLA27724749" },
+  // T41: aglutinantes sin fragancia (dato de Mercado Libre), de catálogo y con 10 o más vendedores
+  // (búsqueda del 22/10, scripts/buscar-alimentos-ml.mjs --arena). Son las de la guía de arena.
+  { id: "are-g-006", titulo: "Rubicat Classic Arena Aglomerante Sin Fragancia 5,3 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_855416-MLA113981481882_072026-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1169SSm", mascota: "gato", mlId: "MLA19994394" },
+  { id: "are-g-007", titulo: "Sanicat Strong Clumps Arena Aglomerante Sin Fragancia 7 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_807429-MLA99489105588_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1sZUSNr", mascota: "gato", mlId: "MLA20935047" },
+  { id: "are-g-008", titulo: "Catit Go Natural Arena Aglutinante Sin Aroma 5,6 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_720039-MLA99159343306_112025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/172vN34", mascota: "gato", mlId: "MLA62573112" },
+  { id: "are-g-009", titulo: "Rubicat Sensitive Microesferas Aglomerantes Sin Fragancia 5 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_700520-MLA96869130747_102025-F.webp", categoria: "arena-gato", linkAfiliado: "https://meli.la/1urKH55", mascota: "gato", mlId: "MLA59585772" },
 
   // ─── Alimento Perros (T08) ──────────────────────────────────────────────
   { id: "ali-p-001", titulo: "Excellent Perro Adulto Raza Mediana y Grande 20 kg", imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_666150-MLA115096376086_082026-F.webp", categoria: "alimento-perro", linkAfiliado: "https://meli.la/2D4m5MN", mascota: "perro", mlId: "MLA15152920" },
