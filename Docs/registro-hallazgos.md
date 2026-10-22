@@ -14,7 +14,7 @@
 6. **Las categorías de alimento ya tienen productos**: 10 alimentos de catálogo con 13 o más vendedores, publicados el 21/10 (T08, H14). La guía de alimento para raza grande ya muestra Pro Plan y Eukanuba, con el texto corregido según las fichas oficiales (T09, H16).
 7. **Analytics cuenta menos de lo real**: solo registra a quien acepta las cookies. (T34)
 8. **Todo lo que usa la API de Mercado Libre depende de un solo token.** Se volvió a autorizar el 21/10 (T37). La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
-9. **Ya se puede separar de dónde salen los clics: cada guía e Instagram tienen su etiqueta en el panel de afiliados.** La home y las categorías quedan juntas en `rodrigogilbulacio`. Con el tráfico de hoy, las etiquetas van a mostrar casi cero durante semanas. (T10, T11, H17)
+9. **Ya se puede saber qué clics salen de la guía de alimento:** sus links llevan la etiqueta `guiaalimentoperro` (verificado). Para la guía de arena e Instagram las etiquetas ya existen, pero falta generar los links. La home y las categorías quedan juntas en `rodrigogilbulacio`. Con el tráfico de hoy, las etiquetas van a mostrar casi cero durante semanas. (T10, T11, H17)
 
 Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
 
@@ -36,21 +36,28 @@ Tareas: T10, T11, T16, T17.
 - El Administrador de etiquetas tenía una sola, `rodrigogilbulacio`, marcada como "Etiqueta en uso". La etiqueta en uso se elige con un botón de opción. La pantalla no muestra los links ni permite cambiarle la etiqueta a uno ya generado.
 - Al intentar crear `guia-alimento`, el panel respondió: "Creá la etiqueta sin caracteres especiales como %$&!." El máximo es de 30 caracteres.
 - Cada producto curado tiene un solo link (`linkAfiliado`), que se usa en la home, en su categoría y en las guías. Links por ubicación: 31 en la home (8 de perro, 8 de gato y 15 accesorios), 2 en la guía de alimento, 5 en la guía de arena y 103 en las categorías.
-- Según las guías de terceros, sin confirmar con Mercado Libre: el generador usa la etiqueta en uso, la etiqueta queda dentro del link (en el parámetro `matt_word`) y los términos del programa prohíben editar el link generado.
+- Según las guías de terceros: el generador usa la etiqueta en uso y los términos del programa prohíben editar el link generado. Lo segundo no está confirmado con Mercado Libre.
+- *Verificado el 21/10, abriendo los links en el navegador integrado:* cada `meli.la` redirige a `mercadolibre.com.ar/social/rodrigogilbulacio?matt_word=<etiqueta>&matt_tool=33352389&forceInApp=true&ref=…`. La etiqueta viaja en `matt_word`, y `matt_tool` es el mismo en todos los links. El perfil muestra un producto destacado y su botón "Ir a producto" lleva a la publicación o a la página de catálogo.
+- Links viejos de la guía de arena (`rodrigogilbulacio`): los 4 primeros llevan al producto correcto, y los 4 son de catálogo: Zootec 30 kg MLA49294007, Catit Vainilla MLA60924254, Zootec 24 kg MLA48897680 y Catit Lavanda MLA27724749. El de Bio Stones (`1PrLE6E`) lleva a "Este perfil está vacío".
+- Los 5 links nuevos de la guía de arena tenían `guiaarena`, pero llevaban a otros productos: Rubicat Premium (MLA40696907), Rubicat Classic (MLA40007618), Absorsol (MLA24609240), Sanicat (MLA2042180189) y Zootec Lavanda (MLA57684109). Rodrigo dice que, cuando los abrió después de generarlos, mostraban el producto correcto. Claude los abrió a las 21:38 y mostraban los de la lista. No sabemos por qué no coinciden.
+- Los 2 links de la guía de alimento (`2MgKzrC` y `1akqNyn`) llevan a Pro Plan (MLA22146528) y a Eukanuba (MLA13363713), con `matt_word=guiaalimentoperro`.
 - La primera vez que Rodrigo generó los 2 links de alimento, salieron con otra etiqueta. Hubo que generarlos de nuevo.
 
 **Interpretación.**
 - Para medir una ubicación nueva hay que generar de nuevo todos sus links. En la home serían 31.
 - *Opinión:* con el tráfico de hoy (11 clics desde Google en 3 meses), las etiquetas van a mostrar casi cero durante semanas. En los próximos meses hay que decidir dos cosas: si las guías venden (T32, T18) y si vale la pena volver a Instagram (T16). Por eso se etiquetaron solo las guías e Instagram. Si hace falta saber qué ubicación del sitio genera clics, conviene medirlo desde el sitio (T34), sin tocar los links.
-- El riesgo principal es de operación: si queda en uso la etiqueta equivocada, todo lo que se genere después sale mal etiquetado y nadie lo nota. Ya pasó una vez.
+- El riesgo principal es de operación: generar links a mano tiene errores. En las dos tandas del 21/10 hubo uno: links de alimento con otra etiqueta y links de arena que llevan a otros productos. Por eso, Claude abre cada link nuevo antes de publicarlo y revisa el producto y la etiqueta. Cuesta un clic por link, que hay que anotar.
+- Si uno de los 5 links de arena estaba roto, puede haber más en el catálogo (T42).
 
 **Pendiente.**
-- Una captura del Administrador de etiquetas donde se vea que existe `instagram` y que está en uso `rodrigogilbulacio`.
-- Prueba de clic: abrir desde el celular los 7 links de las guías y, al día siguiente, ver en el panel 2 clics en `guiaalimentoperro` y 5 en `guiaarena`. Sirve para confirmar a la vez la etiqueta y que cada link lleve al producto correcto.
+- Los 4 links de la guía de arena con `guiaarena`, generados desde las URLs de catálogo de arriba (T11).
+- Saber si el panel deja borrar `guiaalimento` y `gualimento`, creadas por error (T10).
+- Clics de prueba hechos por Claude el 21/10, que no son visitas: entre las 21:33 y las 21:37, 9 con `rodrigogilbulacio` y 2 con `guiaalimentoperro`; entre las 21:38 y las 21:39, 5 con `guiaarena`. A esto se suman los que hizo Rodrigo desde el celular entre las 21:22 y las 21:30.
 
 **Decisiones (21/10).**
 - Etiquetas: `guiaalimentoperro`, `guiaarena` e `instagram`. La home y las categorías se quedan con `rodrigogilbulacio`.
-- Cada guía usa sus propios links (`linksEtiquetados` en `site/app/guias/[slug]/page.tsx`). El detalle de los 7 links está en la T11.
+- Cada guía usa sus propios links (`linksEtiquetados` en `site/app/guias/[slug]/page.tsx`). El detalle de los links está en la T11.
+- La guía de arena volvió a los links viejos hasta tener los buenos con `guiaarena`. Bio Stones salió del catálogo y de la guía porque su link está roto. Las 4 arenas que quedan guardan su `mlId` (commit `7d4cf3b`).
 
 ---
 
