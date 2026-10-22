@@ -15,10 +15,43 @@
 7. **Analytics cuenta menos de lo real**: solo registra a quien acepta las cookies. (T34)
 8. **Todo lo que usa la API de Mercado Libre depende de un solo token.** Se volvió a autorizar el 21/10 (T37). La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
 9. **Ya se puede saber qué clics salen de la guía de alimento:** sus links llevan la etiqueta `guiaalimentoperro` (verificado). Para la guía de arena e Instagram las etiquetas ya existen, pero falta generar los links. La home y las categorías quedan juntas en `rodrigogilbulacio`. Con el tráfico de hoy, las etiquetas van a mostrar casi cero durante semanas. (T10, T11, H17)
-10. **Las reglas del programa afectan al sitio:** solo cuentan los medios declarados, para cobrar hace falta ser monotributista o RI (Rodrigo ya tiene la situación fiscal cargada), la ventana es de 24 horas y el mínimo de cobro es $ 30.000 en 3 ventas de 3 personas. El botón de las fichas `/producto/` es un link armado a mano, algo que los términos prohíben. (T06, T33, T36, H18)
+10. **Las reglas del programa afectan al sitio:** solo cuentan los medios declarados, para cobrar hace falta ser monotributista o RI (Rodrigo ya tiene la situación fiscal cargada), la ventana es de 24 horas y el mínimo de cobro es $ 30.000 en 3 ventas de 3 personas. El botón de las fichas `/producto/` es un link armado a mano, algo que los términos prohíben. Los términos piden además ser creador en redes con un perfil "activo y regular": hoy Instagram tiene 7 publicaciones y 10 seguidores. El sitio e Instagram figuran como redes en el perfil de afiliado. (T06, T33, T36, T43, H18, H20)
 11. **El panel separa los clics por etiqueta, pero cuenta menos clics que aperturas.** Los 12 clics del 15 al 21/10 parecen ser todos de pruebas, y del 8 al 14/10 hubo 2 clics y al menos una venta. (T04, T33, H19)
 
 Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
+
+---
+
+## 2026-10-22 · Medios declarados (T43)
+
+Tareas: T05, T15, T16, T42, T43.
+
+**Fuentes**
+- [Términos del programa](https://www.mercadolibre.com.ar/ayuda/30228), puntos 2.1, 3.2 y 6.5, leídos el 22/10 con el navegador integrado y sin iniciar sesión.
+- Perfil público de Instagram [@tiendaosvaldo](https://www.instagram.com/tiendaosvaldo/), visto el 22/10.
+- `site/config/site.config.ts`: la cuenta de Instagram que figura en el sitio.
+- Capturas del panel de afiliados que pasó Rodrigo el 22/10: pantalla principal (09:08), Configuración (09:09) y Editar perfil (09:11).
+
+### H20 · Qué cuenta como medio y en qué estado está Instagram
+
+**Dato.**
+- 3.2: son medios "las redes sociales, medios, sitios y blogs personales y públicos informados por el Afiliado". Mercado Libre puede rechazar un medio, lo que se publica fuera de los medios no cuenta y los buscadores no son medios.
+- 2.1, requisitos para todos los afiliados: "Ser una persona que crea y comparte contenido (…) en plataformas de redes sociales" y "Tener un perfil público activo, de uso propio y regular en los Medios", como Facebook, Instagram, TikTok, YouTube, Twitter, blogs "u otros medios previo análisis de Mercado Libre".
+- 6.5: 30 días desde el alta para validar la identidad en Mercado Pago y 60 para presentar la documentación fiscal. Es lo que la prensa llama "modo prueba".
+- Instagram @tiendaosvaldo: público, 7 publicaciones y 10 seguidores. Es la cuenta que figura en la configuración del sitio.
+- La ayuda pública no dice en qué menú se ven o se editan los medios. La página `/l/afiliados` mandó a una verificación de cuenta y no se siguió.
+- En el panel, los medios están en Editar perfil > "Redes sociales | Opcional", con el texto "Cuantas más redes agregues, más ganás". En "Cuentas vinculadas" figuran Instagram `tiendaosvaldo` y, como "Otra red", `https://www.tiendaosvaldo.com.ar`. Esa URL redirige a `tiendaosvaldo.com.ar` (verificado el 22/10).
+- Configuración no tiene una sección de medios. Ni la pantalla principal ni Configuración muestran avisos de documentación, de validación o de cuenta en revisión.
+
+**Interpretación.**
+- Editar perfil > Redes sociales es el único lugar del panel donde se informan medios, así que lo más probable es que sea lo que los términos llaman "medios informados por el Afiliado". Mercado Libre no lo dice, y el panel no muestra si aceptó cada medio.
+- El sitio entra como "sitio propio" (3.2), pero en los requisitos queda entre los "otros medios previo análisis". *Opinión:* lo que cumple con el perfil de creador que piden los términos es Instagram, no el sitio.
+- *Opinión:* con 7 publicaciones en total, Instagram queda flojo frente a "activo y regular". Mercado Libre no dice cuánta actividad alcanza. No hace perder ventas por sí solo, pero si Mercado Libre revisa la cuenta, el argumento para seguir en el programa es Instagram. Suma un motivo de cumplimiento a la T15 y la T16, además del tráfico.
+- No conviene iniciar sesión de Mercado Libre en el navegador integrado: Claude va a abrir desde ahí los `meli.la` de la T42. *Especulación:* los clics en los propios links con la sesión del afiliado pueden filtrarse o verse como clics propios.
+
+**Pendiente.**
+- Sumar a la consulta de la T05: si el sitio, cargado como "Otra red", cuenta como medio aceptado.
+- Instagram activo y regular (T15, T16).
 
 ---
 
