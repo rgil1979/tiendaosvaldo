@@ -100,15 +100,10 @@ Todas las marcas de esta guía están disponibles en Mercado Libre con envío a 
   "arena-gatos-aglutinante-vs-silice-argentina-2026": {
     titulo: "Arena para gatos: aglutinante o sílice",
     descripcion: "Comparamos arena aglutinante y de sílice para gatos: cuál absorbe mejor, cuál rinde más por peso y cuál conviene según tu presupuesto y cuántos gatos tenés.",
-    productosRelacionados: ["are-g-001", "are-g-002", "are-g-003", "are-g-004", "are-g-005"],
-    // Etiqueta guiaarena
-    linksEtiquetados: {
-      "are-g-001": "https://meli.la/2as3wFb", // Zootec 30 kg (2 bolsas de 15 kg)
-      "are-g-002": "https://meli.la/1oT7oSF", // Catit Go Natural Vainilla 5,6 kg
-      "are-g-003": "https://meli.la/227PLeZ", // Zootec 24 kg (6 bolsas de 4 kg)
-      "are-g-004": "https://meli.la/26vf3z4", // Catit Go Natural Lavanda 5,6 kg
-      "are-g-005": "https://meli.la/33zCSQe", // Bio Stones Lavanda 20 kg (5 bolsas de 4 kg)
-    },
+    productosRelacionados: ["are-g-001", "are-g-002", "are-g-003", "are-g-004"],
+    // Etiqueta guiaarena: pendiente. Los links generados el 21/10 llevaban a otros
+    // productos (Rubicat, Absorsol, Sanicat) y se sacaron. Mientras tanto, las
+    // tarjetas usan el link de productos-curados.ts (T11).
     contenido: `
 ## Por qué esta decisión te va a perseguir todos los días
 
