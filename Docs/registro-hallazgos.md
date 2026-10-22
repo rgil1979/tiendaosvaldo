@@ -2,7 +2,7 @@
 
 > Qué es: lo que vamos encontrando al investigar el sitio, con la fuente de cada dato. Las tareas viven en `tracker.md`; acá queda el porqué.
 > Cómo se lee: las entradas más nuevas van primero. Cada hallazgo separa **Dato** (verificado en una fuente), **Interpretación** (opinión o hipótesis) y **Pendiente**.
-> Última actualización: 2026-10-21
+> Última actualización: 2026-10-22
 
 ## Qué sabemos hoy (resumen)
 
@@ -15,8 +15,73 @@
 7. **Analytics cuenta menos de lo real**: solo registra a quien acepta las cookies. (T34)
 8. **Todo lo que usa la API de Mercado Libre depende de un solo token.** Se volvió a autorizar el 21/10 (T37). La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
 9. **Ya se puede saber qué clics salen de la guía de alimento:** sus links llevan la etiqueta `guiaalimentoperro` (verificado). Para la guía de arena e Instagram las etiquetas ya existen, pero falta generar los links. La home y las categorías quedan juntas en `rodrigogilbulacio`. Con el tráfico de hoy, las etiquetas van a mostrar casi cero durante semanas. (T10, T11, H17)
+10. **Las reglas del programa afectan al sitio:** solo cuentan los medios declarados, para cobrar hace falta ser monotributista o RI (Rodrigo ya tiene la situación fiscal cargada), la ventana es de 24 horas y el mínimo de cobro es $ 30.000 en 3 ventas de 3 personas. El botón de las fichas `/producto/` es un link armado a mano, algo que los términos prohíben. (T06, T33, T36, H18)
+11. **El panel separa los clics por etiqueta, pero cuenta menos clics que aperturas.** Los 12 clics del 15 al 21/10 parecen ser todos de pruebas, y del 8 al 14/10 hubo 2 clics y al menos una venta. (T04, T33, H19)
 
 Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
+
+---
+
+## 2026-10-22 · Primer control del panel con etiquetas
+
+Tareas: T04, T10, T11, T33.
+
+**Fuentes**
+- Capturas del panel de afiliados que pasó Rodrigo el 22/10 a las 08:21: resumen de los últimos 7 días, y Métricas del 15 al 21/10 con la pestaña "Etiquetas de seguimiento".
+- Lista de aperturas de links del 21/10, con su hora (H17).
+
+### H19 · El panel separa por etiqueta, pero cuenta menos clics que aperturas
+
+**Dato.**
+- Resumen "Tus últimos 7 días hasta el 22/oct": 12 clics, 0 pedidos, $ 0.
+- Métricas del 15 al 21/10 ("Actualizado hasta el 22/oct"): 12 clics, un 500 % más que el período anterior, o sea que del 8 al 14/10 hubo 2 clics. Compradores, órdenes, ventas y ganancia están en 0, y todos bajan un 100 %: el período anterior tuvo ventas.
+- Por etiqueta: 3 con `guiaalimentoperro`, 3 con `guiaarena` y 6 con `rodrigogilbulacio`. No aparecen filas de `guiaalimento`, `gualimento`, `instagram` ni sin etiqueta.
+- Aperturas conocidas del 21/10: con `guiaalimentoperro`, 3 (Rodrigo a las 21:22 y Claude 2 a las 21:36); con `guiaarena`, más de 5 (Claude abrió 5 links distintos a las 21:38, más las de Rodrigo); con `rodrigogilbulacio`, más de 10 (Claude 9 entre las 21:33 y las 21:37, más las de Rodrigo).
+
+**Interpretación.**
+- El panel separa los clics por etiqueta: la T10 y la T11 funcionan de punta a punta.
+- El panel cuenta menos clics que aperturas. *Especulación:* agrupa las aperturas repetidas de una misma persona o filtra algunas. Mercado Libre no explica cómo cuenta. El número sirve para comparar etiquetas, no para contar pruebas una por una.
+- Lo más probable es que los 12 clics sean todos de las pruebas del 21/10: la T04 ya decía 0 clics del 14 al 20/10. Si es así, esa semana no hubo ningún clic de visitantes. Falta confirmarlo con la pestaña "Fecha".
+- Del 8 al 14/10 hubo 2 clics y al menos una venta.
+- El clic de la T33 del 21/10 (botón de la ficha de Eukanuba) no se puede separar: no hay ninguna fila sin etiqueta.
+
+**Pendiente.**
+- Pestaña "Fecha" a 90 días (T04).
+- Prueba limpia de la T33: clic el 22/10 a las 08:28, sin abrir ningún `meli.la` ese día. Revisar el 23/10 los clics del 22/10.
+
+---
+
+## 2026-10-21 · Reglas del programa de afiliados (fuente oficial)
+
+Tareas: T05, T06, T33, T36, T41, T43 (medios declarados) y T44 (porcentaje de mascotas). No hizo falta una tarea para la situación fiscal: ya está cargada (Rodrigo, 22/10).
+
+**Fuentes**
+- Páginas oficiales de Mercado Libre Argentina, leídas el 21/10 con el navegador integrado y sin iniciar sesión: [Términos del programa](https://www.mercadolibre.com.ar/ayuda/30228), [Obligaciones complementarias](https://www.mercadolibre.com.ar/ayuda/32818), [Cómo calcular tu retribución](https://www.mercadolibre.com.ar/ayuda/27913), [Estados de ventas](https://www.mercadolibre.com.ar/ayuda/56840), [Motivos de suspensión](https://www.mercadolibre.com.ar/ayuda/40039) y [Qué es Afiliados y Creadores](https://www.mercadolibre.com.ar/ayuda/programa-afiliados-creadores_39155).
+- Las páginas `/l/…` del portal (pagos, buenas prácticas, cálculo de ganancias) piden iniciar sesión y no se leyeron.
+- Guía completa, con fuentes de prensa: doc "Afiliados de Mercado Libre: guía práctica" (https://claude.ai/artifact/K2gNMmmv1KZHJi2K4WcdMc).
+
+### H18 · Lo que dicen los términos y cómo tocan al sitio
+
+**Dato.**
+- Atribución: 24 horas corridas desde el clic. Venta directa = el producto recomendado u otro de la misma categoría; indirecta = otra categoría, y paga la mitad.
+- Tabla oficial: 8 % directa y 4 % indirecta en 20 categorías (ropa, hogar, juguetes, herramientas, etc.); 4 % y 2 % en electrónica, celulares y computación; 0 % en Alimentos y Bebidas. Animales y Mascotas no figura. El 21/10 el botón de Eukanuba mostró "Ganancia 15 %" (T33). La ayuda oficial dice "hasta el 8 %".
+- Cobro: mínimo $ 30.000 de al menos 3 ventas de 3 compradores distintos. Cada venta se valida hasta 60 días desde la entrega. Hay que facturar, y el pago llega dentro de los 30 días de la factura, en Mercado Pago.
+- Requisitos: ser monotributista, Responsable Inscripto o IVA Exento; 60 días desde el alta para presentar la documentación fiscal y 30 para validar la identidad en Mercado Pago. Sin eso, suspensión y las ventas del período no cuentan.
+- Solo cuentan los medios declarados. Los buscadores (Google, Bing) no son medios.
+- Prohibido: editar o modificar los links, acortadores de terceros, comprar con el propio link o desde cuentas vinculadas (mismo celular, wifi, dirección o historial), usar cuentas de familiares, anuncios en buscadores (Google Ads, Shopping, Bing Ads, YouTube Ads), palabras clave con la marca, email publicitario sin permiso escrito, premiar compras, extraer datos de Mercado Libre de forma automatizada e información engañosa.
+- La pauta paga solo se permite en Instagram, TikTok, Facebook y Pinterest, desde la cuenta declarada.
+
+**Interpretación.**
+- El botón `?partner_id=cbpar_…` de las fichas es un link armado a mano: va contra la regla de no editar links. Hay que reemplazarlo aunque la prueba de la T33 muestre clics.
+- La venta de prueba de la T06 no conviene: con un familiar está prohibida, y desde la misma casa se rechaza como cuenta vinculada.
+- La experiencia inventada de la guía de arena (T41) además es causa de suspensión ("información falsa").
+- *Especulación:* el 15 % de mascotas puede ser una tasa promocional.
+- *Opinión:* si Rodrigo no es monotributista, la cuota de la categoría A ($ 49.527 desde agosto de 2026, según Ámbito) hoy supera lo que puede pagar el programa. *Actualización 22/10:* no aplica, porque Rodrigo confirmó que la situación fiscal ya está cargada.
+
+**Pendiente.**
+- Rodrigo: confirmar si el panel sigue en modo prueba y que el sitio e Instagram estén declarados como medios (T43). La situación fiscal ya está cargada (22/10).
+- Rodrigo: anotar el porcentaje del botón "Ganancia" de los 11 alimentos y las 4 arenas (T44).
+- Sumar a la consulta de la T05: qué porcentaje paga Animales y Mascotas (y si es promocional) y si un canal de WhatsApp cuenta como medio (T05).
 
 ---
 
