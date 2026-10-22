@@ -10,7 +10,7 @@
 2. **Las fichas `/producto/MLA…` son lo que más aparece en Google**: 55 % de las impresiones y 6 de los 11 clics. Pero desde el 9/6 ninguna página del sitio las enlaza, no están en el sitemap y no sabemos si su botón genera comisión. (T33, T36)
 3. **Desde mediados de agosto las fichas perdieron cerca del 40 % de sus impresiones**, en dos escalones que coinciden con los spam updates de Google de agosto y septiembre. La falta de links internos quedó descartada como causa principal. Hipótesis principal: Google las trata como afiliación de bajo valor. (T36)
 4. **Los datos estructurados de las fichas no funcionan**: Google no detecta ningún dato de producto. (T36)
-5. **El sitemap ya está completo**: desde el 22/10 tiene 20 URLs, incluida la guía de arena (la página mejor posicionada), con fechas de modificación reales. Falta que Google lo vuelva a leer. La guía de arena ya no cuenta una experiencia inventada y tiene un título pensado para las búsquedas de compra. (T35, T41, T32, H21)
+5. **El sitemap ya está completo**: desde el 22/10 tiene 20 URLs, incluida la guía de arena (la página mejor posicionada), con fechas de modificación reales. Google lo volvió a leer el 22/10 (estado "Correcto", 20 páginas descubiertas); no lo leía desde el 9/6. La guía de arena ya no cuenta una experiencia inventada y tiene un título pensado para las búsquedas de compra. (T35, T41, T32, H21)
 6. **Las categorías de alimento ya tienen productos**: 10 alimentos de catálogo con 13 o más vendedores, publicados el 21/10 (T08, H14). La guía de alimento para raza grande ya muestra Pro Plan y Eukanuba, con el texto corregido según las fichas oficiales (T09, H16).
 7. **Analytics cuenta menos de lo real**: solo registra a quien acepta las cookies. (T34)
 8. **Todo lo que usa la API de Mercado Libre depende de un solo token.** Se volvió a autorizar el 21/10 (T37). La búsqueda de Mercado Libre está cerrada, así que el buscador del sitio nunca devuelve resultados. La API permite revisar productos de catálogo, pero no publicaciones sueltas, y los curados no guardan su ID. La ficha con más impresiones (Purina) manda a un producto que hoy no vende nadie. (T28, T29, T37, T38, T39)
@@ -53,7 +53,7 @@ Tareas: T11, T32, T35, T41, T42.
 - Las Zootec y las Catit perfumadas siguen en la categoría de arena, donde no contradicen nada.
 
 **Pendiente.**
-- Rodrigo: reenviar el sitemap en Search Console. La guía, el sitemap y el script se publicaron el 22/10 (`cfd14db`) y Claude los verificó en producción.
+- Hecho el 22/10: la guía, el sitemap y el script se publicaron (`cfd14db`) y Claude los verificó en producción. Rodrigo reenvió el sitemap y Google lo leyó ese día (20 páginas descubiertas).
 - Claude, 23/10: abrir los 8 links nuevos y revisar el producto y la etiqueta. Si están bien, Rodrigo publica la rama `t41-arenas`.
 - Revisar si la Zootec de 30 kg tiene vendedores (T42).
 
