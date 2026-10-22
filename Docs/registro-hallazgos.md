@@ -22,6 +22,43 @@ Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/
 
 ---
 
+## 2026-10-22 · Guía de arena: texto, título y productos (T41, T32, T35, T11)
+
+Tareas: T11, T32, T35, T41, T42.
+
+**Fuentes**
+- Search Console, exportación de rendimiento de los últimos 3 meses (21/10): consultas y páginas.
+- [Cat Litter Science: Why to Let Your Cat Choose](https://www.fearfreehappyhomes.com/cat-litter-science-why-to-let-your-cat-choose/), Fear Free Happy Homes (Beth Adelman, revisado por un veterinario especialista en conducta).
+- [Bandeja de arena de cristal ScoopFree](https://www.petsafe.com/es/p/bandeja-del-arenero-desechable-para-arena-de-cristal-scoopfree/PAC10-18162/), PetSafe (fabricante).
+- Búsqueda en el catálogo de Mercado Libre del 22/10, corrida por Rodrigo en el servidor con `scripts/buscar-alimentos-ml.mjs --arena`: 16 búsquedas, 170 productos revisados, 52 con vendedores. Resultado completo en `/app/arena-ml.json`.
+- Producción revisada el 22/10 con el navegador integrado.
+- Captura del generador de links que pasó Rodrigo (22/10, 11:18).
+
+### H21 · Los productos de la guía de arena contradecían la guía, y las Zootec tienen pocos vendedores
+
+**Dato.**
+- La guía de arena tiene posición media 7,5 y CTR 1 % (96 impresiones en 3 meses). Las búsquedas del sitio con posición media entre 5 y 10,5 son todas de compra: "bolsa de arena para gatos" (19 impresiones, 8,5), "bolsa de arena para gato" (3, 5), "bolsa arena para gato" (3, 9), "cuanto sale la arena para gatos" (3, 10) y "cuanto cuesta una bolsa de arena para gato" (2, 10,5).
+- Fear Free: la mayoría de los gatos prefiere arena sin perfume, suave y de grano fino, y aglutinante. En un estudio con pellets de madera, sílice y arcilla, eligieron sílice o arcilla antes que los pellets y, entre esas dos, arcilla, sobre todo para defecar. PetSafe: la bandeja de cristales dura hasta 30 días con un solo gato.
+- Las dos Catit Go Natural de la guía son perfumadas: vainilla (`MLA60924254`) y lavanda (`MLA27724749`).
+- Zootec 24 kg (`MLA48897680`): 2 vendedores, sin olor. Zootec 30 kg (`MLA49294007`): no apareció en ninguna de las 16 búsquedas.
+- Aglutinantes de catálogo con "Sin fragancia" o "Sin olor" en los datos de Mercado Libre y 10 o más vendedores: Rubicat Classic 5,3 kg (`MLA19994394`, 30, bentonita), Sanicat Strong Clumps 7 kg (`MLA20935047`, 26), Catit Go Natural Sin Aromas 5,6 kg (`MLA62573112`, 18, cáscara de guisante) y Rubicat Sensitive Microesferas 5 kg (`MLA59585772`, 11). Otras con 10 o más vendedores dicen "Neutra" o "Neutro".
+- En producción, la guía de alimento mostraba los links de "Fuentes", el separador y la nota final como texto crudo: el código de las guías no convertía links, cursiva ni `---`.
+- El generador de links tiene su propio selector de "Etiqueta en uso" y acepta varias URLs a la vez. Cada link generado suma el producto a la lista "Mis recomendaciones" del perfil social.
+
+**Interpretación.**
+- *Inferencia:* las búsquedas de compra entre las posiciones 5 y 10,5 son de la guía, porque la categoría de arena tiene posición media 20,6. La exportación no cruza búsquedas con páginas.
+- *Especulación:* el título viejo ("aglutinante o sílice") no le habla a quien busca una bolsa para comprar, y eso explicaría el CTR de 1 %. Con este volumen, el efecto del título nuevo tarda 1 o 2 meses en verse.
+- Sin la experiencia inventada, la guía se apoya en fuentes, y los productos tienen que ser coherentes con ellas. Por eso se cambiaron los cuatro: aglutinantes sin fragancia, de catálogo y con 10 o más vendedores, con marcas y precios distintos.
+- "Neutra" puede querer decir sin perfume o no: esas se dejaron afuera.
+- Las Zootec y las Catit perfumadas siguen en la categoría de arena, donde no contradicen nada.
+
+**Pendiente.**
+- Rodrigo: publicar `dev` (guía, sitemap y script) y reenviar el sitemap en Search Console.
+- Claude, 23/10: abrir los 8 links nuevos y revisar el producto y la etiqueta. Si están bien, Rodrigo publica la rama `t41-arenas`.
+- Revisar si la Zootec de 30 kg tiene vendedores (T42).
+
+---
+
 ## 2026-10-22 · Medios declarados (T43)
 
 Tareas: T05, T15, T16, T42, T43.
