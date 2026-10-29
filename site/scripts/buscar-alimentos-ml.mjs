@@ -1,4 +1,4 @@
-// Búsqueda de alimentos (T08) y arenas (T41) en el catálogo de Mercado Libre — SOLO LECTURA.
+// Búsqueda de alimentos (T08), arenas (T41) y pretales (T46) en el catálogo de Mercado Libre — SOLO LECTURA.
 // Arma la lista corta: solo productos de catálogo (/p/MLA…) con al menos un vendedor
 // activo, con precio, cantidad de vendedores, foto y atributos.
 // - Lee el token de .ml-token-cache.json. NO lo renueva ni escribe el caché:
@@ -6,12 +6,14 @@
 // - Solo hace llamadas GET. Nunca imprime el token.
 // Uso en el servidor (búsquedas por defecto: marcas comunes de perro y gato):
 //   docker exec $(docker ps -qf "name=tiendaosvaldo") node /app/scripts/buscar-alimentos-ml.mjs
-// Con búsquedas propias (perro:texto, gato:texto o arena:texto):
+// Con búsquedas propias (perro:texto, gato:texto, arena:texto o pretal:texto):
 //   docker exec $(docker ps -qf "name=tiendaosvaldo") node /app/scripts/buscar-alimentos-ml.mjs "perro:royal canin maxi" "gato:cat chow"
 // Arenas para gato (búsquedas por defecto de arena, muestra aroma y tipo):
 //   docker exec $(docker ps -qf "name=tiendaosvaldo") node /app/scripts/buscar-alimentos-ml.mjs --arena
+// Pretales y arneses para perro (T46; muestra talle, enganche y material):
+//   docker exec $(docker ps -qf "name=tiendaosvaldo") node /app/scripts/buscar-alimentos-ml.mjs --pretal
 // Resultado: se imprime en pantalla y queda completo en /app/alimentos-ml.json
-// (o /app/arena-ml.json si todas las búsquedas son de arena).
+// (o /app/arena-ml.json / /app/pretal-ml.json si todas las búsquedas son de arena / de pretal).
 import { readFileSync, writeFileSync } from "fs"
 import { join } from "path"
 
@@ -33,22 +35,30 @@ const DEFAULT_ARENA = [
   "arena biodegradable gato", "arena gato tofu", "arena silica gato", "rubicat", "sanicat",
   "absorsol", "zootec arena", "cat love arena", "catit go natural", "pipicat",
 ]
+const DEFAULT_PRETAL = [
+  "pretal antitirones perro", "arnes antitirones perro", "arnes enganche frontal perro",
+  "arnes doble enganche perro", "pretal perro mediano", "pretal perro grande", "pretal perro chico",
+  "arnes perro acolchado", "pretal trixie perro", "julius k9 arnes", "petsafe easy walk",
+  "ruffwear arnes", "kong arnes perro", "rogz arnes", "canny pretal", "halti arnes",
+]
 const POR_BUSQUEDA = 15      // resultados pedidos a /products/search por búsqueda
 const HIJOS_POR_FAMILIA = 3  // variantes (pesos) a revisar de cada producto "familia"
 const NUEVOS_POR_BUSQUEDA = 25
 const PAUSA_MS = 150
 // Dominio esperado según el tipo de búsqueda: MLA-CAT_AND_DOG_FOODS, MLA-CATS_LITTER y similares.
-const DOMINIOS = { perro: /FOOD/i, gato: /FOOD/i, arena: /LITTER/i }
+const DOMINIOS = { perro: /FOOD/i, gato: /FOOD/i, arena: /LITTER/i, pretal: /HARNESS/i }
 
 // ── Búsquedas ──────────────────────────────────────────────────────────────
 const busquedas = []
 const args = process.argv.slice(2)
 if (args.length === 1 && args[0] === "--arena") {
   for (const q of DEFAULT_ARENA) busquedas.push({ mascota: "arena", q })
+} else if (args.length === 1 && args[0] === "--pretal") {
+  for (const q of DEFAULT_PRETAL) busquedas.push({ mascota: "pretal", q })
 } else if (args.length) {
   for (const a of args) {
-    const m = a.match(/^(perro|gato|arena):(.+)$/i)
-    if (!m) { console.log(`No entiendo "${a}". Formato: perro:texto, gato:texto, arena:texto o --arena`); process.exit(1) }
+    const m = a.match(/^(perro|gato|arena|pretal):(.+)$/i)
+    if (!m) { console.log(`No entiendo "${a}". Formato: perro:texto, gato:texto, arena:texto, pretal:texto, --arena o --pretal`); process.exit(1) }
     busquedas.push({ mascota: m[1].toLowerCase(), q: m[2].trim() })
   }
 } else {
@@ -96,10 +106,10 @@ if (me.status !== 200) {
 console.log(`Token OK (cuenta ${me.json?.nickname}, le quedan ${minLeft} min). ${busquedas.length} búsquedas…`)
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-const ATR = /marca|mascota|edad|tama|raza|peso|sabor|etapa|l[ií]nea|variedad|aroma|fragancia|perfum|tipo|material|aglutin|formato|unidades/i
+const ATR = /marca|modelo|mascota|edad|tama|talle|raza|peso|sabor|etapa|l[ií]nea|variedad|aroma|fragancia|perfum|tipo|material|aglutin|formato|unidades|pecho|cuello|enganche|anilla|ajust|acolch|reflect/i
 function atributos(attrs) {
   if (!Array.isArray(attrs)) return []
-  return attrs.filter((a) => a?.value_name && ATR.test(a.name ?? "")).map((a) => `${a.name}: ${a.value_name}`).slice(0, 10)
+  return attrs.filter((a) => a?.value_name && ATR.test(a.name ?? "")).map((a) => `${a.name}: ${a.value_name}`).slice(0, 14)
 }
 function foto(p) {
   const pic = p?.pictures?.[0]
@@ -111,13 +121,14 @@ function foto(p) {
 // ── 1. Buscar en el catálogo ───────────────────────────────────────────────
 const candidatos = new Map()
 const resumenBusquedas = []
+const dominiosDescartados = {} // por si el dominio esperado no es el que usa Mercado Libre
 for (const { mascota, q } of busquedas) {
   let r = await get(`/products/search?status=active&site_id=MLA&q=${encodeURIComponent(q)}&limit=${POR_BUSQUEDA}`)
   if (r.status === 400) r = await get(`/products/search?status=active&site_id=MLA&q=${encodeURIComponent(q)}&limit=10`)
   const res = Array.isArray(r.json?.results) ? r.json.results : []
   let nuevos = 0, otrosDominios = 0
   for (const p of res) {
-    if (p.domain_id && !DOMINIOS[mascota].test(p.domain_id)) { otrosDominios++; continue }
+    if (p.domain_id && !DOMINIOS[mascota].test(p.domain_id)) { otrosDominios++; dominiosDescartados[p.domain_id] = (dominiosDescartados[p.domain_id] ?? 0) + 1; continue }
     const hijos = Array.isArray(p.children_ids) ? p.children_ids.slice(0, HIJOS_POR_FAMILIA) : []
     for (const id of [p.id, ...hijos]) {
       const ya = candidatos.get(id)
@@ -172,19 +183,24 @@ for (const c of candidatos.values()) {
 const fmt = (v) => (v == null ? "sin precio" : "$ " + Math.round(v).toLocaleString("es-AR"))
 const todos = [...candidatos.values()]
 const conVendedores = todos.filter((c) => c.vendedores > 0 && (!c.dominio || DOMINIOS[c.mascota].test(c.dominio)))
-for (const mascota of ["perro", "gato", "arena"]) {
+for (const mascota of ["perro", "gato", "arena", "pretal"]) {
   const lista = conVendedores
     .filter((c) => c.mascota === mascota)
     .sort((a, b) => b.vendedores - a.vendedores || (a.precioDesde ?? 1e12) - (b.precioDesde ?? 1e12))
   console.log(`\n=== ${mascota.toUpperCase()}: ${lista.length} productos con vendedores ===`)
   for (const c of lista) {
     const extras = [c.tiendaOficial && "tienda oficial", c.envioGratis && "envío gratis"].filter(Boolean).join(", ")
-    const detalle = mascota === "arena" ? c.atributos.filter((a) => /aroma|fragancia|perfum|tipo|material|aglutin|peso|formato|unidades/i.test(a)).join("; ") : ""
+    const detalle = mascota === "arena" ? c.atributos.filter((a) => /aroma|fragancia|perfum|tipo|material|aglutin|peso|formato|unidades/i.test(a)).join("; ")
+      : mascota === "pretal" ? c.atributos.filter((a) => /marca|modelo|talle|tama|pecho|cuello|peso|enganche|anilla|ajust|acolch|material|tipo|reflect/i.test(a)).join("; ")
+      : ""
     console.log(`${c.id} | ${c.vendedores} vend. | desde ${fmt(c.precioDesde)}${extras ? " | " + extras : ""} | ${c.nombre ?? "(sin nombre)"}${detalle ? " | " + detalle : ""}`)
   }
 }
 
-const archivo = join(process.cwd(), busquedas.every((b) => b.mascota === "arena") ? "arena-ml.json" : "alimentos-ml.json")
-const out = { fecha: new Date().toISOString(), cuenta: me.json?.nickname, token_minutos_restantes: minLeft, llamadas, busquedas: resumenBusquedas, productos: todos }
+const descartados = Object.entries(dominiosDescartados).sort((a, b) => b[1] - a[1]).slice(0, 8)
+if (descartados.length) console.log(`\nDominios descartados (no coinciden con el tipo de búsqueda): ${descartados.map(([d, k]) => `${d} (${k})`).join(", ")}`)
+const soloDe = (m) => busquedas.every((b) => b.mascota === m)
+const archivo = join(process.cwd(), soloDe("arena") ? "arena-ml.json" : soloDe("pretal") ? "pretal-ml.json" : "alimentos-ml.json")
+const out = { fecha: new Date().toISOString(), cuenta: me.json?.nickname, token_minutos_restantes: minLeft, llamadas, busquedas: resumenBusquedas, dominiosDescartados, productos: todos }
 try { writeFileSync(archivo, JSON.stringify(out, null, 2)) } catch (e) { console.log("No pude guardar", archivo, String(e)) }
 console.log(`\nListo: ${conVendedores.length} con vendedores de ${todos.length} revisados (${llamadas} consultas). Detalle completo en ${archivo}`)
