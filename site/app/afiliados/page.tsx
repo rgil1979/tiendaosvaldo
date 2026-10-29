@@ -5,6 +5,7 @@ import styles from "../legal.module.css"
 export const metadata: Metadata = {
   title:     "Política de Afiliados",
   description: "Política de afiliados de Tienda Osvaldo.",
+  alternates: { canonical: "/afiliados" },
   openGraph: { title: "Política de Afiliados — Tienda Osvaldo" },
 }
 

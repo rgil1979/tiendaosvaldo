@@ -16,6 +16,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     title:       q ? `Buscar: "${q}"` : "Buscar",
     description: q ? `Productos destacados para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
     openGraph:   { title: q ? `Buscar: "${q}" — Tienda Osvaldo` : "Buscar — Tienda Osvaldo" },
+    // Sin canónica a propósito: es noindex y mezclar las dos señales confunde a Google (S1-10).
     robots:      { index: false, follow: false },
   }
 }

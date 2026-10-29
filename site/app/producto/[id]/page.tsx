@@ -59,6 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title:       p.name,
       description: p.short_description?.slice(0, 155) || `${p.name} - disponible en Mercado Libre`,
       robots:      { index: true, follow: true },
+      alternates:  { canonical: `/producto/${id}` },
       openGraph: {
         title:  p.name,
         images: p.pictures[0] ? [{ url: p.pictures[0].url }] : [],

@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title:       cfg.label,
       description: `${cfg.label} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
       openGraph:   { ...ogBase, title: `${cfg.label} — Tienda Osvaldo` },
+      alternates:  { canonical: `/categoria/${slug}` },
       robots:      { index: true, follow: true },
     }
   }
@@ -35,6 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title:       dbCat.name,
     description: `${dbCat.name} para mascotas. Los mejores productos disponibles en Mercado Libre.`,
     openGraph:   { ...ogBase, title: `${dbCat.name} — Tienda Osvaldo` },
+    alternates:  { canonical: `/categoria/${slug}` },
     robots:      { index: true, follow: true },
   }
 }

@@ -39,6 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title:       guia.tituloSeo ?? `${guia.titulo} — Tienda Osvaldo`,
       description: guia.descripcion,
     },
+    alternates: { canonical: `/guias/${slug}` },
     robots: { index: true, follow: true },
   }
 }

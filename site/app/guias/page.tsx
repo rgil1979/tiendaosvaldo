@@ -7,6 +7,7 @@ import styles from "./page.module.css"
 export const metadata: Metadata = {
   title:       "Guías para mascotas",
   description: "Guías para elegir productos para tu perro o gato: qué mirar antes de comprar, sin vueltas.",
+  alternates: { canonical: "/guias" },
   openGraph: { ...ogBase, title: "Guías para mascotas — Tienda Osvaldo" },
 }
 

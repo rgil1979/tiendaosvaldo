@@ -8,6 +8,7 @@ import styles from "../legal.module.css"
 export const metadata: Metadata = {
   title:       "Contacto",
   description: "¿Tenés una pregunta o sugerencia? Escribinos. Respondemos en 24 a 48 horas hábiles.",
+  alternates: { canonical: "/contacto" },
   openGraph:   { title: "Contacto — Tienda Osvaldo" },
 }
 

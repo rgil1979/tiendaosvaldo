@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     template: siteConfig.seo.titleTemplate,
   },
   description: siteConfig.seo.defaultDescription,
+  // Host canónico: siteConfig.url (sin www). No usar NEXT_PUBLIC_SITE_URL: en el .env
+  // apunta a www, que redirige. La canónica va en cada página y no acá: si se define
+  // en el layout, Next la hereda a toda página que no tenga la suya (S1-10).
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     title: siteConfig.seo.defaultTitle,

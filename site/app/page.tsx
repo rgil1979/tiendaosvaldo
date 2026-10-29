@@ -1,9 +1,14 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { siteConfig } from "@/config/site.config"
 import { productosCurados } from "@/data/productos-curados"
 import ProductCard from "@/components/ProductCard"
 import styles from "./page.module.css"
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+}
 
 export default function HomePage() {
   const categories = [

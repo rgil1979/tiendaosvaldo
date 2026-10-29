@@ -7,6 +7,7 @@ import styles from "../legal.module.css"
 export const metadata: Metadata = {
   title:     "Términos de Uso",
   description: "Términos de uso de Tienda Osvaldo.",
+  alternates: { canonical: "/terminos" },
   openGraph: { title: "Términos de Uso — Tienda Osvaldo" },
 }
 

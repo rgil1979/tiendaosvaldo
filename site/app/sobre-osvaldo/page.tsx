@@ -7,6 +7,7 @@ import styles from "./page.module.css"
 export const metadata: Metadata = {
   title:     "Sobre Osvaldo",
   description: "Quién es Osvaldo y cómo funciona Tienda Osvaldo: te ayudamos a elegir productos para perros y gatos, y comprás en Mercado Libre.",
+  alternates: { canonical: "/sobre-osvaldo" },
   openGraph: { title: "Sobre Osvaldo — Tienda Osvaldo" },
 }
 

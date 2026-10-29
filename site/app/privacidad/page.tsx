@@ -6,6 +6,7 @@ import styles from "../legal.module.css"
 export const metadata: Metadata = {
   title:     "Política de Privacidad",
   description: "Política de privacidad de Tienda Osvaldo.",
+  alternates: { canonical: "/privacidad" },
   openGraph: { title: "Política de Privacidad — Tienda Osvaldo" },
 }
 
