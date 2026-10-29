@@ -34,7 +34,7 @@ export default function HomePage() {
         <div className={styles.hero}>
           <div className={styles.heroContent}>
             <div className={styles.heroEyebrow}>
-              🐶 Aprobado por Osvaldo, un perro mestizo con criterio
+              🐶 Osvaldo te ayuda a elegir
             </div>
             <h1 className={styles.heroTitle}>
               Lo mejor para<br />tus <span>peludos</span>,<br />sin vueltas.
@@ -77,12 +77,12 @@ export default function HomePage() {
               <div className={styles.osvaldoLabel}>✅ Chief Sniff Officer</div>
               <h3 className={styles.osvaldoName}>Soy Osvaldo</h3>
               <div className={styles.osvaldoDesc}>
-                Mestizo adoptado, 8 años. Probé cada categoría de esta tienda.
-                Si no me copa, no lo publicamos.
+                Mestizo adoptado, 8 años. No pruebo todo lo que ves acá:
+                te ayudo a elegir. Lo que uso de verdad, te lo cuento.
               </div>
               <div className={styles.statSingle}>
                 <span className={styles.statNum}>{totalProductos}</span>
-                <span className={styles.statLabel}>productos aprobados por Osvaldo</span>
+                <span className={styles.statLabel}>productos seleccionados</span>
               </div>
               <Link href="/sobre-osvaldo#como-funciona" className="btn btn-fill">
                 🛍 Cómo funciona →

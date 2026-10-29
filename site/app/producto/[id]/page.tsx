@@ -148,9 +148,9 @@ export default async function ProductPage({ params }: Props) {
               <Image src={siteConfig.logo} alt="Osvaldo" fill className={styles.osvaldoNoteAvatarImg} />
             </div>
             <div>
-              <strong className={styles.osvaldoNoteTitle}>✔ Osvaldo lo recomienda</strong>
+              <strong className={styles.osvaldoNoteTitle}>Comprás en Mercado Libre</strong>
               <p className={styles.osvaldoNoteText}>
-                Producto disponible con toda la proteccion al comprador de Mercado Libre.
+                Producto disponible con toda la protección al comprador de Mercado Libre.
               </p>
             </div>
           </div>

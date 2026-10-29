@@ -57,7 +57,7 @@ export default function ContactoPage() {
               <span className={styles.noteName}>Osvaldo dice:</span>
             </div>
             <p style={{ fontSize: "13px", color: "var(--muted)", fontWeight: 500, lineHeight: 1.6 }}>
-              Si tenés una sugerencia de producto, me encanta recibirla. Yo la evalúo personalmente con mi hocico.
+              Si tenés una sugerencia de producto o una duda que te gustaría ver resuelta en una guía, escribinos. Mi humano lee todos los mensajes.
             </p>
           </div>
           <div className={styles.noteMsgNoML}>

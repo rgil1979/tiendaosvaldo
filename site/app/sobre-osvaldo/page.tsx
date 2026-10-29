@@ -6,7 +6,7 @@ import styles from "./page.module.css"
 
 export const metadata: Metadata = {
   title:     "Sobre Osvaldo",
-  description: "La historia detrás de Tienda Osvaldo: cómo funciona y por qué confiamos en el criterio de un perro mestizo.",
+  description: "Quién es Osvaldo y cómo funciona Tienda Osvaldo: te ayudamos a elegir productos para perros y gatos, y comprás en Mercado Libre.",
   openGraph: { title: "Sobre Osvaldo — Tienda Osvaldo" },
 }
 
@@ -22,7 +22,7 @@ export default function SobreOsvaldoPage() {
             Hola, soy <span>Osvaldo.</span>
           </h1>
           <p className={styles.heroDesc}>
-            Perro mestizo adoptado, 8 años. Probador oficial de productos y fundador involuntario de esta tienda.
+            {siteConfig.osvaldo.descripcionCorta}
           </p>
         </div>
       </div>

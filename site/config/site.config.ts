@@ -6,7 +6,7 @@
 export const siteConfig = {
   // ── INFORMACIÓN DEL SITIO ──
   name: "Tienda Osvaldo",
-  description: "El pet shop aprobado por Osvaldo. Los mejores productos para perros y gatos, seleccionados con criterio canino.",
+  description: "Osvaldo te ayuda a elegir productos para perros y gatos: guías claras y una selección de productos para comprar en Mercado Libre.",
   url: "https://tiendaosvaldo.com.ar",
   logo: "/img/logo.jpeg",
   favicon: "/img/favicon.ico",
@@ -16,10 +16,11 @@ export const siteConfig = {
   osvaldo: {
     raza: "Mestizo adoptado",
     edad: "8 años",
-    descripcionCorta: "Perro mestizo adoptado, 8 años. Probador oficial de productos y fundador involuntario de esta tienda.",
+    descripcionCorta: "Perro mestizo adoptado, 8 años, y fundador involuntario de esta tienda. No pruebo todos los productos: te ayudo a elegir. Lo que uso de verdad, te lo cuento.",
     bio: [
-      "Osvaldo llegó a casa hace 8 años y desde entonces es el responsable de todas las decisiones importantes: qué arnés usar, qué snack comer, qué juguete comprar.",
-      "Su criterio de selección es simple: si lo ignora o lo destruye en 5 minutos, no pasa el corte. Si lo usa todos los días y nos mira con esos ojos cuando queremos sacárselo, va directo a la tienda.",
+      // Solo hechos: Osvaldo no prueba los productos del sitio (S1-08, términos del programa de afiliados).
+      "Osvaldo llegó a casa hace 8 años y es la cara de esta tienda. No prueba todos los productos que aparecen acá: el sitio te ayuda a elegir con guías.",
+      "Lo que sí usa de verdad: su pretal Trixie, sus juguetes y los snacks de pollo deshidratado. De eso habla con conocimiento de causa.",
       "También acepta sobornos en forma de premios de pollo.",
     ],
     tags: ["Mestizo adoptado", "8 años", "Le encanta el parque", "Odia los globos"],
@@ -38,9 +39,9 @@ export const siteConfig = {
 
   // ── SEO ──
   seo: {
-    defaultTitle: "Tienda Osvaldo — El pet shop aprobado por Osvaldo",
+    defaultTitle: "Tienda Osvaldo — Osvaldo te ayuda a elegir para tu perro o gato",
     titleTemplate: "%s — Tienda Osvaldo",
-    defaultDescription: "Encontrá los mejores accesorios, alimentos y juguetes para perros y gatos. Aprobado por Osvaldo, disponible en Mercado Libre.",
+    defaultDescription: "Guías y productos seleccionados para perros y gatos: pretales, alimento, arena, camas y juguetes. Osvaldo te ayuda a elegir; comprás en Mercado Libre.",
     ogImage: "/img/og-image.jpg",
   },
 } as const

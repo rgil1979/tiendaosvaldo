@@ -27,7 +27,7 @@ export default function Footer() {
             </span>
           </Link>
           <p className={styles.desc}>
-            {"Osvaldo tiene 8 años, criterio propio y " + productosCurados.length + " productos aprobados. Todo disponible en Mercado Libre."}
+            {"Osvaldo tiene 8 años y te ayuda a elegir entre " + productosCurados.length + " productos seleccionados. Todo disponible en Mercado Libre."}
           </p>
         </div>
 
