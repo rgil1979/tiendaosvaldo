@@ -17,8 +17,135 @@
 9. **Ya se puede saber qué clics salen de la guía de alimento:** sus links llevan la etiqueta `guiaalimentoperro` (verificado). Para la guía de arena e Instagram las etiquetas ya existen, pero falta generar los links. La home y las categorías quedan juntas en `rodrigogilbulacio`. Con el tráfico de hoy, las etiquetas van a mostrar casi cero durante semanas. (T10, T11, H17)
 10. **Las reglas del programa afectan al sitio:** solo cuentan los medios declarados, para cobrar hace falta ser monotributista o RI (Rodrigo ya tiene la situación fiscal cargada), la ventana es de 24 horas y el mínimo de cobro es $ 30.000 en 3 ventas de 3 personas. El botón de las fichas `/producto/` es un link armado a mano, algo que los términos prohíben. Los términos piden además ser creador en redes con un perfil "activo y regular": hoy Instagram tiene 7 publicaciones y 10 seguidores. El sitio e Instagram figuran como redes en el perfil de afiliado. (T06, T33, T36, T43, H18, H20)
 11. **El panel separa los clics por etiqueta, pero cuenta menos clics que aperturas.** Los 12 clics del 15 al 21/10 parecen ser todos de pruebas, y del 8 al 14/10 hubo 2 clics y al menos una venta. (T04, T33, H19)
+12. **Instagram cambia de promesa: "Osvaldo te ayuda a elegir".** Está parado desde el 8/5 (7 publicaciones, 10 seguidores), y Osvaldo usa pocas cosas: un pretal Trixie, juguetes y snacks de pollo deshidratado. Tres publicaciones viejas cuentan algo que no pasó o prometen un link que no existe, y la bio lleva a la home. Decidido el 22/10: Osvaldo es la cara de la cuenta, no el que prueba productos. (T45, T46, T15, T16, H22)
+13. **La guía del pretal antitirones está escrita, sin publicar.** Según los estudios, el collar hace presión riesgosa en el cuello cuando el perro tira; el pretal con enganche en la espalda no frena (hasta puede hacer que tire más), y el de enganche en el pecho redujo el tironeo en un estudio chico. No hay evidencia firme de que el pretal en Y sea mejor. Faltan los productos. (T46, H23)
 
 Lo urgente ya está hecho: la app de Mercado Libre se volvió a autorizar el 21/10 (T37). Lo que define el próximo paso: la prueba de la T33, es decir, si el botón de las fichas genera comisión.
+
+---
+
+## 2026-10-22 · Pretales de catálogo en Mercado Libre (T46)
+
+Tareas: T29, T45, T46.
+
+**Fuentes**
+- `buscar-alimentos-ml.mjs --pretal`, corrido por Rodrigo en el servidor el 22/10 cerca de las 16:30: 16 búsquedas, 149 productos revisados, 54 con vendedores, 166 consultas. Rodrigo copió el script al servidor; en el repo sigue sin commit en `dev`. Resultado completo en `/app/pretal-ml.json`.
+- Fabricantes: [PetSafe Easy Walk](https://www.petsafe.com/p/easy-walk-harness/EWH-HC-M_L-BLK/); HALTI Walking Harness, según la [ficha de Walmart](https://www.walmart.com/ip/HALTI-Nylon-Dog-Walking-Harness-Large-Purple-chest-26-30/790177405); [HALTI Front Control Harness](https://www.petscorner.co.uk/halti/halti-front-control-harness), según la ficha de Pets Corner.
+
+### H24 · Casi ningún pretal de catálogo tiene más de 3 vendedores, y los de enganche frontal son importados y caros
+
+**Dato.**
+- Solo un pretal de catálogo tiene 10 o más vendedores: Gadnic acolchado (`MLA78963096`, `MLA78959431` y `MLA78968807`; 12 vendedores, tienda oficial, desde $ 31.599). Los demás tienen entre 1 y 3.
+- Enganche en el pecho, según el fabricante: PetSafe Easy Walk ("The leash attaches to the front of the harness"). En Mercado Libre: `MLA56988724` (M, desde $ 151.995), `MLA66716726` y `MLA55538759` (L, desde $ 229.995 y $ 250.995). Un vendedor cada uno y sin tienda oficial.
+- Pecho y espalda, según las fichas: HALTI Walking Harness ("Front chest & back attachment rings"), `MLA66436038` (M, desde $ 80.287) y `MLA54875690` (L, desde $ 89.208), un vendedor con tienda oficial; HALTI Front Control, `MLA59724805` (M, pecho de 50 a 70 cm, desde $ 184.995), un vendedor sin tienda oficial.
+- Trixie ajustable "Premium" `MLA55082080`: talle XS-S, pecho de 30 a 44 cm, desde $ 12.995, un vendedor con tienda oficial. La publicación de Instagram del 8/5 decía "Arnes Pretal Perro Trixie Ajustable Perro Xs — precio referencia $12.605".
+- Otros con tienda oficial: Trixie Comfort Soft (S-M, pecho de 35 a 60 cm, `MLA63019370`, 2 vendedores, desde $ 41.484), Trixie Stay antiescape (M-L, `MLA74424876`), K9 Dog Trainers "Pretal anti tirones en H" con "doble enganche" (`MLA58121085` M, `MLA57777351` L; 2 vendedores, desde $ 38.500), y las pecheras tácticas BiGoTeS pEt y Terrapet. Algunas medidas del K9 no cierran: el XL figura con pecho de 40 a 60 cm y el L, de 60 a 90.
+- Los atributos de Mercado Libre no dicen dónde engancha la correa.
+- La búsqueda también trajo resultados de otros dominios (collares, correas y algunos que no tienen nada que ver), que el script descartó.
+
+**Interpretación.**
+- El criterio de las arenas y los alimentos (10 o más vendedores) no se puede cumplir con pretales. *Opinión:* usar productos de catálogo con tienda oficial, guardar su `mlId` y dejar que la revisión automática (T29) avise si se quedan sin vendedor.
+- Que el título diga "antitirones" no garantiza que el pretal tenga enganche en el pecho: hay que mirar las fotos. La guía lo dice.
+- *Inferencia:* el Trixie `MLA55082080` es probablemente el de la publicación vieja de Instagram, por el título y el precio. Si es el de Osvaldo, su pecho mide 44 cm o menos, lo que no cierra del todo con "perro mediano". Hay que medirlo.
+- El "doble enganche" del K9 puede querer decir dos anillas en la espalda. Sin ver las fotos, no se puede recomendar como antitirones.
+
+**Pendiente.**
+- Rodrigo: medir el pecho de Osvaldo y mirar la etiqueta del pretal (marca, modelo, talle y dónde engancha la correa).
+- Rodrigo: mirar en las fotos de `MLA58121085` (K9) si tiene una anilla en el pecho. Si la tiene, es una opción de doble enganche más barata que el Halti.
+- Rodrigo: aprobar los productos, crear la etiqueta `guiapretal` y generar los links.
+- Commit del script `--pretal` en `dev`. Si no, el próximo deploy pisa la copia del servidor con la versión sin `--pretal`.
+
+---
+
+## 2026-10-22 · Guía del pretal antitirones (T46)
+
+Tareas: T32, T46.
+
+**Fuentes**
+- Search Console, exportación de rendimiento de 3 meses (21/10): consultas y páginas.
+- [Collars risk causing neck injuries in dogs, study shows](https://www.ntu.ac.uk/about-us/news/news-articles/2020/05/collars-risk-causing-neck-injuries-in-dogs,-study-shows), Nottingham Trent University (Carter, McNally y Roshier, Veterinary Record, 2020).
+- [Study shows collar stress can heighten glaucoma risk](https://www.dvm360.com/view/study-shows-collar-stress-can-heighten-glaucoma-risk), dvm360 (Pauli y otros, 2006).
+- [Dog Pulling on the Leash: Effects of Restraint by a Neck Collar vs. a Chest Harness](https://pmc.ncbi.nlm.nih.gov/articles/PMC8450523/), Shih y otros, Frontiers in Veterinary Science, 2021.
+- [Comparing efficacy in reducing pulling and welfare impacts of four types of leash walking equipment](https://peerj.com/articles/18131), Johnson y Wynne, PeerJ, 2024.
+- [Effects of restrictive and non-restrictive harnesses on shoulder extension in dogs at walk and trot](https://pubmed.ncbi.nlm.nih.gov/30455191/), Lafuente y otros, Veterinary Record, 2018, y [el artículo completo](https://julius-k9.com/pdf/expert/lafuente_effects_of_harnesses.pdf).
+- [Humane Dog Training Position Statement](https://avsab.org/wp-content/uploads/2024/12/AVSAB-Humane-Dog-Training-Position-Statement-2021.pdf), AVSAB, 2021.
+- Guías de ajuste de los fabricantes: [Julius-K9](https://julius-k9.co.uk/blog/how-to-measure-your-dog-for-a-harness/) y [PetSafe](https://support.petsafe.net/articles/how-to-fit-your-petsafe-sure-fit-harness/).
+- `site/data/productos-curados.ts`.
+
+### H23 · Qué dicen los estudios sobre pretales, y qué se busca en Google
+
+**Dato.**
+- Búsquedas de arnés, pretal y correa en 3 meses: 36 consultas y 148 impresiones, todas con 0 clics y casi todas entre las posiciones 35 y 56. Las principales son "arnes anti tirones" (26 impresiones, 55), "pretal para perros" (20, 40,5), "pretal anti tirones" (18, 46,2), "arnes antitirones" (15, 47,6) y "correa antitirones" (12, 40,9). `/categoria/collares` tiene 110 impresiones en la posición 41,7.
+- Carter y otros (2020): todos los collares probados en un modelo de cuello con sensores, incluso los anchos y los acolchados, hicieron presión suficiente para arriesgar lesiones con un tirón firme (40 N), uno fuerte (70 N) y uno brusco (141 N). Recomiendan el collar para la chapita y un pretal bien ajustado o enseñar a caminar con la correa floja.
+- Pauli y otros (2006), 26 perros de trineo: la presión dentro del ojo subió al tirar con collar; con pretal, no de forma significativa.
+- Shih y otros (2021), 52 perros de refugio: con comida adelante tiraron más fuerte y durante más tiempo con pretal de enganche en la espalda que con collar (tensión máxima mediana de 16,87 N contra 6,97 N). Con un juguete no hubo diferencia, y no aparecieron más señales de estrés.
+- Johnson y Wynne (2024), 23 perros de refugio: el collar martingale tuvo significativamente más tironeo que el pretal de enganche frontal, el collar Starmark y el de púas, sin diferencias significativas entre esos tres. No hubo evidencia clara de peor bienestar con ninguno.
+- Lafuente y otros (2018), 9 perros en cinta: los dos pretales redujeron la extensión del hombro. El de forma de Y (Trixie Fusion) la redujo más que el de banda horizontal (PetSafe Easy Walk), al revés de lo esperado.
+- AVSAB (2021): evitar collares de ahorque, de púas y eléctricos. "There is no evidence that aversive training is necessary".
+- Ajuste, según los fabricantes: medir el pecho detrás de las patas delanteras, que entren justo dos dedos, la correa del pecho sin subir al cuello ni caer hacia las patas, y la de abajo sin rozar las axilas.
+- La sección de perros del catálogo tiene 13 arneses (`col-p-001` a `col-p-013`; varios dicen "perro y gato" y uno, `col-p-009`, es para gatos), ninguno con `mlId`. Uno dice "anilla frontal" (`col-p-010`, internacional) y otro "doble enganche" (`col-p-007`). El pretal Trixie de perro no está: solo uno de gato (`col-g-008`).
+
+**Interpretación.**
+- *Opinión:* lo que conviene decir sin exagerar es que el enganche del pecho reduce el tironeo, el de la espalda no, y el collar no conviene para un perro que tira. Los estudios son chicos y con perros de refugio, y la guía lo aclara.
+- El estudio de las púas también mostró poco tironeo. La guía no lo esconde: dice que pueden frenar el tirón, pero porque duelen.
+- *Especulación:* las búsquedas principales son de compra ("pretal para perros") y Google ahí muestra tiendas y Mercado Libre. Una guía tiene más chances con búsquedas como "pretal antitirones cuál es mejor" o "cómo elegir el talle". Con estos números, el efecto no se va a poder medir antes de 1 o 2 meses.
+- Los arneses del catálogo no guardan su ID, así que la API no los puede revisar (H12). Por eso los productos de la guía salen de la búsqueda `--pretal`, igual que las arenas.
+
+**Pendiente.**
+- Que el script con `--pretal` llegue al servidor (commit y deploy) y Rodrigo lo corra.
+- Rodrigo: crear la etiqueta `guiapretal`; confirmar el talle del pretal de Osvaldo y dónde engancha la correa.
+- Claude: elegir los productos, revisar los links y pasar la guía a `guias.ts` después del merge de `t41-arenas`.
+
+---
+
+## 2026-10-22 · Instagram antes de volver a publicar (T45)
+
+Tareas: T15, T16, T17, T19, T45 (nueva).
+
+**Fuentes**
+- Perfil público [@tiendaosvaldo](https://www.instagram.com/tiendaosvaldo/) y sus 7 publicaciones, leídos el 22/10 con el navegador integrado.
+- [Reel, carousel, or image post: Which format delivers the most reach at each account size?](https://www.fanpagekarma.com/insights/?p=17037), Fanpage Karma, 7/8/2026: más de 3 millones de publicaciones de enero a abril de 2026.
+- [How to Schedule Instagram Stories in 2026](https://postsyncer.com/blog/schedule-instagram-stories), PostSyncer, 1/8/2026. Es el blog de una herramienta de programación, no una fuente de Meta.
+
+### H22 · Instagram está inactivo desde el 8/5, y las publicaciones viejas cuentan experiencias sin verificar
+
+**Dato.**
+- 7 publicaciones, del 23/4 al 8/5/2026, y ninguna en las 23 semanas siguientes. 10 seguidores.
+- Formato: carruseles con una placa de texto (fondo crema, título naranja) y fotos reales de Osvaldo.
+- Bio: "Hola, soy Osvaldo. 8 años, mestizo, adoptado y con mucha opinión sobre snacks y juguetes. Estas listo para ver mis recomendaciones?". Enlaces: la página de Facebook y `www.tiendaosvaldo.com.ar` (la home, con `utm_source=ig`).
+- Cuatro publicaciones mandan a un producto puntual con "link en bio" o "está en la tienda". La bio lleva a la home.
+- Experiencias en primera persona: el arnés Trixie talle XS ("le dije a mi humano que lo comprara ya", con "precio referencia $12.605"), un juguete de goma dura con forma de hueso que "sobrevivió más de una semana", unos snacks de pollo deshidratado que "sí paso" y "perros que tiran (como yo cuando hay gatos)". La primera publicación promete contar "qué productos realmente uso" y ser "más honesto que cualquier influencer".
+- Fanpage Karma, cuentas de menos de 10.000 seguidores: alcance mediano por seguidor de 4,9 % en Reels, 3,5 % en imágenes y 2,6 % en carruseles. Los Reels llegan a casi el triple de no seguidores que los carruseles. Las imágenes tienen más interacción (0,51 % contra 0,34 %).
+- PostSyncer: las historias programadas desde la computadora, Meta Business Suite incluido, pueden publicarse sin el sticker de link. Para las historias con link sugiere publicarlas desde el celular.
+
+**Interpretación.**
+- Osvaldo es un perro mediano (Rodrigo, 21/10), así que un arnés XS no le entra. *Inferencia:* al menos esa publicación cuenta algo que no pasó. Las otras no se pueden verificar desde acá. Es el mismo problema que las guías (T09, T41): la información falsa es causa de suspensión (H18) y contradice lo que promete la cuenta.
+- La bio no cumple el "link en bio": quien la toca llega a la home y tiene que buscar el producto. El `utm_source=ig` solo se ve en Analytics si la persona acepta las cookies (T34).
+- *Opinión:* con 10 seguidores, Instagram no va a traer tráfico en semanas. Lo que resuelve hoy es el requisito de un perfil "activo y regular" (H20), y deja un canal medible con la etiqueta `instagram`. Para llegar a gente que no sigue la cuenta, el formato es el Reel; el carrusel sirve para los que ya la siguen.
+- *Especulación:* el sticker de link de las historias programadas desde Meta Business Suite puede no salir. Si falla, las historias con link hay que subirlas a mano desde el celular.
+
+**Pendiente.**
+- Rodrigo: decir qué es cierto en las 7 publicaciones. Lo que no, corregir el texto o archivar la publicación (T45).
+- Rodrigo: listar lo que Osvaldo usa hoy en casa, con marca y modelo (T45).
+- Decidir adónde lleva el link de la bio.
+- Probar con la primera historia programada si el sticker de link sale (T16).
+
+**Actualización 22/10, respuestas de Rodrigo.**
+- Osvaldo usa juguetes y un pretal con correa. No compran cosas seguido, y de casi todo no conocen la marca.
+- Pasó de verdad: el arnés Trixie ("le dije a mi humano que lo comprara ya"), los snacks de pollo deshidratado y los peluches destruidos. No pasó: el hueso de goma dura que "sobrevivió más de una semana".
+- Otras afirmaciones de las publicaciones viejas (leídas el 22/10): la del baño dice "Productos de higiene que uso → link en bio"; la de collar y arnés, "Acá te explico cómo elegir → link en bio", y no hay ninguna guía de arneses; la de snacks dice que el de pollo deshidratado "está en la tienda", y el catálogo no tiene snacks. El catálogo tampoco tiene el pretal Trixie de perro: solo uno de gato (`col-g-008`).
+- La placa de la bienvenida del 27/4 dice "Tu guía perruno de productos y tips": sirve para la promesa nueva.
+
+**Interpretación.**
+- *Inferencia:* la promesa de la cuenta ("Osvaldo prueba productos y opina") no se puede sostener con lo que Osvaldo usa. Con esa promesa, las opciones son inventar o no publicar.
+- *Opinión:* lo sostenible es "Osvaldo te ayuda a elegir", igual que el sitio ("Decide por vos") y la guía de arena: criterios y fuentes. Lo que Osvaldo usa de verdad va aparte, contado como es. Se pierde algo de poder de convencer y se gana algo que se puede sostener sin comprar cosas.
+
+**Decisiones (22/10).**
+- La cuenta pasa a "Osvaldo te ayuda a elegir". Osvaldo es la cara de la cuenta: aparece en fotos de su vida diaria y opina solo de lo que usa (Rodrigo eligió la opción recomendada).
+- Publicaciones viejas: archivar la del 23/4 ("Próximamente", repite la bienvenida); corregir el texto de la del 27/4 (bienvenida), la del 29/4 (snacks), la del 4/5 (juguetes) y la del 6/5 (baño). La del 1/5 (collar y arnés) y la del 8/5 (Trixie) quedan: su "link en bio" se resuelve con la guía del pretal (T46) y la página de Instagram.
+- No se compran productos para tener qué mostrar.
+- La primera pieza es una guía sobre cómo elegir un pretal antitirones (T46). Sirve para el sitio, porque paseo y antitirones es el tema con más impresiones (T32), y para Instagram, con fotos reales de Osvaldo con su pretal.
+- Aplicado y verificado el 22/10 a las 14:41: bio nueva, la publicación del 23/4 archivada (quedan 6) y textos nuevos en las del 27/4, 29/4, 4/5 y 6/5.
 
 ---
 
