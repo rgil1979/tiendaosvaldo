@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { searchByHighlights } from "@/lib/mercadolibre"
+import { buscarCurados, curadoATarjeta } from "@/lib/buscar-curados"
 import SearchResults from "./SearchResults"
 import type { MLProductFull } from "@/lib/mercadolibre"
 import styles from "./page.module.css"
@@ -14,30 +14,22 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const q  = sp.q?.trim() ?? ""
   return {
     title:       q ? `Buscar: "${q}"` : "Buscar",
-    description: q ? `Productos destacados para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
+    description: q ? `Resultados para "${q}" en Tienda Osvaldo.` : "Buscá productos para mascotas.",
     openGraph:   { title: q ? `Buscar: "${q}" — Tienda Osvaldo` : "Buscar — Tienda Osvaldo" },
     // Sin canónica a propósito: es noindex y mezclar las dos señales confunde a Google (S1-10).
     robots:      { index: false, follow: false },
   }
 }
 
-const LIMIT     = 16
-const MAX_FETCH = 96
+const LIMIT = 16
 
 export default async function SearchPage({ searchParams }: Props) {
   const sp    = await searchParams
   const query = sp.q?.trim() ?? ""
-  const page  = Math.max(1, parseInt(sp.pagina ?? "1", 10))
+  const page  = Math.max(1, parseInt(sp.pagina ?? "1", 10) || 1)
 
-  let allProducts: MLProductFull[] = []
-
-  if (query) {
-    try {
-      allProducts = await searchByHighlights(query, MAX_FETCH)
-    } catch (e) {
-      console.error("[buscar] Error al buscar productos:", (e as Error).message)
-    }
-  }
+  // Busca en el catálogo curado, sin la API de ML (S1-12).
+  const allProducts: MLProductFull[] = query ? buscarCurados(query).map(curadoATarjeta) : []
 
   const total      = allProducts.length
   const totalPages = Math.max(1, Math.ceil(total / LIMIT))
@@ -67,7 +59,7 @@ export default async function SearchPage({ searchParams }: Props) {
           {query && (
             <p className={styles.searchMeta}>
               {total > 0
-                ? <>Productos destacados para <strong>&ldquo;{query}&rdquo;</strong></>
+                ? <>{total} {total === 1 ? "producto" : "productos"} para <strong>&ldquo;{query}&rdquo;</strong></>
                 : <>Sin resultados para <strong>&ldquo;{query}&rdquo;</strong></>}
             </p>
           )}
@@ -90,7 +82,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <div className={styles.empty}>
             <span>🐾</span>
             <p>Osvaldo buscó pero no encontró nada para <strong>&ldquo;{query}&rdquo;</strong>.</p>
-            <p className={styles.emptySub}>Probá con otro término o explorá las categorías.</p>
+            <p className={styles.emptySub}>Buscamos entre los productos seleccionados del sitio. Probá con otra palabra (por ejemplo: pretal, arena o cama) o explorá las categorías.</p>
             <Link href="/categoria/mascotas" className="btn btn-ghost">
               Ver todas las categorías →
             </Link>
