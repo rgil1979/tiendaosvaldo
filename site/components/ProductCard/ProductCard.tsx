@@ -46,14 +46,13 @@ export default function ProductCard({ product, badge }: Props) {
 
       {/* Body */}
       <div className={styles.body}>
-        <div className={styles.meta}>
-          <span className={product.condition === "new" ? styles.tagNew : styles.tagUsed}>
-            {product.condition === "new" ? "Nuevo" : "Usado"}
-          </span>
-          {product.accepts_mercadopago && (
+        {/* Sin etiqueta de condición: el catálogo curado es todo nuevo y la tarjeta
+            no tiene el dato real de cada publicación (S1-09). */}
+        {product.accepts_mercadopago && (
+          <div className={styles.meta}>
             <span className={styles.tagMP}>MP</span>
-          )}
-        </div>
+          </div>
+        )}
 
         <a href={product.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.titleLink}>
           <h3 className={styles.title}>{product.name}</h3>

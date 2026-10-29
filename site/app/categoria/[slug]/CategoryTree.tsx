@@ -1,13 +1,13 @@
 "use client"
 import Link from "next/link"
+import { SLUG_CONFIG } from "@/config/site.config"
 import styles from "./CategoryTree.module.css"
 
-const CATEGORIAS_CURADAS = [
-  { slug: "collares",   name: "Collares y arneses" },
-  { slug: "camas",      name: "Camas y cuchas" },
-  { slug: "juguetes",   name: "Juguetes" },
-  { slug: "accesorios", name: "Accesorios" },
-]
+// Los nombres salen de SLUG_CONFIG para que cada categoría tenga uno solo en todo el sitio (S1-09).
+const CATEGORIAS_CURADAS = ["collares", "camas", "juguetes", "accesorios"].map((slug) => ({
+  slug,
+  name: SLUG_CONFIG[slug].label,
+}))
 
 type MascotaFilter = "perro" | "gato"
 
